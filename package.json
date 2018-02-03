@@ -1,0 +1,14 @@
+{
+  "name": "dixitonline",
+  "version": "1.0.0",
+  "description": "Dixit Online Side Project",
+  "main": "index.js",
+  "repository": "https://github.com/PCreations/dixitonline.git",
+  "author": "Pierre Criulanscy <pcriulan@gmail.com>",
+  "license": "MIT",
+  "private": true,
+  "devDependencies": {
+    "lerna": "^2.8.0"
+  },
+  "publish": "lerna run test && lerna publish --skip-npm"
+}
