@@ -9,7 +9,7 @@
 
 ## Game round
 
- - The storyteller selects one card from her hand, and write down a short sentence, or simple word, to describe the card. The description should not be to easy, nor to hard to find.
+ - The storyteller selects one card from her hand, and write down a short sentence, or simple word, to describe the card. The description should not be too easy, nor too hard to find.
  - Each player selects the card from her own hand that best fits the storyteller's description.
  - The 6 cards are shuffled, then showed to all players
  - Each player (but the storyteller) secretly votes for the card she think is the storyteller's card
@@ -23,4 +23,4 @@
 
 ## Game end
 
- - The game ends when a player reachs 30 points or when the card deck is empty.
+ - The game ends when a player reachs 30 points or when the deck is empty.
