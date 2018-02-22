@@ -1,0 +1,9 @@
+mutation submitSignup($signupData: SignupInputData!) {
+  submitSignup(signupData: $signupData) {
+    success
+    errors {
+      field
+      reason
+    }
+  }
+}
