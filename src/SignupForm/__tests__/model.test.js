@@ -1,11 +1,5 @@
 /*global expect*/
-import { Observable, TestScheduler } from 'rxjs';
-
 import { getSignupFormFieldErrors, MISSING_FIELD, BAD_FORMAT, PASSWORDS_MISSMATCH } from '../model';
-
-const deepEquals = (actual, expected) => expect(actual).toEqual(expected);
-
-const createTestScheduler = new TestScheduler(deepEquals);
 
 describe('signup form data client validation', () => {
   test('all fields are correctly filled', () => {
@@ -107,16 +101,5 @@ describe('signup form data client validation', () => {
       passwordConfirmation: PASSWORDS_MISSMATCH,
     };
     expect(actual).toEqual(expected);
-  });
-});
-
-describe('signup side effect flow logic', () => {
-  test('when signup succeeds the user should be considered as authenticated', () => {
-    /*
-    default state { user : { authenticated: false } }
-    const signupFormModel = createSignupFormModel({ connector });
-    await signupFormModel.submit(signupData);
-    expect(state.isAuthenticated()).toEqual(true);
-    */
   });
 });
