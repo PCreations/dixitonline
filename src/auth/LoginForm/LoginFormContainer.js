@@ -2,9 +2,9 @@ import React from 'react';
 import * as R from 'ramda';
 import { compose, withReducer, withProps, lifecycle } from 'recompose';
 
-import mergeAppliedFns from '../utils/mergeAppliedFns';
-import SignupForm from './SignupForm';
-import { reducer, inputChange, validateInputs, submitted, defaultState } from './state';
+import mergeAppliedFns from '../../utils/mergeAppliedFns';
+import LoginForm from './LoginForm';
+import { inputChange, submitted, reducer, defaultState, validateInputs } from './state';
 
 const createInputChangeEventHandler = dispatch => inputName => event =>
   dispatch(inputChange(inputName, event.target.value));
@@ -17,47 +17,43 @@ const extractErrorsPropsFromServerErrors = R.pipe(R.reduce(R.merge, {}), buildEr
 const mapHandlersToProps = props => {
   const changeHandler = createInputChangeEventHandler(props.dispatchFormAction);
   return {
-    onUsernameChange: changeHandler('username'),
     onEmailChange: changeHandler('email'),
     onPasswordChange: changeHandler('password'),
-    onPasswordConfirmationChange: changeHandler('passwordConfirmation'),
     onSubmit: () => props.dispatchFormAction(submitted()),
   };
 };
 
-const extractSignupFormPropsFromState = mergeAppliedFns([
+const extractLoginFormPropsFromState = mergeAppliedFns([
   extractInputsPropsFromState,
   extractErrorsPropsFromState,
   mapHandlersToProps,
 ]);
 
 const FormState = withReducer('formState', 'dispatchFormAction', reducer, defaultState);
-const MapFormStateToProps = withProps(extractSignupFormPropsFromState);
-const SubmitSignupWhenFormIsValid = lifecycle({
+const MapFormStateToProps = withProps(extractLoginFormPropsFromState);
+const SubmitLoginWhenFormIsValid = lifecycle({
   componentWillReceiveProps(nextProps) {
     if (this.props.formState.submitted === false && nextProps.formState.submitted === true) {
       this.props.dispatchFormAction(validateInputs());
     }
     if (nextProps.formState.submitted === true && nextProps.formState.isValid === true) {
-      this.props.submitSignup(this.props.formState.inputs);
+      this.props.submitLogin(this.props.formState.inputs);
     }
   },
 });
 
-const enhance = compose(FormState, MapFormStateToProps, SubmitSignupWhenFormIsValid);
+const enhance = compose(FormState, MapFormStateToProps, SubmitLoginWhenFormIsValid);
 
 const FunctionAsAChild = ({ children, ...rest }) => children(rest);
 
-const SignupFormProvider = enhance(FunctionAsAChild);
+const LoginFormProvider = enhance(FunctionAsAChild);
 
-const SignupFormContainer = ({ serverErrors = [], submitSignup }) => {
-  return (
-    <SignupFormProvider serverErrors={serverErrors} submitSignup={submitSignup}>
-      {signupFormProps => (
-        <SignupForm {...R.merge(signupFormProps, extractErrorsPropsFromServerErrors(serverErrors))} />
-      )}
-    </SignupFormProvider>
-  );
-};
+const LoginFormContainer = ({ serverErrors = [], submitLogin }) => (
+  <LoginFormProvider serverErrors={serverErrors} submitLogin={submitLogin}>
+    {loginFormProps => (
+      <LoginForm {...R.merge(loginFormProps, extractErrorsPropsFromServerErrors(serverErrors))} />
+    )}
+  </LoginFormProvider>
+);
 
-export default SignupFormContainer;
+export default LoginFormContainer;

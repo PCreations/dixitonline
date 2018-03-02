@@ -1,37 +1,33 @@
 /*global expect*/
 import { inputChange, validateInputs, submitted, reducer, defaultState } from '../state';
-import { MISSING_FIELD } from '../model';
+import { MISSING_FIELD } from '../../model';
 
-describe('sign up form reducer', () => {
+describe('login form reducer', () => {
   test('should reduce submitted action', () => {
     const actualState = reducer({}, submitted());
     expect(actualState.submitted).toBe(true);
   });
   test('should reduce inputChange action', () => {
-    const actualState = reducer({}, inputChange('username', 'foo'));
-    expect(actualState.inputs.username).toBe('foo');
+    const actualState = reducer({}, inputChange('email', 'foo@example.com'));
+    expect(actualState.inputs.email).toBe('foo@example.com');
   });
   test('should set submitted to false when inputChange action is reduced', () => {
-    const actualState = reducer({ submitted: true }, inputChange('username', 'foo'));
+    const actualState = reducer({ submitted: true }, inputChange('email', 'foo@example.com'));
     expect(actualState.submitted).toBe(false);
   });
   test('should reduce validateInputs action and set isValid to false if there are errors', () => {
     const state = {
       ...defaultState,
       inputs: {
-        username: '',
         email: '',
         password: '',
-        passwordConfirmation: '',
       },
       isValid: true,
     };
     const actualState = reducer(state, validateInputs());
     expect(actualState.errors).toEqual({
-      username: MISSING_FIELD,
       email: MISSING_FIELD,
       password: MISSING_FIELD,
-      passwordConfirmation: MISSING_FIELD,
     });
     expect(actualState.isValid).toBe(false);
   });
@@ -39,10 +35,8 @@ describe('sign up form reducer', () => {
     const state = {
       ...defaultState,
       inputs: {
-        username: 'foo',
         email: 'foo@example.com',
         password: 'password',
-        passwordConfirmation: 'password',
       },
     };
     const actualState = reducer(state, validateInputs());
@@ -53,14 +47,12 @@ describe('sign up form reducer', () => {
     const state = {
       ...defaultState,
       inputs: {
-        username: '',
         email: '',
         password: '',
-        passwordConfirmation: '',
       },
     };
     const actualState = reducer(state, validateInputs());
-    const stateAfterInputChanged = reducer(actualState, inputChange('username', 'foo'));
-    expect(Object.keys(stateAfterInputChanged.errors).indexOf('username')).toBe(-1);
+    const stateAfterInputChanged = reducer(actualState, inputChange('email', 'foo@example.com'));
+    expect(Object.keys(stateAfterInputChanged.errors).indexOf('email')).toBe(-1);
   });
 });

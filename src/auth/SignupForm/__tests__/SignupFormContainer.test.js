@@ -8,8 +8,8 @@ import {
   EMAIL_ALREADY_IN_USE,
   USERNAME_ALREADY_IN_USE,
   WEAK_PASSWORD,
-} from '../model';
-import { InputField } from '../SignupForm';
+} from '../../model';
+import InputField from '../../InputField';
 import SignupFormContainer from '../SignupFormContainer';
 
 describe('SignupFormContainer', () => {

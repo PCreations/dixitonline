@@ -1,5 +1,11 @@
 /*global expect*/
-import { getSignupFormFieldErrors, MISSING_FIELD, BAD_FORMAT, PASSWORDS_MISSMATCH } from '../model';
+import {
+  getSignupFormFieldErrors,
+  getLoginFormFieldErrors,
+  MISSING_FIELD,
+  BAD_FORMAT,
+  PASSWORDS_MISSMATCH,
+} from '../model';
 
 describe('signup form data client validation', () => {
   test('all fields are correctly filled', () => {
@@ -12,6 +18,7 @@ describe('signup form data client validation', () => {
     const expected = {};
     expect(actual).toEqual(expected);
   });
+
   test('username field is missing', () => {
     const actual = getSignupFormFieldErrors({
       email: 'foo@example.com',
@@ -23,6 +30,7 @@ describe('signup form data client validation', () => {
     };
     expect(actual).toEqual(expected);
   });
+
   test('email field is missing', () => {
     const actual = getSignupFormFieldErrors({
       username: 'foo',
@@ -99,6 +107,44 @@ describe('signup form data client validation', () => {
     });
     const expected = {
       passwordConfirmation: PASSWORDS_MISSMATCH,
+    };
+    expect(actual).toEqual(expected);
+  });
+});
+
+describe('signup form data client validation', () => {
+  test('all fields are correctly filled', () => {
+    const actual = getLoginFormFieldErrors({
+      email: 'foo@example.com',
+      password: 'pass',
+    });
+    const expected = {};
+    expect(actual).toEqual(expected);
+  });
+
+  test('email field is missing', () => {
+    const actual = getLoginFormFieldErrors({
+      password: 'pass',
+    });
+    const expected = {
+      email: MISSING_FIELD,
+    };
+    expect(actual).toEqual(expected);
+  });
+  test('password field is missing', () => {
+    const actual = getLoginFormFieldErrors({
+      email: 'foo@example.com',
+    });
+    const expected = {
+      password: MISSING_FIELD,
+    };
+    expect(actual).toEqual(expected);
+  });
+  test('many fields are missing', () => {
+    const actual = getLoginFormFieldErrors({});
+    const expected = {
+      email: MISSING_FIELD,
+      password: MISSING_FIELD,
     };
     expect(actual).toEqual(expected);
   });
