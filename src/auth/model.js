@@ -1,5 +1,6 @@
 import { pipe, reduce, merge } from 'ramda';
 
+export const COLLECTION_NAME = 'users';
 export const MISSING_FIELD = 'MISSING_FIELD';
 export const BAD_FORMAT = 'BAD_FORMAT';
 export const PASSWORDS_MISSMATCH = 'PASSWORDS_MISSMATCH';
@@ -38,3 +39,16 @@ export const getSignupFormFieldErrors = applyValidators([
 ]);
 
 export const getLoginFormFieldErrors = applyValidators([validateRequiredFields(['email', 'password'])]);
+
+export const signup = connector => ({ username, password, email }) =>
+  connector.signup({ username, password, email });
+
+export const getUserByUsername = connector => username =>
+  connector.getOneBy({ collection: COLLECTION_NAME, field: 'username', value: username });
+
+export default connector => ({
+  signup: signup(connector),
+  getUserByUsername: getUserByUsername(connector),
+  authStateChange$: connector.authStateChange$,
+  currentUser: connector.currentAuthUser,
+});

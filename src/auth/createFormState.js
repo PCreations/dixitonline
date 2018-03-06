@@ -7,12 +7,14 @@ export const PASSWORD_INPUT = 'password';
 export const PASSWORD_CONFIRMATION_INPUT = 'passwordConfirmation';
 
 export default ({ getFormFieldErrors, inputs }) => {
-  const { inputChange, validateInputs, submitted } = createActions(
+  const { inputChange, validateInputs, submitted, serverErrors } = createActions(
     {
       INPUT_CHANGE: [(name, value) => ({ value }), (name, value) => ({ name })],
+      SERVER_ERRORS: errors => ({ errors }),
     },
     'VALIDATE_INPUTS',
     'SUBMITTED',
+    'SUBMITTING',
   );
 
   const handleInputChange = (state, action) => {
@@ -42,6 +44,18 @@ export default ({ getFormFieldErrors, inputs }) => {
   const reducer = handleActions(
     {
       INPUT_CHANGE: handleInputChange,
+      SERVER_ERRORS: (state, { payload: { errors } }) => ({
+        ...state,
+        errors: {
+          ...state.errors,
+          ...errors.reduce((errs, error) => ({
+            ...errs,
+            ...error,
+          })),
+        },
+        isValid: false,
+        submitted: false,
+      }),
       VALIDATE_INPUTS: state => {
         const errors = getFormFieldErrors(
           Object.keys(state.inputs).reduce(
@@ -67,5 +81,18 @@ export default ({ getFormFieldErrors, inputs }) => {
   );
   const getInputs = R.prop('inputs');
   const getErrors = R.prop('errors');
-  return { defaultState, reducer, getInputs, getErrors, inputChange, validateInputs, submitted };
+  const isSubmitted = R.prop('submitted');
+  const isValid = R.prop('isValid');
+  return {
+    defaultState,
+    reducer,
+    getInputs,
+    getErrors,
+    isSubmitted,
+    isValid,
+    inputChange,
+    validateInputs,
+    submitted,
+    serverErrors,
+  };
 };

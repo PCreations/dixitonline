@@ -7,9 +7,12 @@ const {
   defaultState,
   getInputs,
   getErrors,
+  isSubmitted,
+  isValid,
   inputChange,
   validateInputs,
   submitted,
+  serverErrors,
 } = createFormState({
   getFormFieldErrors: applyValidators([validateRequiredFields([EMAIL_INPUT, USERNAME_INPUT])]),
   inputs: [EMAIL_INPUT, USERNAME_INPUT],
@@ -19,6 +22,25 @@ describe('reducer', () => {
   test('should reduce submitted action', () => {
     const actualState = reducer({}, submitted());
     expect(actualState.submitted).toBe(true);
+  });
+  test('should reduce serverErrors action', () => {
+    const actualState = reducer(
+      { isValid: true, submitted: true },
+      serverErrors([
+        {
+          username: 'error',
+        },
+        {
+          password: 'other error',
+        },
+      ]),
+    );
+    expect(getErrors(actualState)).toEqual({
+      username: 'error',
+      password: 'other error',
+    });
+    expect(actualState.isValid).toBe(false);
+    expect(actualState.submitted).toBe(false);
   });
   test('should reduce inputChange action', () => {
     const actualState = reducer({}, inputChange(EMAIL_INPUT, 'foo@example.com'));
@@ -71,6 +93,12 @@ describe('reducer', () => {
 });
 
 describe('selectors', () => {
+  test('isSubmitted should return the submitted prop', () => {
+    expect(isSubmitted(defaultState)).toEqual(false);
+  });
+  test('isValid should return the isValid prop', () => {
+    expect(isValid(defaultState)).toEqual(false);
+  });
   test('getInputs should return inputs slice', () => {
     expect(getInputs(defaultState)).toEqual({
       [EMAIL_INPUT]: '',

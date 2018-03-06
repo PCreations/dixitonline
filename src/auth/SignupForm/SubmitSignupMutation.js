@@ -1,21 +1,26 @@
 import React from 'react';
-import withState from 'recompose/withState';
-import withProps from 'recompose/withProps';
+import { graphql } from 'react-apollo';
 import compose from 'recompose/compose';
 
-const ServerErrorsState = withState('serverErrors', 'setServerErrors', []);
+import SUBMIT_SIGNUP_MUTATION from './submitSignupMutation.graphql';
 
-const SetErrorsStateOnSignupFailure = withProps(({ submitSignup, setServerErrors }) => ({
-  submitSignup: async ({ username, email, password }) => {
-    const { success, errors } = await submitSignup({ username, email, password });
-    if (success === false) {
-      setServerErrors(errors);
-    }
-  },
-}));
+const enhance = graphql(SUBMIT_SIGNUP_MUTATION, {
+  props: props => ({
+    submitSignup: async ({ username, email, password }) => {
+      const { data } = await props.mutate({
+        variables: {
+          signupData: { username, email, password },
+        },
+      });
+      return {
+        success: data.submitSignup.success,
+        errors: data.submitSignup.errors.reduce(
+          (errors, error) => errors.concat({ [error.field]: error.reason }),
+          [],
+        ),
+      };
+    },
+  }),
+});
 
-const enhance = compose(ServerErrorsState, SetErrorsStateOnSignupFailure);
-
-export default enhance(({ serverErrors, submitSignup, SignupForm }) => (
-  <SignupForm serverErrors={serverErrors} submitSignup={submitSignup} />
-));
+export default enhance(({ submitSignup, children }) => children({ submitSignup }));

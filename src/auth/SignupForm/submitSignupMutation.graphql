@@ -1,5 +1,5 @@
 mutation submitSignup($signupData: SignupInputData!) {
-  submitSignup(signupData: $signupData) {
+  submitSignup(signupData: $signupData) @client {
     success
     errors {
       field
