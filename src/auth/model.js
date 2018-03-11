@@ -48,7 +48,6 @@ export const getUserByUsername = connector => username =>
 
 export default connector => ({
   signup: signup(connector),
-  getUserByUsername: getUserByUsername(connector),
   authStateChange$: connector.authStateChange$,
   currentUser: connector.currentAuthUser,
 });

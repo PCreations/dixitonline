@@ -1,6 +1,6 @@
 import * as firebase from 'firebase';
 import 'firebase/firestore';
-import { Observable } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 
 import createConnector from './createConnector';
 
@@ -17,8 +17,18 @@ firebase.initializeApp(config);
 
 firebase.auth().onAuthStateChanged(user => console.log('FIREBASE USER', user && user.displayName));
 
-const authStateChange$ = Observable.fromEventPattern(handler =>
-  firebase.auth().onAuthStateChanged(handler),
+const authUserSubject$ = new Subject();
+
+const authStateChange$ = Observable.merge(
+  authUserSubject$,
+  Observable.fromEventPattern(handler => firebase.auth().onAuthStateChanged(handler)).map(
+    user =>
+      user && {
+        id: user.uid,
+        username: user.displayName,
+        email: user.email,
+      },
+  ),
 ).do(user => console.log('OBS FIREBASE USER', user));
 
 const createUserAndLogin = async ({ username, email, password }) => {
@@ -27,7 +37,11 @@ const createUserAndLogin = async ({ username, email, password }) => {
     await user.updateProfile({
       displayName: username,
     });
-    await user.reload();
+    return {
+      id: user.uid,
+      email: user.email,
+      username: username,
+    };
   } catch (e) {
     throw e;
   }

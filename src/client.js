@@ -33,7 +33,24 @@ const stateLink = withClientState({
     Mutation: {
       submitSignup: async (_, { signupData }, { cache }) => {
         try {
-          await Auth.signup(signupData);
+          const user = await Auth.signup(signupData);
+          cache.writeQuery({
+            query: gql`
+              query GetAuthUser {
+                authUser @client {
+                  id
+                  username
+                  email
+                }
+              }
+            `,
+            data: {
+              authUser: {
+                ...user,
+                __typename: 'User',
+              },
+            },
+          });
           return {
             success: true,
             errors: [],
@@ -42,6 +59,7 @@ const stateLink = withClientState({
         } catch (error) {
           if (error.code == 'auth/email-already-in-use') {
             return {
+              user: null,
               success: false,
               errors: [
                 {
@@ -55,6 +73,7 @@ const stateLink = withClientState({
           }
           if (error.code == 'auth/invalid-email') {
             return {
+              user: null,
               success: false,
               errors: [
                 {
@@ -68,6 +87,7 @@ const stateLink = withClientState({
           }
           if (error.code == 'auth/weak-password') {
             return {
+              user: null,
               success: false,
               errors: [
                 {
@@ -90,41 +110,25 @@ const client = new ApolloClient({
   cache,
 });
 
-Auth.authStateChange$
-  .map(
-    user =>
-      user === null
-        ? null
-        : {
-            id: user.uid,
-            username: user.displayName,
-            email: user.email,
-          },
-  )
-  .do(authUser => console.log('AUTH USER', authUser))
-  .subscribe(authUser => {
-    const data = {
-      authUser: authUser && {
-        ...authUser,
-        __typename: 'User',
-      },
-    };
-    const cacheObj = cache.extract();
-    console.log('WRITTING DATA', data);
-    client.writeQuery({
-      query: gql`
-        query GetAuthUser {
-          authUser @client {
-            id
-            username
-            email
-          }
+Auth.authStateChange$.do(authUser => console.log('AUTH USER', authUser)).subscribe(authUser => {
+  const data = {
+    authUser: authUser && {
+      ...authUser,
+      __typename: 'User',
+    },
+  };
+  client.writeQuery({
+    query: gql`
+      query GetAuthUser {
+        authUser @client {
+          id
+          username
+          email
         }
-      `,
-      data,
-    });
-    const cacheObjAfter = cache.extract();
-    console.log('after');
+      }
+    `,
+    data,
   });
+});
 
 export default client;
