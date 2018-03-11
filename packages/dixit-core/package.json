@@ -1,0 +1,8 @@
+{
+  "devDependencies": {
+    "tape": "^4.9.0"
+  },
+  "dependencies": {
+    "immutable": "^3.8.2"
+  }
+}
