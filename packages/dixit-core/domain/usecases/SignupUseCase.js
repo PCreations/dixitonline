@@ -1,6 +1,6 @@
 const { Record, List } = require('immutable');
 
-const createUser = require('../../entities/User');
+const createUser = require('../entities/User');
 
 const BAD_FORMAT = 'BAD_FORMAT';
 const MISSING_FIELD = 'MISSING_FIELD';
@@ -23,42 +23,68 @@ const createBadEmailFormatError = () => new SignupDataError({ field: 'username',
 
 const createMissingFieldError = field => new SignupDataError({ field, error: MISSING_FIELD });
 
-const createPasswordMissmatchError = () => new SignupDataError({ field: 'passwordConfirmation', erorr: PASSWORDS_MISSMATCH });
+const createPasswordMissmatchError = () =>
+  new SignupDataError({ field: 'passwordConfirmation', erorr: PASSWORDS_MISSMATCH });
 
 const createWeakPasswordError = () => new SignupDataError({ field: 'password', error: WEAK_PASSWORD });
 
-const createEmailAlreadyInUseError = () => new SignupDataError({ field: 'email', error: EMAIL_ALREADY_IN_USE });
+const createEmailAlreadyInUseError = () =>
+  new SignupDataError({ field: 'email', error: EMAIL_ALREADY_IN_USE });
 
 const createSignupResponse = ({ user, errors }) => new SignupResponse({ user, errors: List(errors) });
 
-const getInputSignupDataIntegrityErrors = inputSignupData => List().concat(
-  inputSignupData.toSeq().filter(isFieldMissing).map((_, field) => createMissingFieldError(field)).toList(),
-  isValidEmail(inputSignupData.email) ? List() : List.of(createBadEmailFormatError()),
-  arePasswordsMatching(inputSignupData) ? List() : List.of(createPasswordMissmatchError()),
-).filter(val => val !== null);
+const getInputSignupDataIntegrityErrors = inputSignupData =>
+  List()
+    .concat(
+      inputSignupData
+        .toSeq()
+        .filter(isFieldMissing)
+        .map((_, field) => createMissingFieldError(field))
+        .toList(),
+      isValidEmail(inputSignupData.email) ? List() : List.of(createBadEmailFormatError()),
+      arePasswordsMatching(inputSignupData) ? List() : List.of(createPasswordMissmatchError()),
+    )
+    .filter(val => val !== null);
 
-
-const createSignupRequest = ({ isWeakPasswordError, isEmailAlreadyInUseError, getUser, request }) => async () => {
+const createSignupRequest = ({
+  isWeakPasswordError,
+  isEmailAlreadyInUseError,
+  getUser,
+  request,
+}) => async () => {
   try {
     const result = await request();
     const user = getUser(result);
-    return createSignupResponse({ user: createUser({
-      username: user.username,
-      id: user.id,
-    }) });
+    return createSignupResponse({
+      user: createUser({
+        username: user.username,
+        id: user.id,
+      }),
+    });
   } catch (err) {
     if (isWeakPasswordError(err)) {
-      return createSignupResponse({ errors: [createWeakPasswordError()]});
+      return createSignupResponse({ errors: [createWeakPasswordError()] });
     }
     if (isEmailAlreadyInUseError(err)) {
-      return createSignupResponse({ errors: [createEmailAlreadyInUseError()]});
+      return createSignupResponse({ errors: [createEmailAlreadyInUseError()] });
     }
     throw err;
   }
 };
 
-const signup = async ({ inputSignupData, isWeakPasswordError, isEmailAlreadyInUseError, getUser, request }) => {
-  const signupRequest = createSignupRequest({ isWeakPasswordError, isEmailAlreadyInUseError, getUser, request });
+const createSignupUseCase = ({
+  inputSignupData,
+  isWeakPasswordError,
+  isEmailAlreadyInUseError,
+  getUser,
+  request,
+}) => async () => {
+  const signupRequest = createSignupRequest({
+    isWeakPasswordError,
+    isEmailAlreadyInUseError,
+    getUser,
+    request,
+  });
   const integrityErrors = getInputSignupDataIntegrityErrors(inputSignupData);
   if (integrityErrors.size > 0) {
     return createSignupResponse({ errors: integrityErrors });
@@ -74,5 +100,5 @@ module.exports = {
   createPasswordMissmatchError,
   createWeakPasswordError,
   createEmailAlreadyInUseError,
-  signup,
+  createSignupUseCase,
 };

@@ -1,0 +1,24 @@
+0 silly input [ 'dixit-core' ]
+1 silly flags { _: [ 'add' ],
+1 silly flags   'reject-cycles': false,
+1 silly flags   rejectCycles: false,
+1 silly flags   scope: 'dixit-react',
+1 silly flags   args: [ 'dixit-core' ] }
+2 verbose rootPath /root/Repositories/Pro/dixitonline
+3 info version 2.9.0
+4 silly isInitialized
+5 silly isInitialized true
+6 silly existsSync /root/Repositories/Pro/dixitonline/VERSION
+7 info scope dixit-react
+8 silly initialize attempt
+9 error initialize callback with error
+10 error TypeError: Invalid comparator: ^undefined
+10 error     at Comparator.parse (/usr/local/share/.config/yarn/global/node_modules/semver/semver.js:678:11)
+10 error     at new Comparator (/usr/local/share/.config/yarn/global/node_modules/semver/semver.js:662:8)
+10 error     at /usr/local/share/.config/yarn/global/node_modules/semver/semver.js:828:12
+10 error     at Array.map (<anonymous>)
+10 error     at Range.parseRange (/usr/local/share/.config/yarn/global/node_modules/semver/semver.js:827:13)
+10 error     at Range.<anonymous> (/usr/local/share/.config/yarn/global/node_modules/semver/semver.js:769:17)
+10 error     at Array.map (<anonymous>)
+10 error     at new Range (/usr/local/share/.config/yarn/global/node_modules/semver/semver.js:768:40)
+10 error     at Function.intersects (/usr/local/share/.config/yarn/global/node_modules/semver/semver.js:1293:8)
