@@ -1,0 +1,11 @@
+{
+  "name": "dixit-core",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "immutable": "^3.8.2",
+    "uuid": "^3.3.2"
+  }
+}

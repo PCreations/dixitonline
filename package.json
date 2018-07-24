@@ -8,7 +8,7 @@
   "license": "MIT",
   "private": true,
   "devDependencies": {
-    "lerna": "^2.8.0"
+    "lerna": "^2.11.0"
   },
   "publish": "lerna run test && lerna publish --skip-npm"
 }
