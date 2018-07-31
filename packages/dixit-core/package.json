@@ -6,6 +6,11 @@
   "private": true,
   "dependencies": {
     "immutable": "^3.8.2",
+    "invariant": "^2.2.4",
     "uuid": "^3.3.2"
+  },
+  "devDependencies": {
+    "@types/uuid": "^3.4.3",
+    "cucumber": "^4.2.1"
   }
 }

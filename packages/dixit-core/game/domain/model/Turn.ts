@@ -1,6 +1,6 @@
 import { Player } from './Player';
 import { TurnPhase } from './TurnPhase';
-import { EntityId } from '../../../EntityId';
+import { EntityId } from '../../../common/domain/model/EntityId';
 
 export type Turn = {
   id: EntityId;

@@ -1,7 +1,7 @@
-import { EntityId } from '../../../EntityId';
+import { EntityId, default as createEntityId } from '../../../common/domain/model/EntityId';
 
 export type Card = {
-  id: EntityId;
+  cardId: EntityId;
   playerId: EntityId;
   imageSrc: string;
 };

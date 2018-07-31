@@ -1,13 +1,13 @@
-import uuid from 'uuid/v1';
+import { v1 as uuid } from 'uuid';
 
 type UUID = string;
 
-export type EntityId = { readonly value: UUID };
+export type EntityId = { readonly id: UUID };
 
 export default (): EntityId => {
   const id: UUID = uuid();
   return {
-    get value() {
+    get id() {
       return id;
     },
   };

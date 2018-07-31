@@ -1,4 +1,4 @@
-import { EntityId } from '../../../EntityId';
+import { EntityId } from '../../../common/domain/model/EntityId';
 import { Deck } from './Deck';
 
 export type DrawPile = {
