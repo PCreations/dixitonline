@@ -7,6 +7,17 @@
     {
       "type": "node",
       "request": "launch",
+      "name": "Dixit Core Test",
+      "cwd": "${workspaceFolder}/packages/dixit-core/",
+      "program": "${workspaceFolder}/packages/dixit-core/node_modules/cucumber/bin/cucumber-js",
+      "args": ["features/"],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "preLaunchTask": "npm: build"
+    },
+    {
+      "type": "node",
+      "request": "launch",
       "name": "Test",
       "program": "${workspaceFolder}/packages/dixit-data/node_modules/jest/bin/jest.js"
     }

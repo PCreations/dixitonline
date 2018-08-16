@@ -32,4 +32,8 @@ node_modules/
 # dotenv environment variables file
 .env
 
+#TSC generated files
+**/*.js
+**/*.js.map
+
 .DS_Store
