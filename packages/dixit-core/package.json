@@ -12,14 +12,15 @@
   "devDependencies": {
     "@types/chai": "^4.1.4",
     "@types/cucumber": "^4.0.4",
+    "@types/jest": "^23.3.1",
     "@types/uuid": "^3.4.3",
     "chai": "^4.1.2",
     "cucumber": "^4.2.1",
-    "rimraf": "^2.6.2"
+    "jest": "^23.5.0",
+    "rimraf": "^2.6.2",
+    "ts-jest": "^23.1.3"
   },
   "scripts": {
-    "build": "yarn clean && tsc",
-    "clean": "find . -not -path './node_modules/*'  -type f -iname '*.js' -delete -o -not -path './node_modules/*' -iname '*.js.map' -delete",
-    "test:game": "yarn build && cucumber-js features/"
+    "test:game": "cucumber-js features/"
   }
 }

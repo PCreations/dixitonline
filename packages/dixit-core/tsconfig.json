@@ -2,6 +2,7 @@
   "compilerOptions": {
     "strict": true,
     "target": "es5",
-    "sourceMap": true
+    "sourceMap": true,
+    "lib": ["es2015"]
   }
 }
