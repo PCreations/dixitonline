@@ -1,0 +1,19 @@
+{
+  "name": "dixit-core",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "private": true,
+  "devDependencies": {
+    "@types/lodash": "^4.14.116",
+    "@types/ramda": "^0.25.38",
+    "invariant": "^2.2.4"
+  },
+  "dependencies": {
+    "express": "^4.16.3",
+    "immutable": "^3.8.2",
+    "lodash": "^4.17.11",
+    "ramda": "^0.25.0",
+    "rxjs": "^6.3.2"
+  }
+}
