@@ -1,5 +1,5 @@
 const { EventEmitter } = require('events');
-const { ProjectionStore } = require('../../domain/projectionStore');
+const { ProjectionStore } = require('../domain/projectionStore');
 
 const InMemoryProjectionStore = () => {
   const projections = {};

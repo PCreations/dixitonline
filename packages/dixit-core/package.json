@@ -10,6 +10,7 @@
     "invariant": "^2.2.4"
   },
   "dependencies": {
+    "dixit-utils": "^1.0.0",
     "express": "^4.16.3",
     "immutable": "^3.8.2",
     "lodash": "^4.17.11",

@@ -1,0 +1,11 @@
+{
+  "name": "dixit-utils",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "invariant": "^2.2.4",
+    "lodash": "^4.17.11"
+  }
+}

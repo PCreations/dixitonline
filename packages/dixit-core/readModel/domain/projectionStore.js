@@ -8,7 +8,6 @@ const ProjectionStore = ({ saveProjection, getProjection, projectionsUpdatesEmit
   return {
     lobby: {
       async save({ gamesList }) {
-        debugger;
         return saveProjection({ name: 'lobby', projection: { gamesList } });
       },
       $: lobby$,

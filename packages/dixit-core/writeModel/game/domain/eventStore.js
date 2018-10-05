@@ -1,5 +1,5 @@
 const invariant = require('invariant');
-const { withParams } = require('../../utils/withParams');
+const { withParams } = require('dixit-utils');
 
 const EventStore = ({ getEventsForStreamName, saveEventsForStreamName }) => {
   const getStreamName = withParams(['name', 'id'], ({ name, id }) => `${name}-${id}`);
