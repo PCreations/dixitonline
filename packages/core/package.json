@@ -1,0 +1,9 @@
+{
+  "name": "core",
+  "version": "1.0.0",
+  "dependencies": {
+    "immutable": "^4.0.0-rc.12",
+    "invariant": "^2.2.4",
+    "lodash.flow": "^3.5.0"
+  }
+}
