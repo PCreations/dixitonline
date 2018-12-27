@@ -3,24 +3,25 @@ const {
   commands: { types: commandTypes },
 } = require('../domain/game/commands');
 const { createNewGame, startGame, addPlayerInGame } = require('../domain/game/behaviors');
-const { selectPlayerOfId, selectGameOfId } = require('../domain/state');
 
-const gameCommandHandlers = ({ getNextGameId }) => ({
-  [commandTypes.CREATE_GAME]: (state, createGameCommand) => {
-    validateCommandHasExpectedPayload(createGameCommand, 'hostPlayerId');
-    const playerState = selectPlayerOfId(state, createGameCommand.payload.hostPlayerId);
+const gameCommandHandlers = ({ getGameOfId, getNextGameId }) => ({
+  [commandTypes.CREATE_GAME]: (_, authUser) => {
     const gameId = getNextGameId();
-    return createNewGame({ playerState, gameId });
+    return createNewGame({ hostPlayerName: authUser.name, hostPlayerId: authUser.id, gameId });
   },
-  [commandTypes.START_GAME]: (state, startGameCommand) => {
+  [commandTypes.START_GAME]: async startGameCommand => {
     validateCommandHasExpectedPayload(startGameCommand, 'gameId');
-    const gameState = selectGameOfId(state, startGameCommand.payload.gameId);
+    const gameState = await getGameOfId(startGameCommand.payload.gameId);
     return startGame({ gameState });
   },
-  [commandTypes.ADD_PLAYER_IN_GAME]: (state, addPlayerInGameCommand) => {
-    validateCommandHasExpectedPayload(addPlayerInGameCommand, 'gameId', 'playerId');
-    const gameState = selectGameOfId(state, addPlayerInGameCommand.payload.gameId);
-    return addPlayerInGame({ gameState, playerId: addPlayerInGameCommand.payload.playerId });
+  [commandTypes.JOIN_GAME]: async (joinGameCommand, authUser) => {
+    validateCommandHasExpectedPayload(joinGameCommand, 'gameId');
+    const gameState = await getGameOfId(joinGameCommand.payload.gameId);
+    return addPlayerInGame({
+      gameState,
+      playerId: authUser.id,
+      playerName: authUser.name,
+    });
   },
 });
 

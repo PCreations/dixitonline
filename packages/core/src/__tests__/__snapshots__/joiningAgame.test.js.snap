@@ -1,0 +1,37 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Feature: joining a game given the authenticated user being player42 and the lobby containing a game with id game41 with player41 in it when player42 joins the game41 then the lobby should contain game41 with both players in player's list: lobby should contain the game41 with player 41 in it 1`] = `
+Object {
+  "games": Object {
+    "game41": Object {
+      "id": "game41",
+      "players": Array [
+        Object {
+          "id": "player41",
+          "name": "player 41",
+        },
+      ],
+    },
+  },
+}
+`;
+
+exports[`Feature: joining a game given the authenticated user being player42 and the lobby containing a game with id game41 with player41 in it when player42 joins the game41 then the lobby should contain game41 with both players in player's list: lobby should contain the game41 with the player "player 41" and "player 42" as players 1`] = `
+Object {
+  "games": Object {
+    "game41": Object {
+      "id": "game41",
+      "players": Array [
+        Object {
+          "id": "player41",
+          "name": "player 41",
+        },
+        Object {
+          "id": "player42",
+          "name": "player 42",
+        },
+      ],
+    },
+  },
+}
+`;

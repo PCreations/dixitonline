@@ -1,0 +1,34 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Feature: creating a game given the authenticated user being user42 and the lobby being empty when user42 creates a new game then the lobby should contain the created game with user42 in player's list: lobby should be empty 1`] = `
+Object {
+  "games": Object {},
+}
+`;
+
+exports[`Feature: creating a game given the authenticated user being user42 and the lobby being empty when user42 creates a new game then the lobby should contain the created game with user42 in player's list: lobby should contain the created game with the player "player42" as the only player 1`] = `
+Object {
+  "games": Object {
+    "game42": Object {
+      "id": "game42",
+      "players": Array [
+        Object {
+          "id": "42",
+          "name": "player42",
+        },
+      ],
+    },
+  },
+}
+`;
+
+exports[`Feature: creating a game given the authenticated user being user42 and the lobby being empty when user42 creates a new game then the lobby should contain the created game with user42 in player's list: lobby should only contains the new empty game 1`] = `
+Object {
+  "games": Object {
+    "game42": Object {
+      "id": "game42",
+      "players": Array [],
+    },
+  },
+}
+`;

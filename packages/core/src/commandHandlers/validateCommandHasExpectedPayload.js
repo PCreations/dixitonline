@@ -1,3 +1,5 @@
+const invariant = require('invariant');
+
 const validateCommandHasExpectedPayload = (command = {}, ...expectedPayloadProperties) => {
   invariant(
     typeof command.payload !== 'undefined',

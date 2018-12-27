@@ -2,14 +2,14 @@ const invariant = require('invariant');
 const { events } = require('./events');
 const { canPlayerJoinGame, canGameBeStarted } = require('./state');
 
-const createNewGame = ({ playerState, gameId }) => [
+const createNewGame = ({ hostPlayerName, hostPlayerId, gameId }) => [
   events.gameCreated({ gameId }),
-  events.playerHasJoinedAgame({ gameId, playerId: playerState.id }),
+  events.playerHasJoinedAgame({ gameId, playerName: hostPlayerName, playerId: hostPlayerId }),
 ];
 
-const addPlayerInGame = ({ gameState, playerId }) => {
+const addPlayerInGame = ({ gameState, playerId, playerName }) => {
   invariant(canPlayerJoinGame({ gameState, playerId }), 'Impossible to join the game');
-  return [events.playerHasJoinedAgame({ gameId: gameState.id, playerId })];
+  return [events.playerHasJoinedAgame({ gameId: gameState.id, playerId, playerName })];
 };
 
 const startGame = ({ gameState }) => {

@@ -1,29 +1,46 @@
 const { EventEmitter } = require('events');
 const { DixitCore } = require('../index');
-const { LobbyQuery } = require('../queries/lobbyQuery');
+const { LobbyQuery, reduceToLobby } = require('../queries/lobbyQuery');
 const { getGameOfId } = require('../domain/game/getGameOfId');
-const {
-  events: { types: gameEventTypes },
-} = require('../domain/game/events');
+const { events: gameEvents } = require('../domain/game/events');
 const { commands: gameCommands } = require('../domain/game/commands');
 
-describe('Feature: creating a game', () => {
-  describe('given the authenticated user being user42', () => {
-    describe('and the lobby being empty', () => {
-      describe('when user42 creates a new game', () => {
-        test("then the lobby should contain the created game with user42 in player's list", async done => {
-          expect.assertions(3);
+process.on('unhandledRejection', reason => console.error(reason));
+
+describe('Feature: joining a game', () => {
+  describe('given the authenticated user being player42', () => {
+    describe('and the lobby containing a game with id game41 with player41 in it', () => {
+      describe('when player42 joins the game41', () => {
+        test("then the lobby should contain game41 with both players in player's list", async done => {
+          expect.assertions(2);
           const eventEmitter = new EventEmitter();
           const sendCommand = command => eventEmitter.emit('command', command);
           const dispatchEvents = events => events.map(event => eventEmitter.emit('event', event));
           const consumeCommands = onCommand => eventEmitter.addListener('command', onCommand);
           const consumeEvents = onEvent => eventEmitter.addListener('event', onEvent);
-          const getNextGameId = () => 'game42';
+          const getNextGameId = () => {};
           let inMemoryEventStore = {
-            games: {},
+            __all__: [
+              gameEvents.gameCreated({ gameId: 'game41' }),
+              gameEvents.playerHasJoinedAgame({
+                gameId: 'game41',
+                playerId: 'player41',
+                playerName: 'player 41',
+              }),
+            ],
+            games: {
+              game41: [
+                gameEvents.gameCreated({ gameId: 'game41' }),
+                gameEvents.playerHasJoinedAgame({
+                  gameId: 'game41',
+                  playerId: 'player41',
+                  playerName: 'player 41',
+                }),
+              ],
+            },
           };
           const inMemoryViewStore = {
-            lobby: undefined,
+            lobby: inMemoryEventStore.__all__.reduce(reduceToLobby, undefined).toJS(),
           };
           const saveEvents = async events => {
             inMemoryEventStore = events.reduce((eventStore, event) => {
@@ -45,8 +62,8 @@ describe('Feature: creating a game', () => {
           };
           const run = DixitCore({
             getAuthUser: () => ({
-              id: '42',
-              name: 'player42',
+              id: 'player42',
+              name: 'player 42',
             }),
             consumeCommands,
             dispatchEvents,
@@ -61,19 +78,16 @@ describe('Feature: creating a game', () => {
             },
           });
           run();
-          expect(await getLobby()).toMatchSnapshot('lobby should be empty');
+          expect(await getLobby()).toMatchSnapshot('lobby should contain the game41 with player 41 in it');
           consumeEvents(async event => {
-            if (event.type === gameEventTypes.GAME_CREATED) {
-              expect(await getLobby()).toMatchSnapshot('lobby should only contains the new empty game');
-            }
-            if (event.type === gameEventTypes.PLAYER_HAS_JOINED_A_GAME) {
+            if (event.type === gameEvents.types.PLAYER_HAS_JOINED_A_GAME) {
               expect(await getLobby()).toMatchSnapshot(
-                'lobby should contain the created game with the player "player42" as the only player',
+                'lobby should contain the game41 with the player "player 41" and "player 42" as players',
               );
               done();
             }
           });
-          sendCommand(gameCommands.createGame());
+          sendCommand(gameCommands.joinGame({ gameId: 'game41' }));
         });
       });
     });
