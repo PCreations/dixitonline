@@ -44,7 +44,6 @@ const LobbyQuery = ({ consumeEvents, getLobby }) => {
   return async () => {
     if (!lobby) {
       const lobbyState = await getLobby();
-      debugger;
       lobby =
         typeof lobbyState === 'undefined'
           ? Lobby()
@@ -57,7 +56,6 @@ const LobbyQuery = ({ consumeEvents, getLobby }) => {
               ),
             });
       consumeEvents(event => {
-        debugger;
         lobby = reduceToLobby(lobby, event);
       });
     }
