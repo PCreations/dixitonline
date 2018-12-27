@@ -4,6 +4,12 @@
   "dependencies": {
     "immutable": "^4.0.0-rc.12",
     "invariant": "^2.2.4",
-    "lodash.flow": "^3.5.0"
+    "lodash.flow": "^3.5.0",
+    "redux": "^4.0.1",
+    "reselect": "^4.0.0",
+    "uuid": "^3.3.2"
+  },
+  "devDependencies": {
+    "jest": "^23.6.0"
   }
 }
