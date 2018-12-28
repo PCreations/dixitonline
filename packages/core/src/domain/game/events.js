@@ -19,6 +19,7 @@ const events = {
     DRAW_PILE_CONSTITUTED: '[event][game] - the draw pile has been constituted',
     GAME_STARTED: '[event][game] - the game has started',
     PLAYER_HAS_JOINED_A_GAME: '[event][game] - a player has joined the game',
+    PLAYER_HAS_QUITTED_A_GAME: '[event][game] - a player has quitted the game',
   },
   /**
    *
@@ -72,6 +73,18 @@ const events = {
     return GameEvent({
       type: events.types.PLAYER_HAS_JOINED_A_GAME,
       payload: { gameId, playerId, playerName },
+    });
+  },
+  /**
+   *
+   * @param {object} payload
+   * @param {string} payload.gameId - the id of the game
+   * @param {string} payload.playerId - the id of the player that has joined the game
+   */
+  playerHasQuittedAgame({ gameId, playerId }) {
+    return GameEvent({
+      type: events.types.PLAYER_HAS_QUITTED_A_GAME,
+      payload: { gameId, playerId },
     });
   },
 };

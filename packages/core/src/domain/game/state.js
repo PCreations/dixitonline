@@ -1,5 +1,6 @@
 const { Record, OrderedSet } = require('immutable');
 const { events } = require('./events');
+const { errors } = require('./errors');
 
 const MIN_PLAYERS_IN_A_GAME = 4;
 const MAX_PLAYERS_IN_A_GAME = 6;
@@ -21,10 +22,20 @@ const GameState = Record({
 });
 
 const canPlayerJoinGame = ({ gameState = GameState(), playerId } = {}) =>
-  gameState.players.size < MAX_PLAYERS_IN_A_GAME && !gameState.players.includes(playerId);
+  gameState.isStarted
+    ? errors.GAME_ALREADY_STARTED
+    : gameState.players.size === MAX_PLAYERS_IN_A_GAME
+    ? errors.IMPOSSIBLE_TO_JOIN_A_FULL_GAME
+    : gameState.players.includes(playerId)
+    ? errors.GAME_ALREADY_JOINED
+    : true;
 
 const canGameBeStarted = ({ gameState = GameState() } = {}) =>
-  gameState.players.size >= MAX_PLAYERS_IN_A_GAME && !gameState.isStarted;
+  gameState.players.size < MIN_PLAYERS_IN_A_GAME
+    ? errors.CANNOT_START_THE_GAME_NOT_ENOUGH_PLAYERS
+    : gameState.isStarted
+    ? errors.GAME_ALREADY_STARTED
+    : true;
 
 const Player = Record({
   id: undefined,

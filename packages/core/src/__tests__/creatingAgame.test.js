@@ -4,7 +4,14 @@ const {
 } = require('../domain/game/events');
 const { commands: gameCommands } = require('../domain/game/commands');
 
-describe('Feature: creating a game', () => {
+/**
+ * Feature : Creating a game
+ *
+ * As a Player
+ * I want to create a new game
+ * So other players can join this game
+ */
+describe('Scenario: creating a game when the lobby is empty', () => {
   describe('given the authenticated user being user42', () => {
     describe('and the lobby being empty', () => {
       describe('when user42 creates a new game', () => {

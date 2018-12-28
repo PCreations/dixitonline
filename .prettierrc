@@ -1,0 +1,8 @@
+{
+  "singleQuote": true,
+  "printWidth": 110,
+  "tabWidth": 2,
+  "trailingComma": "all",
+  "parser": "babylon",
+  "eslintIntegration": true
+}
