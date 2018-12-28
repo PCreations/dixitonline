@@ -1,0 +1,73 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Scenario: starting a game as the host of the game when the minimum number of player is reached given the authenticated user being player42 and the lobby containing a game with id game42 with more than 4 players in it when player42 starts the game42 then the lobby should not contain game42 anymore: lobby should contain the game42 with player 42, player 43, player 44 and player 45 in it 1`] = `
+Object {
+  "games": Object {
+    "game42": Object {
+      "id": "game42",
+      "players": Array [
+        Object {
+          "id": "player42",
+          "name": "player 42",
+        },
+        Object {
+          "id": "player43",
+          "name": "player 43",
+        },
+        Object {
+          "id": "player44",
+          "name": "player 44",
+        },
+        Object {
+          "id": "player45",
+          "name": "player 45",
+        },
+      ],
+    },
+  },
+}
+`;
+
+exports[`Scenario: starting a game as the host of the game when the minimum number of player is reached given the authenticated user being player42 and the lobby containing a game with id game42 with more than 4 players in it when player42 starts the game42 then the lobby should not contain game42 anymore: lobby should not contain the game42 anymore 1`] = `
+Object {
+  "games": Object {},
+}
+`;
+
+exports[`Scenario: starting a game when I'm the last player (reaching max players) given the authenticated user being player41 and the lobby containing a game with id game42 with 5 players in it when player41 join the game42 then game42 should be started and the lobby should not contain game42 anymore: lobby should contain the game42 with player 42, player 43, player 44, player 45 and player 46 in it 1`] = `
+Object {
+  "games": Object {
+    "game42": Object {
+      "id": "game42",
+      "players": Array [
+        Object {
+          "id": "player42",
+          "name": "player 42",
+        },
+        Object {
+          "id": "player43",
+          "name": "player 43",
+        },
+        Object {
+          "id": "player44",
+          "name": "player 44",
+        },
+        Object {
+          "id": "player45",
+          "name": "player 45",
+        },
+        Object {
+          "id": "player46",
+          "name": "player 46",
+        },
+      ],
+    },
+  },
+}
+`;
+
+exports[`Scenario: starting a game when I'm the last player (reaching max players) given the authenticated user being player41 and the lobby containing a game with id game42 with 5 players in it when player41 join the game42 then game42 should be started and the lobby should not contain game42 anymore: lobby should not contain the game42 anymore 1`] = `
+Object {
+  "games": Object {},
+}
+`;

@@ -1,7 +1,12 @@
 const invariant = require('invariant');
 const { events } = require('./events');
 const { errors } = require('./errors');
-const { canPlayerJoinGame, canGameBeStarted } = require('./state');
+const {
+  isMaximumNumberOfPlayersReached,
+  canPlayerJoinGame,
+  canGameBeStarted,
+  reduceToGame,
+} = require('./state');
 
 const createNewGame = ({ hostPlayerName, hostPlayerId, gameId }) => [
   events.gameCreated({ gameId }),
@@ -11,7 +16,12 @@ const createNewGame = ({ hostPlayerName, hostPlayerId, gameId }) => [
 const addPlayerInGame = ({ gameState, playerId, playerName }) => {
   const playerCanJoinGameOrError = canPlayerJoinGame({ gameState, playerId });
   invariant(playerCanJoinGameOrError === true, playerCanJoinGameOrError);
-  return [events.playerHasJoinedAgame({ gameId: gameState.id, playerId, playerName })];
+  const gameEvents = [events.playerHasJoinedAgame({ gameId: gameState.id, playerId, playerName })];
+  const newGameState = reduceToGame(gameEvents[0])(gameState);
+  if (isMaximumNumberOfPlayersReached({ gameState: newGameState })) {
+    gameEvents.push(events.gameStarted({ gameId: gameState.id }));
+  }
+  return gameEvents;
 };
 
 const removePlayerFromGame = ({ gameState, playerId }) => {

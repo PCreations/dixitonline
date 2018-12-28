@@ -1,8 +1,8 @@
-const { getDixitCore } = require('./testUtils');
+const { getDixitCore } = require('../testUtils');
 const {
   events: { types: gameEventTypes },
-} = require('../domain/game/events');
-const { commands: gameCommands } = require('../domain/game/commands');
+} = require('../../domain/game/events');
+const { commands: gameCommands } = require('../../domain/game/commands');
 
 /**
  * Feature : Creating a game

@@ -30,6 +30,8 @@ const canPlayerJoinGame = ({ gameState = GameState(), playerId } = {}) =>
     ? errors.GAME_ALREADY_JOINED
     : true;
 
+const isMaximumNumberOfPlayersReached = ({ gameState }) => gameState.players.size === MAX_PLAYERS_IN_A_GAME;
+
 const canGameBeStarted = ({ gameState = GameState() } = {}) =>
   gameState.players.size < MIN_PLAYERS_IN_A_GAME
     ? errors.CANNOT_START_THE_GAME_NOT_ENOUGH_PLAYERS
@@ -95,6 +97,7 @@ const reduceToPlayer = event => (playerState = Player()) => {
 };
 
 module.exports = {
+  isMaximumNumberOfPlayersReached,
   canGameBeStarted,
   canPlayerJoinGame,
   reduceToGame,

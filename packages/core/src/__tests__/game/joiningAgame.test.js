@@ -1,6 +1,6 @@
-const { getDixitCore } = require('./testUtils');
-const { events: gameEvents } = require('../domain/game/events');
-const { commands: gameCommands } = require('../domain/game/commands');
+const { getDixitCore } = require('../testUtils');
+const { events: gameEvents } = require('../../domain/game/events');
+const { commands: gameCommands } = require('../../domain/game/commands');
 
 /**
  * Feature : Joining a game
