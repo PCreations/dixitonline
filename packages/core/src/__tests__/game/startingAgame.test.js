@@ -15,7 +15,7 @@ describe('Scenario: starting a game as the host of the game when the minimum num
     describe('and the lobby containing a game with id game42 with more than 4 players in it', () => {
       describe('when player42 starts the game42', () => {
         test('then the lobby should not contain game42 anymore', async done => {
-          expect.assertions(2);
+          expect.assertions(4);
           const { viewStore, sendCommand, consumeEvents } = getDixitCore({
             history: [
               gameEvents.gameCreated({ gameId: 'game42' }),
@@ -48,10 +48,14 @@ describe('Scenario: starting a game as the host of the game when the minimum num
           expect(await viewStore.getLobby()).toMatchSnapshot(
             'lobby should contain the game42 with player 42, player 43, player 44 and player 45 in it',
           );
+          expect(await viewStore.getGameInfo('game42')).toMatchSnapshot('game42 should not be started');
           consumeEvents(async event => {
             if (event.type === gameEvents.types.GAME_STARTED) {
               expect(await viewStore.getLobby()).toMatchSnapshot(
                 'lobby should not contain the game42 anymore',
+              );
+              expect(await viewStore.getGameInfo('game42')).toMatchSnapshot(
+                'game42 should have its players order defined and the deck shuffled',
               );
               done();
             }

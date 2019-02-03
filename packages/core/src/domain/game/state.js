@@ -1,12 +1,17 @@
-const { Record, OrderedSet } = require('immutable');
+const { Record, OrderedSet, Set, Map } = require('immutable');
 const { events } = require('./events');
 const { errors } = require('./errors');
 
 const MIN_PLAYERS_IN_A_GAME = 4;
 const MAX_PLAYERS_IN_A_GAME = 6;
+const TOTAL_CARDS = 84;
 
 const DeckState = Record({
-  cards: OrderedSet([]),
+  cards: OrderedSet(
+    Array(TOTAL_CARDS)
+      .fill('')
+      .map((_, index) => index),
+  ),
 });
 
 const DrawState = Record({
@@ -17,8 +22,10 @@ const GameState = Record({
   id: undefined,
   deck: DeckState(),
   draw: DrawState(),
-  players: OrderedSet([]),
+  players: Set([]),
+  playersOrder: OrderedSet([]),
   isStarted: false,
+  hands: Map(),
 });
 
 const canPlayerJoinGame = ({ gameState = GameState(), playerId } = {}) =>
@@ -39,23 +46,17 @@ const canGameBeStarted = ({ gameState = GameState() } = {}) =>
     ? errors.GAME_ALREADY_STARTED
     : true;
 
-const Player = Record({
-  id: undefined,
-  name: undefined,
-  hand: OrderedSet([]),
-  points: 0,
-});
+const shuffleDeck = ({ gameState = GameState(), shuffle } = {}) => shuffle(gameState.deck.cards.toArray());
 
-const Turn = Record({
-  id: undefined,
-  storyteller: undefined,
-  phase: undefined,
-});
+const getNextStorytellerId = ({ gameState = GameState(), currentStorytellerPosition = -1 }) =>
+  gameState.playersOrder.get(
+    currentStorytellerPosition + 1 === gameState.players.size ? 0 : currentStorytellerPosition + 1,
+  );
 
 const reduceToDeck = event => (deckState = DeckState()) => {
   switch (event.type) {
     case events.types.DECK_SHUFFLED:
-      return deckState.update('cards', () => OrderedSet(event.payload.cards));
+      return deckState.update('cards', () => OrderedSet(event.payload.shuffledDeck));
   }
   return deckState;
 };
@@ -70,6 +71,9 @@ const reduceToDraw = event => (drawState = DrawState()) => {
 
 const reduceToGame = event => (gameState = GameState()) =>
   gameState.withMutations(state => {
+    if (event.type === events.types.DECK_SHUFFLED) {
+      debugger;
+    }
     let _state = state.update('deck', reduceToDeck(event)).update('draw', reduceToDraw(event));
     switch (event.type) {
       case events.types.GAME_CREATED:
@@ -79,27 +83,17 @@ const reduceToGame = event => (gameState = GameState()) =>
       case events.types.PLAYER_HAS_JOINED_A_GAME:
         return _state.update('players', players => players.add(event.payload.playerId));
       case events.types.PLAYERS_ORDER_DEFINED:
-        return _state.update('players', () => OrderedSet(event.payload.players));
+        return _state.update('playOrder', () => OrderedSet(event.payload.players));
       default:
         return _state;
     }
   });
 
-const reduceToPlayer = event => (playerState = Player()) => {
-  switch (event.type) {
-    case events.types.PLAYER_HAS_JOINED_A_GAME:
-      return playerState.withMutations(player =>
-        player.set('id', event.payload.playerId).set('name', event.payload.playerName),
-      );
-    default:
-      return playerState;
-  }
-};
-
 module.exports = {
   isMaximumNumberOfPlayersReached,
   canGameBeStarted,
   canPlayerJoinGame,
+  getNextStorytellerId,
   reduceToGame,
-  reduceToPlayer,
+  shuffleDeck,
 };

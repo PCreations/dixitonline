@@ -5,6 +5,7 @@ const errors = {
   GAME_ALREADY_JOINED: '[error][game] - impossible to join an already joined game',
   IMPOSSIBLE_TO_QUIT_THE_GAME: '[error][game] - impossible to quit the game',
   CANNOT_START_THE_GAME_NOT_ENOUGH_PLAYERS: '[error][game] - cannot start the game due to not enough players',
+  PLAYERS_ORDER_ALREADY_DEFINED: '[error][game] - the players order has already been defined for this game',
 };
 
 module.exports = {

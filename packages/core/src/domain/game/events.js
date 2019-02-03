@@ -20,6 +20,7 @@ const events = {
     GAME_STARTED: '[event][game] - the game has started',
     PLAYER_HAS_JOINED_A_GAME: '[event][game] - a player has joined the game',
     PLAYER_HAS_QUITTED_A_GAME: '[event][game] - a player has quitted the game',
+    PLAYERS_ORDER_DEFINED: '[event][game] - the order of players has been defined for a game',
   },
   /**
    *
@@ -32,10 +33,10 @@ const events = {
   /**
    * @param {object} payload
    * @param {string} payload.gameId - the id of the game
-   * @param {[string]} payload.cards - an array of the card's id, order in array represents the card's order
+   * @param {[string]} payload.shuffledDeck - an array of the cards
    */
-  deckShuffled({ gameId, cards }) {
-    return GameEvent({ type: events.types.DECK_SHUFFLED, payload: { gameId, cards } });
+  deckShuffled({ gameId, shuffledDeck }) {
+    return GameEvent({ type: events.types.DECK_SHUFFLED, payload: { gameId, shuffledDeck } });
   },
   /**
    * @param {object} payload
@@ -44,7 +45,7 @@ const events = {
    * @param {[string]} payload.cards - an array of the card's id, order in array represents the card's order
    */
   cardsDealtToPlayer({ gameId, playerId, cards }) {
-    return GameEvent({ type: events.types.CARDS_DEALT_TO_PLAYER, paylaod: { gameId, playerId, cards } });
+    return GameEvent({ type: events.types.CARDS_DEALT_TO_PLAYER, payload: { gameId, playerId, cards } });
   },
   /**
    * @param {object} payload
@@ -85,6 +86,18 @@ const events = {
     return GameEvent({
       type: events.types.PLAYER_HAS_QUITTED_A_GAME,
       payload: { gameId, playerId },
+    });
+  },
+  /**
+   *
+   * @param {object} payload
+   * @param {string} payload.gameId - the id of the game
+   * @param {[string]} payload.players - array of the players, by play order
+   */
+  playersOrderDefined({ gameId, players }) {
+    return GameEvent({
+      type: events.types.PLAYERS_ORDER_DEFINED,
+      payload: { gameId, players },
     });
   },
 };

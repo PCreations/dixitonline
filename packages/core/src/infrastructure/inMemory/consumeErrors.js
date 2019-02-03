@@ -1,4 +1,4 @@
-const consumeErrors = eventEmitter => onError => eventEmitter.on('error', onError);
+const consumeErrors = eventEmitter => onError => eventEmitter.on('customError', onError);
 
 module.exports = {
   consumeErrors,

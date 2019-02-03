@@ -5,22 +5,24 @@ const addCorrelationAndCausationIds = command => event => ({
   ...event,
   meta: {
     ...event.meta,
-    correlationId: command.correlationId,
-    causationId: command.causationId,
+    correlationId: command.meta.correlationId,
+    causationId: command.meta.causationId,
   },
 });
 
 const DixitCore = ({
   getAuthUser,
   getGameOfId,
+  getPlayerOfId,
   getNextGameId,
   dispatchEvents,
   saveEvents,
   consumeCommands,
   sendError,
+  shuffle,
 }) => () => {
   const commandHandlers = {
-    ...gameCommandHandlers({ getAuthUser, getGameOfId, getNextGameId }),
+    ...gameCommandHandlers({ getAuthUser, getGameOfId, getPlayerOfId, getNextGameId, shuffle }),
   };
   consumeCommands(async command => {
     const addCommandCorrelationAndCausationIdToEvent = addCorrelationAndCausationIds(command);

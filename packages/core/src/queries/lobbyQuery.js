@@ -39,11 +39,11 @@ const reduceToLobby = (lobby = Lobby(), event) => {
   }
 };
 
-const LobbyQuery = ({ consumeEvents, getLobby }) => {
+const LobbyQuery = ({ consumeEvents, getStoredLobbyView }) => {
   let lobby;
   return async () => {
     if (!lobby) {
-      const lobbyState = await getLobby();
+      const lobbyState = await getStoredLobbyView();
       lobby =
         typeof lobbyState === 'undefined'
           ? Lobby()

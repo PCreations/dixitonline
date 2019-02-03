@@ -29,11 +29,24 @@ const removePlayerFromGame = ({ gameState, playerId }) => {
   return [events.playerHasQuittedAgame({ gameState, playerId })];
 };
 
-const startGame = ({ gameState }) => {
+const startGame = ({ gameState, players, shuffledDeck }) => {
   const gameCanStartOrError = canGameBeStarted({ gameState });
   invariant(gameCanStartOrError === true, gameCanStartOrError);
-  return [events.gameStarted({ gameId: gameState.id })];
+  return [
+    ...definePlayersOrder({ gameState, players }),
+    ...shuffleDeck({ gameState, shuffledDeck }),
+    events.gameStarted({ gameId: gameState.id }),
+  ];
 };
+
+const definePlayersOrder = ({ gameState, players }) => {
+  invariant(gameState.playersOrder.size === 0, errors.PLAYERS_ORDER_ALREADY_DEFINED);
+  return [events.playersOrderDefined({ gameId: gameState.id, players })];
+};
+
+const shuffleDeck = ({ gameState, shuffledDeck }) => [
+  events.deckShuffled({ gameId: gameState.id, shuffledDeck }),
+];
 
 module.exports = {
   createNewGame,
