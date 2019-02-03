@@ -12,6 +12,8 @@ const { PlayerStore } = require('../infrastructure/inMemory/playerStore');
 const { ViewStore } = require('../infrastructure/inMemory/viewStore');
 const { GameProcessManager } = require('../processes/gameProcessManager');
 
+const shuffle = toShuffle => shuffleSeed.shuffle(toShuffle, 'dixit-test');
+
 const getDixitCore = ({ history = [], getNextGameId, getAuthUser }) => {
   const eventEmitter = new EventEmitter();
   const sendCommand = createSendCommand(eventEmitter);
@@ -20,7 +22,6 @@ const getDixitCore = ({ history = [], getNextGameId, getAuthUser }) => {
   const consumeCommands = createConsumeCommands(eventEmitter);
   const consumeErrors = createConsumeErrors(eventEmitter);
   const consumeEvents = createConsumeEvents(eventEmitter);
-  const shuffle = toShuffle => shuffleSeed.shuffle(toShuffle, 'dixit-test');
   const viewStore = ViewStore({ history, consumeEvents });
   const eventStore = EventStore(history);
   const playerStore = PlayerStore({
@@ -53,4 +54,5 @@ const getDixitCore = ({ history = [], getNextGameId, getAuthUser }) => {
 
 module.exports = {
   getDixitCore,
+  shuffle,
 };

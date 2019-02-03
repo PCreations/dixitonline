@@ -7,9 +7,9 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Launch Program",
+      "name": "test",
       "program": "${workspaceFolder}/node_modules/jest/bin/jest.js",
-      "args": ["starting"]
+      "args": ["startingNewTurn"]
     }
   ]
 }
