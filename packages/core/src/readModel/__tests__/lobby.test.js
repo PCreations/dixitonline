@@ -38,37 +38,71 @@ const reduceToLobby = (lobby = Lobby(), event) => {
   }
 };
 
-const LobbyQuery = ({ getLobby, addOnEventListener, saveLobby, getEventsFrom }) => {
-  const fromLobbyDataToImmutableLobby = lobbyData => {
-    return Lobby({
-      games: Object.keys(lobbyData.games).reduce(
-        (games, gameId) =>
-          games.set(
-            gameId,
-            Game({
-              id: gameId,
-              players: Set((lobbyData.games[gameId].players || []).map(p => Player(p))),
-            }),
-          ),
-        Map(),
-      ),
+/*const Query = ({ reduceToQueryResult, fromQueryDataToImmutableData }) => ({
+  getQuery,
+  saveQuery,
+  getEventsFrom,
+  addOnEventListener,
+}) => ({
+  async subscribe(notifyChange) {
+    addOnEventListener(async event => {
+      const queryResult = fromQueryDataToImmutableData(await getQuery());
+      const events = await getEventsFrom(event);
+      const updatedQueryResult = events.reduce(reduceToQueryResult, queryResult);
+      await saveQuery(updatedQueryResult.toJS());
+      notifyChange(updatedQueryResult.toJS());
     });
-  };
-  return {
-    async subscribe(listener) {
-      const lobby = fromLobbyDataToImmutableLobby(await getLobby());
-      addOnEventListener(async event => {
-        const lobbyData = await getLobby();
-        const lobby = fromLobbyDataToImmutableLobby(lobbyData);
-        const oldEvents = await getEventsFrom(event.meta.eventId);
-        const updatedLobby = oldEvents.reduce(reduceToLobby, lobby);
-        await saveLobby(updatedLobby.toJS());
-        listener(updatedLobby.toJS());
-      });
-      listener(lobby.toJS());
-    },
-  };
+    notifyChange(await getQuery());
+  },
+});*/
+
+const Projection = ({
+  reduceToQueryResult,
+  fromQueryDataToImmutableData,
+  getQuery,
+  saveQuery,
+  getEventsFrom,
+  notifyChange,
+}) => async event => {
+  const queryResult = fromQueryDataToImmutableData(await getQuery());
+  const events = await getEventsFrom(event);
+  const updatedQueryResult = events.reduce(reduceToQueryResult, queryResult);
+  await saveQuery(updatedQueryResult.toJS());
+  notifyChange(updatedQueryResult.toJS());
 };
+
+const Query = ({ getQuery, addOnQueryChangeListener }) => ({
+  async subscribe(notifyChange) {
+    addOnQueryChangeListener(notifyChange);
+    notifyChange(await getQuery());
+  },
+});
+
+const fromLobbyDataToImmutableLobby = lobbyData => {
+  return Lobby({
+    games: Object.keys(lobbyData.games).reduce(
+      (games, gameId) =>
+        games.set(
+          gameId,
+          Game({
+            id: gameId,
+            players: Set((lobbyData.games[gameId].players || []).map(p => Player(p))),
+          }),
+        ),
+      Map(),
+    ),
+  });
+};
+
+const LobbyProjection = ({ getQuery, getEventsFrom, saveQuery, notifyChange }) =>
+  Projection({
+    reduceToQueryResult: reduceToLobby,
+    fromQueryDataToImmutableData: fromLobbyDataToImmutableLobby,
+    getQuery,
+    saveQuery,
+    getEventsFrom,
+    notifyChange,
+  });
 
 const EventStore = () => {
   const events = [];
@@ -82,8 +116,8 @@ const EventStore = () => {
     subscribe(listener) {
       listeners.push(listener);
     },
-    getEventsFrom(eventId) {
-      const eventIndex = eventIds().indexOf(eventId);
+    getEventsFrom(event) {
+      const eventIndex = eventIds().indexOf(event.meta.eventId);
       if (eventIndex === -1) {
         throw new Error(`event with id ${eventId} not found in ${eventIds().join(',')}`);
       }
@@ -95,10 +129,9 @@ const EventStore = () => {
 describe('given an empty lobby query', () => {
   describe('when subscribing to lobby query', () => {
     test('then the empty lobby query should be returned', done => {
-      const lobbyQuery = LobbyQuery({
-        getLobby: () => Lobby().toJS(),
-        addOnEventListener: () => {},
-        getEventsFrom: () => {},
+      const lobbyQuery = Query({
+        getQuery: () => Lobby().toJS(),
+        addOnQueryChangeListener: () => {},
       });
       lobbyQuery.subscribe(lobbyData => {
         expect(lobbyData).toMatchSnapshot('lobby query result should be empty');
@@ -119,10 +152,9 @@ describe('given a stored lobby query', () => {
           }),
         }),
       }).toJS();
-      const lobbyQuery = LobbyQuery({
-        getLobby: async () => storedLobbyQuery,
-        addOnEventListener: () => {},
-        saveLobby: () => {},
+      const lobbyQuery = Query({
+        getQuery: async () => storedLobbyQuery,
+        addOnQueryChangeListener: () => {},
       });
       lobbyQuery.subscribe(lobbyData => {
         expect(lobbyData).toMatchSnapshot('lobby query should contain game g1 with players p1 and p2');
@@ -133,12 +165,19 @@ describe('given a stored lobby query', () => {
         const eventStore = EventStore();
         let updates = 0;
         const storedLobbyQuery = Lobby().toJS();
-        const addOnEventListener = eventStore.subscribe;
-        const lobbyQuery = LobbyQuery({
-          getLobby: async () => storedLobbyQuery,
-          addOnEventListener,
-          saveLobby: () => {},
+        const listeners = [];
+        const lobbyProjection = LobbyProjection({
+          getQuery: async () => storedLobbyQuery,
           getEventsFrom: eventStore.getEventsFrom,
+          saveQuery: () => {},
+          notifyChange: lobbyQueryResult => listeners.map(listener => listener(lobbyQueryResult)),
+        });
+        eventStore.subscribe(event => lobbyProjection(event));
+        const lobbyQuery = Query({
+          getQuery: async () => storedLobbyQuery,
+          addOnQueryChangeListener: listener => {
+            listeners.push(listener);
+          },
         });
         await lobbyQuery.subscribe(lobbyData => {
           updates += 1;
@@ -153,20 +192,25 @@ describe('given a stored lobby query', () => {
         test('then the lobby query should contain the created game with the player that joined the game', async done => {
           const eventStore = EventStore();
           let updates = 0;
+          const listeners = [];
+          const saveQuery = lobbyData => {
+            viewStore.lobby = lobbyData;
+          };
+          const lobbyProjection = LobbyProjection({
+            getQuery: async () => viewStore.lobby,
+            getEventsFrom: eventStore.getEventsFrom,
+            saveQuery,
+            notifyChange: lobbyQueryResult => listeners.map(listener => listener(lobbyQueryResult)),
+          });
           const viewStore = {
             lobby: Lobby().toJS(),
           };
-          const saveLobby = lobbyData => {
-            viewStore.lobby = lobbyData;
-          };
-          const addOnEventListener = eventStore.subscribe;
-          const lobbyQuery = LobbyQuery({
-            getLobby: async () => {
-              return viewStore.lobby;
+          eventStore.subscribe(event => lobbyProjection(event));
+          const lobbyQuery = Query({
+            getQuery: async () => viewStore.lobby,
+            addOnQueryChangeListener: listener => {
+              listeners.push(listener);
             },
-            addOnEventListener,
-            saveLobby,
-            getEventsFrom: eventStore.getEventsFrom,
           });
           await lobbyQuery.subscribe(lobbyData => {
             updates += 1;
