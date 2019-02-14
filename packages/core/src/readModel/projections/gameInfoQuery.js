@@ -41,7 +41,12 @@ const GameInfoQuery = ({ consumeEvents, getStoredGameInfoView }) => {
               deck: OrderedSet(gameInfoState.deck),
             });
       consumeEvents(event => {
-        games[gameId] = reduceToGameInfo(games[gameId], event);
+        if (
+          [gameEventTypes.PLAYERS_ORDER_DEFINED, gameEventTypes.DECK_SHUFFLED].includes(event.type) &&
+          event.payload.gameId === gameId
+        ) {
+          games[gameId] = reduceToGameInfo(games[gameId], event);
+        }
       });
     }
     return games[gameId].toJS();

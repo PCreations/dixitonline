@@ -9,7 +9,7 @@
       "request": "launch",
       "name": "test",
       "program": "${workspaceFolder}/node_modules/jest/bin/jest.js",
-      "args": ["startingNewTurn"]
+      "args": ["lobby"]
     }
   ]
 }

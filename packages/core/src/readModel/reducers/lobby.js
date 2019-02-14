@@ -1,7 +1,7 @@
 const { Record, Map, Set } = require('immutable');
 const {
   events: { types: gameEventTypes },
-} = require('../domain/game/events');
+} = require('../../domain/game/events');
 
 const Lobby = Record({
   games: Map(),
@@ -39,31 +39,10 @@ const reduceToLobby = (lobby = Lobby(), event) => {
   }
 };
 
-const LobbyQuery = ({ consumeEvents, getStoredLobbyView }) => {
-  let lobby;
-  return async () => {
-    if (!lobby) {
-      const lobbyState = await getStoredLobbyView();
-      lobby =
-        typeof lobbyState === 'undefined'
-          ? Lobby()
-          : Lobby({
-              games: Map(
-                Object.keys(lobbyState.games).map(gameId => [
-                  gameId,
-                  Game({ id: gameId, players: Set(lobbyState.games[gameId].players) }),
-                ]),
-              ),
-            });
-      consumeEvents(event => {
-        lobby = reduceToLobby(lobby, event);
-      });
-    }
-    return lobby.toJS();
-  };
-};
+const createLobbyReducer = () => reduceToLobby;
 
 module.exports = {
-  reduceToLobby,
-  LobbyQuery,
+  Lobby,
+  createLobbyReducer,
+  handledEvents: [gameEventTypes.GAME_CREATED, gameEventTypes.PLAYER_HAS_JOINED_A_GAME],
 };

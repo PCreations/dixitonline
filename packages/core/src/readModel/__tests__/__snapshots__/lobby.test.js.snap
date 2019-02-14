@@ -1,0 +1,54 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`given a stored lobby query when subscribing to lobby query and an new game created event is received and a new player has joined game event is received then the lobby query should contain the created game with the player that joined the game: lobby query should contain the newly created game with the player that just joined the game 1`] = `
+Object {
+  "games": Object {
+    "g1": Object {
+      "id": "g1",
+      "players": Array [
+        Object {
+          "id": "p1",
+          "name": "player1",
+        },
+      ],
+    },
+  },
+}
+`;
+
+exports[`given a stored lobby query when subscribing to lobby query and an new game created event is received then the lobby query should contain the created game: lobby query should contain the newly created game 1`] = `
+Object {
+  "games": Object {
+    "g1": Object {
+      "id": "g1",
+      "players": Array [],
+    },
+  },
+}
+`;
+
+exports[`given a stored lobby query when subscribing to lobby query then stored lobby query should be returned: lobby query should contain game g1 with players p1 and p2 1`] = `
+Object {
+  "games": Object {
+    "g1": Object {
+      "id": "g1",
+      "players": Array [
+        Object {
+          "id": "p1",
+          "name": "player1",
+        },
+        Object {
+          "id": "p2",
+          "name": "player2",
+        },
+      ],
+    },
+  },
+}
+`;
+
+exports[`given an empty lobby query when subscribing to lobby query then the empty lobby query should be returned: lobby query result should be empty 1`] = `
+Object {
+  "games": Object {},
+}
+`;

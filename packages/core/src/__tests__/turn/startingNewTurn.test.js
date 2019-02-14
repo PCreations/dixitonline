@@ -15,7 +15,7 @@ const { commands: gameCommands } = require('../../domain/game/commands');
 describe('Scenario: starting the first game turn', () => {
   describe('given a game not yet started', () => {
     describe('when the game is started', () => {
-      test('then a new turn should be created and the storyteller phase started', async done => {
+      test.skip('then a new turn should be created and the storyteller phase started', async done => {
         expect.assertions(6);
         const { viewStore, sendCommand, consumeEvents } = getDixitCore({
           history: [
