@@ -18,26 +18,30 @@ const Player = Record({
   name: undefined,
 });
 
-const reduceToLobby = (lobby = Lobby(), event) => {
-  switch (event.type) {
-    case gameEventTypes.GAME_CREATED:
-      return lobby.setIn(['games', event.payload.gameId], Game({ id: event.payload.gameId }));
-    case gameEventTypes.PLAYER_HAS_JOINED_A_GAME:
-      return lobby.updateIn(['games', event.payload.gameId], game =>
-        game.update('players', players =>
-          players.add(
-            Player({
-              id: event.payload.playerId,
-              name: event.payload.playerName,
-            }),
-          ),
+const eventHandlers = {
+  [gameEventTypes.GAME_CREATED]: (lobby, event) =>
+    lobby.setIn(['games', event.payload.gameId], Game({ id: event.payload.gameId })),
+  [gameEventTypes.PLAYER_HAS_JOINED_A_GAME]: (lobby, event) =>
+    lobby.updateIn(['games', event.payload.gameId], game =>
+      game.update('players', players =>
+        players.add(
+          Player({
+            id: event.payload.playerId,
+            name: event.payload.playerName,
+          }),
         ),
-      );
-    case gameEventTypes.GAME_STARTED:
-      return lobby.removeIn(['games', event.payload.gameId]);
-    default:
-      return lobby;
+      ),
+    ),
+  [gameEventTypes.GAME_STARTED]: (lobby, event) => lobby.removeIn(['games', event.payload.gameId]),
+};
+
+const handledEventTypes = Object.keys(eventHandlers);
+
+const reduceToLobby = (lobby = Lobby(), event) => {
+  if (!handledEventTypes.includes(event.type)) {
+    return lobby;
   }
+  return eventHandlers[event.type](lobby, event);
 };
 
 const fromLobbyDataToImmutableLobby = lobbyData => {
@@ -60,7 +64,7 @@ const fromLobbyDataToImmutableLobby = lobbyData => {
 
 const LobbyProjection = ({ getQuery, saveQuery, getEventsFrom, notifyChange }) =>
   Projection({
-    handledEventTypes: [gameEventTypes.GAME_CREATED, gameEventTypes.PLAYER_HAS_JOINED_A_GAME],
+    handledEventTypes,
     reduceToQueryResult: reduceToLobby,
     fromQueryDataToImmutableData: fromLobbyDataToImmutableLobby,
     getQuery,
