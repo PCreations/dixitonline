@@ -1,7 +1,8 @@
 const { Record, Map, Set } = require('immutable');
+const { Projection } = require('./projection');
 const {
   events: { types: gameEventTypes },
-} = require('../../domain/game/events');
+} = require('../domain/game/events');
 
 const Lobby = Record({
   games: Map(),
@@ -18,7 +19,6 @@ const Player = Record({
 });
 
 const reduceToLobby = (lobby = Lobby(), event) => {
-  debugger;
   switch (event.type) {
     case gameEventTypes.GAME_CREATED:
       return lobby.setIn(['games', event.payload.gameId], Game({ id: event.payload.gameId }));
@@ -40,27 +40,37 @@ const reduceToLobby = (lobby = Lobby(), event) => {
   }
 };
 
-const updateLobbyProjectionOnEvent = ({ getLobby, saveLobby, notifyLobbyChanges }) => async event => {
-  if (handledEvents.includes(event.type)) {
-    const lobbyState = await getLobby();
-    const updatedLobby = reduceToLobby(lobbyState, event);
-    try {
-      await saveLobby(updatedLobby);
-      notifyLobbyChanges(updatedLobby);
-    } catch (e) {}
-  }
+const fromLobbyDataToImmutableLobby = lobbyData => {
+  return typeof lobbyData === 'undefined'
+    ? Lobby()
+    : Lobby({
+        games: Object.keys(lobbyData.games).reduce(
+          (games, gameId) =>
+            games.set(
+              gameId,
+              Game({
+                id: gameId,
+                players: Set((lobbyData.games[gameId].players || []).map(p => Player(p))),
+              }),
+            ),
+          Map(),
+        ),
+      });
 };
 
-const lobbyQuery = ({ getLobby, saveLobby, notifyLobbyChanges, addOnNewEventListener }) => {
-  const listeners = [];
-  addOnNewEventListener(updateLobbyProjectionOnEvent({ getLobby, saveLobby, notifyLobbyChanges }));
-  return {
-    subscribe(listener) {
-      listeners.push(listener);
-    },
-  };
-};
+const LobbyProjection = ({ getQuery, saveQuery, getEventsFrom, notifyChange }) =>
+  Projection({
+    handledEventTypes: [gameEventTypes.GAME_CREATED, gameEventTypes.PLAYER_HAS_JOINED_A_GAME],
+    reduceToQueryResult: reduceToLobby,
+    fromQueryDataToImmutableData: fromLobbyDataToImmutableLobby,
+    getQuery,
+    saveQuery,
+    getEventsFrom,
+    notifyChange,
+  });
 
 module.exports = {
-  updateLobbyProjectionOnEvent,
+  fromLobbyDataToImmutableLobby,
+  reduceToLobby,
+  LobbyProjection,
 };
