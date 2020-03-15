@@ -1,0 +1,1038 @@
+[debug] [2020-03-16T22:52:01.312Z] ----------------------------------------------------------------------
+[debug] [2020-03-16T22:52:01.314Z] Command:       /usr/local/bin/node /usr/local/bin/firebase emulators:start --only functions
+[debug] [2020-03-16T22:52:01.314Z] CLI Version:   7.14.0
+[debug] [2020-03-16T22:52:01.314Z] Platform:      darwin
+[debug] [2020-03-16T22:52:01.314Z] Node Version:  v10.18.1
+[debug] [2020-03-16T22:52:01.315Z] Time:          Mon Mar 16 2020 23:52:01 GMT+0100 (GMT+01:00)
+[debug] [2020-03-16T22:52:01.315Z] ----------------------------------------------------------------------
+[debug] [2020-03-16T22:52:01.315Z] 
+[debug] [2020-03-16T22:52:01.323Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2020-03-16T22:52:01.323Z] > authorizing via signed-in user
+[info] i  emulators: Starting emulators: functions
+[debug] [2020-03-16T22:52:01.378Z] [hub] writing locator at /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/hub-dixit-af060.json
+[info] ✔  hub: emulator hub started at http://localhost:4400
+[info] ✔  functions: Using node@10 from host.
+[info] ✔  functions: functions emulator started at http://localhost:5001
+[info] i  functions: Watching "/Users/pierre/Repositories/dixitonline/functions" for Cloud Functions...
+[debug] [2020-03-16T22:52:01.668Z] [worker-pool] addWorker(~diagnostic~)
+[debug] [2020-03-16T22:52:01.668Z] [worker-pool] Adding worker with key ~diagnostic~, total=1
+[debug] [2020-03-16T22:52:01.668Z] [worker-pool] submitWork(triggerId=)
+[debug] [2020-03-16T22:52:01.668Z] [worker-~diagnostic~-e98f9f7f-d0c4-4ed8-abfc-b1debe34a039]: Assigning socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_89608.sock
+[debug] [2020-03-16T22:52:01.669Z] [worker-~diagnostic~-e98f9f7f-d0c4-4ed8-abfc-b1debe34a039]: BUSY
+[debug] [2020-03-16T22:52:01.994Z] [runtime-status] [89608] Functions runtime initialized. {"cwd":"/Users/pierre/Repositories/dixitonline/functions","node_version":"10.18.1"}
+[debug] [2020-03-16T22:52:01.995Z] [runtime-status] [89608] Disabled runtime features: undefined
+[debug] [2020-03-16T22:52:01.998Z] [runtime-status] [89608] Resolved module firebase-admin {"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}
+[debug] [2020-03-16T22:52:01.999Z] [runtime-status] [89608] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T22:52:02.194Z] [runtime-status] [89608] Found google-gax at /Users/pierre/Repositories/dixitonline/functions/node_modules/google-gax/build/src/index.js
+[debug] [2020-03-16T22:52:02.194Z] [runtime-status] [89608] Outgoing network have been stubbed. [{"name":"http","status":"mocked"},{"name":"http","status":"mocked"},{"name":"https","status":"mocked"},{"name":"https","status":"mocked"},{"name":"net","status":"mocked"},{"name":"google-gax","status":"mocked"}]
+[debug] [2020-03-16T22:52:02.242Z] [runtime-status] [89608] Checked functions.config() {"config":{}}
+[debug] [2020-03-16T22:52:02.243Z] [runtime-status] [89608] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T22:52:02.244Z] [runtime-status] [89608] Resolved module firebase-admin {"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}
+[debug] [2020-03-16T22:52:02.244Z] [runtime-status] [89608] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T22:52:02.289Z] [runtime-status] [89608] firebase-admin has been stubbed. {"adminResolution":{"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}}
+[warn] ⚠  Error: Must provide only one schema definition.
+
+There can be only one query type in schema.
+    at assertValidSDL (/Users/pierre/Repositories/dixitonline/functions/node_modules/graphql/validation/validate.js:108:11)
+    at Object.buildASTSchema (/Users/pierre/Repositories/dixitonline/functions/node_modules/graphql/utilities/buildASTSchema.js:71:34)
+    at Object.buildSchemaFromTypeDefinitions (/Users/pierre/Repositories/dixitonline/functions/node_modules/graphql-tools/dist/generate/buildSchemaFromTypeDefinitions.js:25:28)
+    at makeExecutableSchema (/Users/pierre/Repositories/dixitonline/functions/node_modules/graphql-tools/dist/makeExecutableSchema.js:26:29)
+    at Object.<anonymous> (/Users/pierre/Repositories/dixitonline/functions/index.js:20:16)
+    at Module._compile (internal/modules/cjs/loader.js:778:30)
+    at Object.Module._extensions..js (internal/modules/cjs/loader.js:789:10)
+    at Module.load (internal/modules/cjs/loader.js:653:32)
+    at tryModuleLoad (internal/modules/cjs/loader.js:593:12)
+    at Function.Module._load (internal/modules/cjs/loader.js:585:3)
+[warn] ⚠  We were unable to load your functions code. (see above)
+[debug] [2020-03-16T22:52:02.777Z] [worker-~diagnostic~-e98f9f7f-d0c4-4ed8-abfc-b1debe34a039]: exited
+[debug] [2020-03-16T22:52:02.777Z] [worker-~diagnostic~-e98f9f7f-d0c4-4ed8-abfc-b1debe34a039]: FINISHED
+[debug] [2020-03-16T22:52:04.160Z] [work-queue] {"queueLength":1,"workRunningCount":0}
+[debug] [2020-03-16T22:52:04.161Z] [work-queue] {"queueLength":0,"workRunningCount":1}
+[debug] [2020-03-16T22:52:04.161Z] Accepted request GET /dixit-af060/us-central1/api/graphql --> api
+[debug] [2020-03-16T22:52:04.161Z] [worker-pool] Cleaned up workers for ~diagnostic~: 1 --> 0
+[debug] [2020-03-16T22:52:04.165Z] [worker-pool] addWorker(api)
+[debug] [2020-03-16T22:52:04.166Z] [worker-pool] Adding worker with key api, total=1
+[debug] [2020-03-16T22:52:04.166Z] [worker-pool] submitWork(triggerId=api)
+[debug] [2020-03-16T22:52:04.166Z] [worker-api-965d97d2-0cfa-419c-9ef3-ca2b65a0c61c]: Assigning socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_89617.sock
+[debug] [2020-03-16T22:52:04.166Z] [worker-api-965d97d2-0cfa-419c-9ef3-ca2b65a0c61c]: BUSY
+[debug] [2020-03-16T22:52:04.210Z] [work-queue] {"queueLength":1,"workRunningCount":1}
+[debug] [2020-03-16T22:52:04.210Z] [work-queue] {"queueLength":0,"workRunningCount":2}
+[debug] [2020-03-16T22:52:04.210Z] Accepted request GET /dixit-af060/us-central1/api/graphql --> api
+[debug] [2020-03-16T22:52:04.214Z] [worker-pool] addWorker(api)
+[debug] [2020-03-16T22:52:04.214Z] [worker-pool] Adding worker with key api, total=2
+[debug] [2020-03-16T22:52:04.214Z] [worker-pool] submitWork(triggerId=api)
+[debug] [2020-03-16T22:52:04.214Z] [worker-api-20101397-d10d-4c15-80d3-54987d8e6b88]: Assigning socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_89618.sock
+[debug] [2020-03-16T22:52:04.214Z] [worker-api-20101397-d10d-4c15-80d3-54987d8e6b88]: BUSY
+[debug] [2020-03-16T22:52:04.485Z] [runtime-status] [89617] Functions runtime initialized. {"cwd":"/Users/pierre/Repositories/dixitonline/functions","node_version":"10.18.1"}
+[debug] [2020-03-16T22:52:04.487Z] [runtime-status] [89617] Disabled runtime features: undefined
+[debug] [2020-03-16T22:52:04.490Z] [runtime-status] [89617] Resolved module firebase-admin {"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}
+[debug] [2020-03-16T22:52:04.491Z] [runtime-status] [89617] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T22:52:04.527Z] [runtime-status] [89618] Functions runtime initialized. {"cwd":"/Users/pierre/Repositories/dixitonline/functions","node_version":"10.18.1"}
+[debug] [2020-03-16T22:52:04.529Z] [runtime-status] [89618] Disabled runtime features: undefined
+[debug] [2020-03-16T22:52:04.531Z] [runtime-status] [89618] Resolved module firebase-admin {"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}
+[debug] [2020-03-16T22:52:04.533Z] [runtime-status] [89618] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T22:52:04.670Z] [runtime-status] [89617] Found google-gax at /Users/pierre/Repositories/dixitonline/functions/node_modules/google-gax/build/src/index.js
+[debug] [2020-03-16T22:52:04.670Z] [runtime-status] [89617] Outgoing network have been stubbed. [{"name":"http","status":"mocked"},{"name":"http","status":"mocked"},{"name":"https","status":"mocked"},{"name":"https","status":"mocked"},{"name":"net","status":"mocked"},{"name":"google-gax","status":"mocked"}]
+[debug] [2020-03-16T22:52:04.713Z] [runtime-status] [89617] Checked functions.config() {"config":{}}
+[debug] [2020-03-16T22:52:04.713Z] [runtime-status] [89617] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T22:52:04.714Z] [runtime-status] [89617] Resolved module firebase-admin {"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}
+[debug] [2020-03-16T22:52:04.715Z] [runtime-status] [89617] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T22:52:04.720Z] [runtime-status] [89618] Found google-gax at /Users/pierre/Repositories/dixitonline/functions/node_modules/google-gax/build/src/index.js
+[debug] [2020-03-16T22:52:04.720Z] [runtime-status] [89618] Outgoing network have been stubbed. [{"name":"http","status":"mocked"},{"name":"http","status":"mocked"},{"name":"https","status":"mocked"},{"name":"https","status":"mocked"},{"name":"net","status":"mocked"},{"name":"google-gax","status":"mocked"}]
+[debug] [2020-03-16T22:52:04.756Z] [runtime-status] [89617] firebase-admin has been stubbed. {"adminResolution":{"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}}
+[debug] [2020-03-16T22:52:04.765Z] [runtime-status] [89618] Checked functions.config() {"config":{}}
+[debug] [2020-03-16T22:52:04.765Z] [runtime-status] [89618] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T22:52:04.767Z] [runtime-status] [89618] Resolved module firebase-admin {"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}
+[debug] [2020-03-16T22:52:04.767Z] [runtime-status] [89618] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T22:52:04.804Z] [runtime-status] [89618] firebase-admin has been stubbed. {"adminResolution":{"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}}
+[warn] ⚠  Error: Must provide only one schema definition.
+
+There can be only one query type in schema.
+    at assertValidSDL (/Users/pierre/Repositories/dixitonline/functions/node_modules/graphql/validation/validate.js:108:11)
+    at Object.buildASTSchema (/Users/pierre/Repositories/dixitonline/functions/node_modules/graphql/utilities/buildASTSchema.js:71:34)
+    at Object.buildSchemaFromTypeDefinitions (/Users/pierre/Repositories/dixitonline/functions/node_modules/graphql-tools/dist/generate/buildSchemaFromTypeDefinitions.js:25:28)
+    at makeExecutableSchema (/Users/pierre/Repositories/dixitonline/functions/node_modules/graphql-tools/dist/makeExecutableSchema.js:26:29)
+    at Object.<anonymous> (/Users/pierre/Repositories/dixitonline/functions/index.js:20:16)
+    at Module._compile (internal/modules/cjs/loader.js:778:30)
+    at Object.Module._extensions..js (internal/modules/cjs/loader.js:789:10)
+    at Module.load (internal/modules/cjs/loader.js:653:32)
+    at tryModuleLoad (internal/modules/cjs/loader.js:593:12)
+    at Function.Module._load (internal/modules/cjs/loader.js:585:3)
+[warn] ⚠  We were unable to load your functions code. (see above)
+[debug] [2020-03-16T22:52:05.242Z] [worker-api-965d97d2-0cfa-419c-9ef3-ca2b65a0c61c]: exited
+[debug] [2020-03-16T22:52:05.242Z] [worker-api-965d97d2-0cfa-419c-9ef3-ca2b65a0c61c]: FINISHED
+[warn] ⚠  Error: Must provide only one schema definition.
+
+There can be only one query type in schema.
+    at assertValidSDL (/Users/pierre/Repositories/dixitonline/functions/node_modules/graphql/validation/validate.js:108:11)
+    at Object.buildASTSchema (/Users/pierre/Repositories/dixitonline/functions/node_modules/graphql/utilities/buildASTSchema.js:71:34)
+    at Object.buildSchemaFromTypeDefinitions (/Users/pierre/Repositories/dixitonline/functions/node_modules/graphql-tools/dist/generate/buildSchemaFromTypeDefinitions.js:25:28)
+    at makeExecutableSchema (/Users/pierre/Repositories/dixitonline/functions/node_modules/graphql-tools/dist/makeExecutableSchema.js:26:29)
+    at Object.<anonymous> (/Users/pierre/Repositories/dixitonline/functions/index.js:20:16)
+    at Module._compile (internal/modules/cjs/loader.js:778:30)
+    at Object.Module._extensions..js (internal/modules/cjs/loader.js:789:10)
+    at Module.load (internal/modules/cjs/loader.js:653:32)
+    at tryModuleLoad (internal/modules/cjs/loader.js:593:12)
+    at Function.Module._load (internal/modules/cjs/loader.js:585:3)
+[warn] ⚠  We were unable to load your functions code. (see above)
+[debug] [2020-03-16T22:52:05.291Z] [worker-api-20101397-d10d-4c15-80d3-54987d8e6b88]: exited
+[debug] [2020-03-16T22:52:05.291Z] [worker-api-20101397-d10d-4c15-80d3-54987d8e6b88]: FINISHED
+[debug] [2020-03-16T22:52:05.422Z] [work-queue] {"queueLength":1,"workRunningCount":2}
+[debug] [2020-03-16T22:52:05.422Z] [work-queue] {"queueLength":0,"workRunningCount":3}
+[debug] [2020-03-16T22:52:05.422Z] Accepted request POST /dixit-af060/us-central1/api/graphql --> api
+[debug] [2020-03-16T22:52:05.422Z] [worker-pool] Cleaned up workers for api: 2 --> 0
+[debug] [2020-03-16T22:52:05.426Z] [worker-pool] addWorker(api)
+[debug] [2020-03-16T22:52:05.426Z] [worker-pool] Adding worker with key api, total=1
+[debug] [2020-03-16T22:52:05.426Z] [worker-pool] submitWork(triggerId=api)
+[debug] [2020-03-16T22:52:05.426Z] [worker-api-bf685aba-462b-496b-9ac8-fbeba87eae74]: Assigning socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_89619.sock
+[debug] [2020-03-16T22:52:05.426Z] [worker-api-bf685aba-462b-496b-9ac8-fbeba87eae74]: BUSY
+[debug] [2020-03-16T22:52:05.712Z] [runtime-status] [89619] Functions runtime initialized. {"cwd":"/Users/pierre/Repositories/dixitonline/functions","node_version":"10.18.1"}
+[debug] [2020-03-16T22:52:05.714Z] [runtime-status] [89619] Disabled runtime features: undefined
+[debug] [2020-03-16T22:52:05.716Z] [runtime-status] [89619] Resolved module firebase-admin {"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}
+[debug] [2020-03-16T22:52:05.717Z] [runtime-status] [89619] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T22:52:05.872Z] [runtime-status] [89619] Found google-gax at /Users/pierre/Repositories/dixitonline/functions/node_modules/google-gax/build/src/index.js
+[debug] [2020-03-16T22:52:05.872Z] [runtime-status] [89619] Outgoing network have been stubbed. [{"name":"http","status":"mocked"},{"name":"http","status":"mocked"},{"name":"https","status":"mocked"},{"name":"https","status":"mocked"},{"name":"net","status":"mocked"},{"name":"google-gax","status":"mocked"}]
+[debug] [2020-03-16T22:52:05.907Z] [runtime-status] [89619] Checked functions.config() {"config":{}}
+[debug] [2020-03-16T22:52:05.908Z] [runtime-status] [89619] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T22:52:05.909Z] [runtime-status] [89619] Resolved module firebase-admin {"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}
+[debug] [2020-03-16T22:52:05.909Z] [runtime-status] [89619] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T22:52:05.941Z] [runtime-status] [89619] firebase-admin has been stubbed. {"adminResolution":{"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}}
+[warn] ⚠  Error: Must provide only one schema definition.
+
+There can be only one query type in schema.
+    at assertValidSDL (/Users/pierre/Repositories/dixitonline/functions/node_modules/graphql/validation/validate.js:108:11)
+    at Object.buildASTSchema (/Users/pierre/Repositories/dixitonline/functions/node_modules/graphql/utilities/buildASTSchema.js:71:34)
+    at Object.buildSchemaFromTypeDefinitions (/Users/pierre/Repositories/dixitonline/functions/node_modules/graphql-tools/dist/generate/buildSchemaFromTypeDefinitions.js:25:28)
+    at makeExecutableSchema (/Users/pierre/Repositories/dixitonline/functions/node_modules/graphql-tools/dist/makeExecutableSchema.js:26:29)
+    at Object.<anonymous> (/Users/pierre/Repositories/dixitonline/functions/index.js:20:16)
+    at Module._compile (internal/modules/cjs/loader.js:778:30)
+    at Object.Module._extensions..js (internal/modules/cjs/loader.js:789:10)
+    at Module.load (internal/modules/cjs/loader.js:653:32)
+    at tryModuleLoad (internal/modules/cjs/loader.js:593:12)
+    at Function.Module._load (internal/modules/cjs/loader.js:585:3)
+[warn] ⚠  We were unable to load your functions code. (see above)
+[debug] [2020-03-16T22:52:06.382Z] [worker-api-bf685aba-462b-496b-9ac8-fbeba87eae74]: exited
+[debug] [2020-03-16T22:52:06.383Z] [worker-api-bf685aba-462b-496b-9ac8-fbeba87eae74]: FINISHED
+[debug] [2020-03-16T22:52:07.423Z] [work-queue] {"queueLength":1,"workRunningCount":3}
+[debug] [2020-03-16T22:52:07.423Z] [work-queue] {"queueLength":0,"workRunningCount":4}
+[debug] [2020-03-16T22:52:07.423Z] Accepted request POST /dixit-af060/us-central1/api/graphql --> api
+[debug] [2020-03-16T22:52:07.423Z] [worker-pool] Cleaned up workers for api: 1 --> 0
+[debug] [2020-03-16T22:52:07.427Z] [worker-pool] addWorker(api)
+[debug] [2020-03-16T22:52:07.427Z] [worker-pool] Adding worker with key api, total=1
+[debug] [2020-03-16T22:52:07.427Z] [worker-pool] submitWork(triggerId=api)
+[debug] [2020-03-16T22:52:07.427Z] [worker-api-9afb3977-9f9c-41f5-a02b-372e9d5eb6ed]: Assigning socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_89620.sock
+[debug] [2020-03-16T22:52:07.427Z] [worker-api-9afb3977-9f9c-41f5-a02b-372e9d5eb6ed]: BUSY
+[debug] [2020-03-16T22:52:07.716Z] [runtime-status] [89620] Functions runtime initialized. {"cwd":"/Users/pierre/Repositories/dixitonline/functions","node_version":"10.18.1"}
+[debug] [2020-03-16T22:52:07.718Z] [runtime-status] [89620] Disabled runtime features: undefined
+[debug] [2020-03-16T22:52:07.720Z] [runtime-status] [89620] Resolved module firebase-admin {"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}
+[debug] [2020-03-16T22:52:07.721Z] [runtime-status] [89620] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T22:52:07.881Z] [runtime-status] [89620] Found google-gax at /Users/pierre/Repositories/dixitonline/functions/node_modules/google-gax/build/src/index.js
+[debug] [2020-03-16T22:52:07.881Z] [runtime-status] [89620] Outgoing network have been stubbed. [{"name":"http","status":"mocked"},{"name":"http","status":"mocked"},{"name":"https","status":"mocked"},{"name":"https","status":"mocked"},{"name":"net","status":"mocked"},{"name":"google-gax","status":"mocked"}]
+[debug] [2020-03-16T22:52:07.916Z] [runtime-status] [89620] Checked functions.config() {"config":{}}
+[debug] [2020-03-16T22:52:07.917Z] [runtime-status] [89620] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T22:52:07.918Z] [runtime-status] [89620] Resolved module firebase-admin {"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}
+[debug] [2020-03-16T22:52:07.918Z] [runtime-status] [89620] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T22:52:07.948Z] [runtime-status] [89620] firebase-admin has been stubbed. {"adminResolution":{"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}}
+[warn] ⚠  Error: Must provide only one schema definition.
+
+There can be only one query type in schema.
+    at assertValidSDL (/Users/pierre/Repositories/dixitonline/functions/node_modules/graphql/validation/validate.js:108:11)
+    at Object.buildASTSchema (/Users/pierre/Repositories/dixitonline/functions/node_modules/graphql/utilities/buildASTSchema.js:71:34)
+    at Object.buildSchemaFromTypeDefinitions (/Users/pierre/Repositories/dixitonline/functions/node_modules/graphql-tools/dist/generate/buildSchemaFromTypeDefinitions.js:25:28)
+    at makeExecutableSchema (/Users/pierre/Repositories/dixitonline/functions/node_modules/graphql-tools/dist/makeExecutableSchema.js:26:29)
+    at Object.<anonymous> (/Users/pierre/Repositories/dixitonline/functions/index.js:20:16)
+    at Module._compile (internal/modules/cjs/loader.js:778:30)
+    at Object.Module._extensions..js (internal/modules/cjs/loader.js:789:10)
+    at Module.load (internal/modules/cjs/loader.js:653:32)
+    at tryModuleLoad (internal/modules/cjs/loader.js:593:12)
+    at Function.Module._load (internal/modules/cjs/loader.js:585:3)
+[warn] ⚠  We were unable to load your functions code. (see above)
+[debug] [2020-03-16T22:52:08.385Z] [worker-api-9afb3977-9f9c-41f5-a02b-372e9d5eb6ed]: exited
+[debug] [2020-03-16T22:52:08.385Z] [worker-api-9afb3977-9f9c-41f5-a02b-372e9d5eb6ed]: FINISHED
+[debug] [2020-03-16T22:52:09.422Z] [work-queue] {"queueLength":1,"workRunningCount":4}
+[debug] [2020-03-16T22:52:09.423Z] [work-queue] {"queueLength":0,"workRunningCount":5}
+[debug] [2020-03-16T22:52:09.423Z] Accepted request POST /dixit-af060/us-central1/api/graphql --> api
+[debug] [2020-03-16T22:52:09.423Z] [worker-pool] Cleaned up workers for api: 1 --> 0
+[debug] [2020-03-16T22:52:09.427Z] [worker-pool] addWorker(api)
+[debug] [2020-03-16T22:52:09.427Z] [worker-pool] Adding worker with key api, total=1
+[debug] [2020-03-16T22:52:09.427Z] [worker-pool] submitWork(triggerId=api)
+[debug] [2020-03-16T22:52:09.427Z] [worker-api-8e4e70b6-04ba-43e1-b454-50dbce42d93d]: Assigning socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_89621.sock
+[debug] [2020-03-16T22:52:09.427Z] [worker-api-8e4e70b6-04ba-43e1-b454-50dbce42d93d]: BUSY
+[debug] [2020-03-16T22:52:09.729Z] [runtime-status] [89621] Functions runtime initialized. {"cwd":"/Users/pierre/Repositories/dixitonline/functions","node_version":"10.18.1"}
+[debug] [2020-03-16T22:52:09.731Z] [runtime-status] [89621] Disabled runtime features: undefined
+[debug] [2020-03-16T22:52:09.734Z] [runtime-status] [89621] Resolved module firebase-admin {"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}
+[debug] [2020-03-16T22:52:09.735Z] [runtime-status] [89621] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T22:52:09.896Z] [runtime-status] [89621] Found google-gax at /Users/pierre/Repositories/dixitonline/functions/node_modules/google-gax/build/src/index.js
+[debug] [2020-03-16T22:52:09.896Z] [runtime-status] [89621] Outgoing network have been stubbed. [{"name":"http","status":"mocked"},{"name":"http","status":"mocked"},{"name":"https","status":"mocked"},{"name":"https","status":"mocked"},{"name":"net","status":"mocked"},{"name":"google-gax","status":"mocked"}]
+[debug] [2020-03-16T22:52:09.933Z] [runtime-status] [89621] Checked functions.config() {"config":{}}
+[debug] [2020-03-16T22:52:09.933Z] [runtime-status] [89621] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T22:52:09.934Z] [runtime-status] [89621] Resolved module firebase-admin {"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}
+[debug] [2020-03-16T22:52:09.935Z] [runtime-status] [89621] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T22:52:09.967Z] [runtime-status] [89621] firebase-admin has been stubbed. {"adminResolution":{"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}}
+[warn] ⚠  Error: Must provide only one schema definition.
+
+There can be only one query type in schema.
+    at assertValidSDL (/Users/pierre/Repositories/dixitonline/functions/node_modules/graphql/validation/validate.js:108:11)
+    at Object.buildASTSchema (/Users/pierre/Repositories/dixitonline/functions/node_modules/graphql/utilities/buildASTSchema.js:71:34)
+    at Object.buildSchemaFromTypeDefinitions (/Users/pierre/Repositories/dixitonline/functions/node_modules/graphql-tools/dist/generate/buildSchemaFromTypeDefinitions.js:25:28)
+    at makeExecutableSchema (/Users/pierre/Repositories/dixitonline/functions/node_modules/graphql-tools/dist/makeExecutableSchema.js:26:29)
+    at Object.<anonymous> (/Users/pierre/Repositories/dixitonline/functions/index.js:20:16)
+    at Module._compile (internal/modules/cjs/loader.js:778:30)
+    at Object.Module._extensions..js (internal/modules/cjs/loader.js:789:10)
+    at Module.load (internal/modules/cjs/loader.js:653:32)
+    at tryModuleLoad (internal/modules/cjs/loader.js:593:12)
+    at Function.Module._load (internal/modules/cjs/loader.js:585:3)
+[warn] ⚠  We were unable to load your functions code. (see above)
+[debug] [2020-03-16T22:52:10.444Z] [worker-api-8e4e70b6-04ba-43e1-b454-50dbce42d93d]: exited
+[debug] [2020-03-16T22:52:10.444Z] [worker-api-8e4e70b6-04ba-43e1-b454-50dbce42d93d]: FINISHED
+[debug] [2020-03-16T22:52:30.468Z] [work-queue] {"queueLength":1,"workRunningCount":5}
+[debug] [2020-03-16T22:52:30.468Z] [work-queue] {"queueLength":0,"workRunningCount":6}
+[debug] [2020-03-16T22:52:30.468Z] Accepted request POST /dixit-af060/us-central1/api/graphql --> api
+[debug] [2020-03-16T22:52:30.468Z] [worker-pool] Cleaned up workers for api: 1 --> 0
+[debug] [2020-03-16T22:52:30.473Z] [worker-pool] addWorker(api)
+[debug] [2020-03-16T22:52:30.473Z] [worker-pool] Adding worker with key api, total=1
+[debug] [2020-03-16T22:52:30.473Z] [worker-pool] submitWork(triggerId=api)
+[debug] [2020-03-16T22:52:30.473Z] [worker-api-18df9d6b-b0f8-4318-9e8b-7b3ea1ea2334]: Assigning socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_89631.sock
+[debug] [2020-03-16T22:52:30.473Z] [worker-api-18df9d6b-b0f8-4318-9e8b-7b3ea1ea2334]: BUSY
+[debug] [2020-03-16T22:52:30.774Z] [runtime-status] [89631] Functions runtime initialized. {"cwd":"/Users/pierre/Repositories/dixitonline/functions","node_version":"10.18.1"}
+[debug] [2020-03-16T22:52:30.776Z] [runtime-status] [89631] Disabled runtime features: undefined
+[debug] [2020-03-16T22:52:30.778Z] [runtime-status] [89631] Resolved module firebase-admin {"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}
+[debug] [2020-03-16T22:52:30.779Z] [runtime-status] [89631] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T22:52:30.943Z] [runtime-status] [89631] Found google-gax at /Users/pierre/Repositories/dixitonline/functions/node_modules/google-gax/build/src/index.js
+[debug] [2020-03-16T22:52:30.943Z] [runtime-status] [89631] Outgoing network have been stubbed. [{"name":"http","status":"mocked"},{"name":"http","status":"mocked"},{"name":"https","status":"mocked"},{"name":"https","status":"mocked"},{"name":"net","status":"mocked"},{"name":"google-gax","status":"mocked"}]
+[debug] [2020-03-16T22:52:30.985Z] [runtime-status] [89631] Checked functions.config() {"config":{}}
+[debug] [2020-03-16T22:52:30.985Z] [runtime-status] [89631] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T22:52:30.986Z] [runtime-status] [89631] Resolved module firebase-admin {"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}
+[debug] [2020-03-16T22:52:30.987Z] [runtime-status] [89631] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T22:52:31.026Z] [runtime-status] [89631] firebase-admin has been stubbed. {"adminResolution":{"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}}
+[warn] ⚠  Error: Must provide only one schema definition.
+
+There can be only one query type in schema.
+    at assertValidSDL (/Users/pierre/Repositories/dixitonline/functions/node_modules/graphql/validation/validate.js:108:11)
+    at Object.buildASTSchema (/Users/pierre/Repositories/dixitonline/functions/node_modules/graphql/utilities/buildASTSchema.js:71:34)
+    at Object.buildSchemaFromTypeDefinitions (/Users/pierre/Repositories/dixitonline/functions/node_modules/graphql-tools/dist/generate/buildSchemaFromTypeDefinitions.js:25:28)
+    at makeExecutableSchema (/Users/pierre/Repositories/dixitonline/functions/node_modules/graphql-tools/dist/makeExecutableSchema.js:26:29)
+    at Object.<anonymous> (/Users/pierre/Repositories/dixitonline/functions/index.js:20:16)
+    at Module._compile (internal/modules/cjs/loader.js:778:30)
+    at Object.Module._extensions..js (internal/modules/cjs/loader.js:789:10)
+    at Module.load (internal/modules/cjs/loader.js:653:32)
+    at tryModuleLoad (internal/modules/cjs/loader.js:593:12)
+    at Function.Module._load (internal/modules/cjs/loader.js:585:3)
+[warn] ⚠  We were unable to load your functions code. (see above)
+[debug] [2020-03-16T22:52:31.522Z] [worker-api-18df9d6b-b0f8-4318-9e8b-7b3ea1ea2334]: exited
+[debug] [2020-03-16T22:52:31.522Z] [worker-api-18df9d6b-b0f8-4318-9e8b-7b3ea1ea2334]: FINISHED
+[debug] [2020-03-16T22:52:32.465Z] [work-queue] {"queueLength":1,"workRunningCount":6}
+[debug] [2020-03-16T22:52:32.465Z] [work-queue] {"queueLength":0,"workRunningCount":7}
+[debug] [2020-03-16T22:52:32.465Z] Accepted request POST /dixit-af060/us-central1/api/graphql --> api
+[debug] [2020-03-16T22:52:32.466Z] [worker-pool] Cleaned up workers for api: 1 --> 0
+[debug] [2020-03-16T22:52:32.469Z] [worker-pool] addWorker(api)
+[debug] [2020-03-16T22:52:32.469Z] [worker-pool] Adding worker with key api, total=1
+[debug] [2020-03-16T22:52:32.469Z] [worker-pool] submitWork(triggerId=api)
+[debug] [2020-03-16T22:52:32.470Z] [worker-api-63839be1-8155-4126-8eff-61168ed11cb0]: Assigning socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_89632.sock
+[debug] [2020-03-16T22:52:32.470Z] [worker-api-63839be1-8155-4126-8eff-61168ed11cb0]: BUSY
+[debug] [2020-03-16T22:52:32.777Z] [runtime-status] [89632] Functions runtime initialized. {"cwd":"/Users/pierre/Repositories/dixitonline/functions","node_version":"10.18.1"}
+[debug] [2020-03-16T22:52:32.779Z] [runtime-status] [89632] Disabled runtime features: undefined
+[debug] [2020-03-16T22:52:32.782Z] [runtime-status] [89632] Resolved module firebase-admin {"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}
+[debug] [2020-03-16T22:52:32.783Z] [runtime-status] [89632] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T22:52:32.947Z] [runtime-status] [89632] Found google-gax at /Users/pierre/Repositories/dixitonline/functions/node_modules/google-gax/build/src/index.js
+[debug] [2020-03-16T22:52:32.947Z] [runtime-status] [89632] Outgoing network have been stubbed. [{"name":"http","status":"mocked"},{"name":"http","status":"mocked"},{"name":"https","status":"mocked"},{"name":"https","status":"mocked"},{"name":"net","status":"mocked"},{"name":"google-gax","status":"mocked"}]
+[debug] [2020-03-16T22:52:32.982Z] [runtime-status] [89632] Checked functions.config() {"config":{}}
+[debug] [2020-03-16T22:52:32.983Z] [runtime-status] [89632] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T22:52:32.984Z] [runtime-status] [89632] Resolved module firebase-admin {"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}
+[debug] [2020-03-16T22:52:32.984Z] [runtime-status] [89632] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T22:52:33.026Z] [runtime-status] [89632] firebase-admin has been stubbed. {"adminResolution":{"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}}
+[warn] ⚠  Error: Must provide only one schema definition.
+
+There can be only one query type in schema.
+    at assertValidSDL (/Users/pierre/Repositories/dixitonline/functions/node_modules/graphql/validation/validate.js:108:11)
+    at Object.buildASTSchema (/Users/pierre/Repositories/dixitonline/functions/node_modules/graphql/utilities/buildASTSchema.js:71:34)
+    at Object.buildSchemaFromTypeDefinitions (/Users/pierre/Repositories/dixitonline/functions/node_modules/graphql-tools/dist/generate/buildSchemaFromTypeDefinitions.js:25:28)
+    at makeExecutableSchema (/Users/pierre/Repositories/dixitonline/functions/node_modules/graphql-tools/dist/makeExecutableSchema.js:26:29)
+    at Object.<anonymous> (/Users/pierre/Repositories/dixitonline/functions/index.js:20:16)
+    at Module._compile (internal/modules/cjs/loader.js:778:30)
+    at Object.Module._extensions..js (internal/modules/cjs/loader.js:789:10)
+    at Module.load (internal/modules/cjs/loader.js:653:32)
+    at tryModuleLoad (internal/modules/cjs/loader.js:593:12)
+    at Function.Module._load (internal/modules/cjs/loader.js:585:3)
+[warn] ⚠  We were unable to load your functions code. (see above)
+[debug] [2020-03-16T22:52:33.475Z] [worker-api-63839be1-8155-4126-8eff-61168ed11cb0]: exited
+[debug] [2020-03-16T22:52:33.475Z] [worker-api-63839be1-8155-4126-8eff-61168ed11cb0]: FINISHED
+[debug] [2020-03-16T22:54:04.217Z] [work-queue] {"queueLength":1,"workRunningCount":7}
+[debug] [2020-03-16T22:54:04.217Z] [work-queue] {"queueLength":0,"workRunningCount":8}
+[debug] [2020-03-16T22:54:04.218Z] Accepted request GET /dixit-af060/us-central1/api/graphql --> api
+[debug] [2020-03-16T22:54:04.218Z] [worker-pool] Cleaned up workers for api: 1 --> 0
+[debug] [2020-03-16T22:54:04.224Z] [worker-pool] addWorker(api)
+[debug] [2020-03-16T22:54:04.225Z] [worker-pool] Adding worker with key api, total=1
+[debug] [2020-03-16T22:54:04.225Z] [worker-pool] submitWork(triggerId=api)
+[debug] [2020-03-16T22:54:04.225Z] [worker-api-89c2e942-d61d-48a1-8596-ba9f29cf6a68]: Assigning socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_89682.sock
+[debug] [2020-03-16T22:54:04.225Z] [worker-api-89c2e942-d61d-48a1-8596-ba9f29cf6a68]: BUSY
+[debug] [2020-03-16T22:54:04.523Z] [runtime-status] [89682] Functions runtime initialized. {"cwd":"/Users/pierre/Repositories/dixitonline/functions","node_version":"10.18.1"}
+[debug] [2020-03-16T22:54:04.525Z] [runtime-status] [89682] Disabled runtime features: undefined
+[debug] [2020-03-16T22:54:04.527Z] [runtime-status] [89682] Resolved module firebase-admin {"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}
+[debug] [2020-03-16T22:54:04.528Z] [runtime-status] [89682] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T22:54:04.683Z] [runtime-status] [89682] Found google-gax at /Users/pierre/Repositories/dixitonline/functions/node_modules/google-gax/build/src/index.js
+[debug] [2020-03-16T22:54:04.683Z] [runtime-status] [89682] Outgoing network have been stubbed. [{"name":"http","status":"mocked"},{"name":"http","status":"mocked"},{"name":"https","status":"mocked"},{"name":"https","status":"mocked"},{"name":"net","status":"mocked"},{"name":"google-gax","status":"mocked"}]
+[debug] [2020-03-16T22:54:04.719Z] [runtime-status] [89682] Checked functions.config() {"config":{}}
+[debug] [2020-03-16T22:54:04.720Z] [runtime-status] [89682] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T22:54:04.721Z] [runtime-status] [89682] Resolved module firebase-admin {"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}
+[debug] [2020-03-16T22:54:04.721Z] [runtime-status] [89682] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T22:54:04.754Z] [runtime-status] [89682] firebase-admin has been stubbed. {"adminResolution":{"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}}
+[warn] ⚠  Error: Must provide only one schema definition.
+
+There can be only one query type in schema.
+    at assertValidSDL (/Users/pierre/Repositories/dixitonline/functions/node_modules/graphql/validation/validate.js:108:11)
+    at Object.buildASTSchema (/Users/pierre/Repositories/dixitonline/functions/node_modules/graphql/utilities/buildASTSchema.js:71:34)
+    at Object.buildSchemaFromTypeDefinitions (/Users/pierre/Repositories/dixitonline/functions/node_modules/graphql-tools/dist/generate/buildSchemaFromTypeDefinitions.js:25:28)
+    at makeExecutableSchema (/Users/pierre/Repositories/dixitonline/functions/node_modules/graphql-tools/dist/makeExecutableSchema.js:26:29)
+    at Object.<anonymous> (/Users/pierre/Repositories/dixitonline/functions/index.js:20:16)
+    at Module._compile (internal/modules/cjs/loader.js:778:30)
+    at Object.Module._extensions..js (internal/modules/cjs/loader.js:789:10)
+    at Module.load (internal/modules/cjs/loader.js:653:32)
+    at tryModuleLoad (internal/modules/cjs/loader.js:593:12)
+    at Function.Module._load (internal/modules/cjs/loader.js:585:3)
+[warn] ⚠  We were unable to load your functions code. (see above)
+[debug] [2020-03-16T22:54:05.191Z] [worker-api-89c2e942-d61d-48a1-8596-ba9f29cf6a68]: exited
+[debug] [2020-03-16T22:54:05.191Z] [worker-api-89c2e942-d61d-48a1-8596-ba9f29cf6a68]: FINISHED
+[debug] [2020-03-16T22:54:29.625Z] File /Users/pierre/Repositories/dixitonline/functions/index.js changed, reloading triggers
+[debug] [2020-03-16T22:54:30.630Z] [worker-pool] Cleaned up workers for api: 1 --> 0
+[debug] [2020-03-16T22:54:30.635Z] [worker-pool] addWorker(~diagnostic~)
+[debug] [2020-03-16T22:54:30.635Z] [worker-pool] Adding worker with key ~diagnostic~, total=1
+[debug] [2020-03-16T22:54:30.635Z] [worker-pool] submitWork(triggerId=)
+[debug] [2020-03-16T22:54:30.635Z] [worker-~diagnostic~-ac0bc955-f0b3-4678-b2e8-7378bbe59e02]: Assigning socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_89683.sock
+[debug] [2020-03-16T22:54:30.635Z] [worker-~diagnostic~-ac0bc955-f0b3-4678-b2e8-7378bbe59e02]: BUSY
+[debug] [2020-03-16T22:54:30.931Z] [runtime-status] [89683] Functions runtime initialized. {"cwd":"/Users/pierre/Repositories/dixitonline/functions","node_version":"10.18.1"}
+[debug] [2020-03-16T22:54:30.933Z] [runtime-status] [89683] Disabled runtime features: undefined
+[debug] [2020-03-16T22:54:30.935Z] [runtime-status] [89683] Resolved module firebase-admin {"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}
+[debug] [2020-03-16T22:54:30.936Z] [runtime-status] [89683] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T22:54:31.092Z] [runtime-status] [89683] Found google-gax at /Users/pierre/Repositories/dixitonline/functions/node_modules/google-gax/build/src/index.js
+[debug] [2020-03-16T22:54:31.092Z] [runtime-status] [89683] Outgoing network have been stubbed. [{"name":"http","status":"mocked"},{"name":"http","status":"mocked"},{"name":"https","status":"mocked"},{"name":"https","status":"mocked"},{"name":"net","status":"mocked"},{"name":"google-gax","status":"mocked"}]
+[debug] [2020-03-16T22:54:31.126Z] [runtime-status] [89683] Checked functions.config() {"config":{}}
+[debug] [2020-03-16T22:54:31.126Z] [runtime-status] [89683] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T22:54:31.127Z] [runtime-status] [89683] Resolved module firebase-admin {"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}
+[debug] [2020-03-16T22:54:31.128Z] [runtime-status] [89683] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T22:54:31.157Z] [runtime-status] [89683] firebase-admin has been stubbed. {"adminResolution":{"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}}
+[info] >  { Lobby:
+[info] >     'extend type Query {\n  greet(name: String!): String!\n}\n\nschema {\n  query: Query\n}\n',
+[info] >    Game:
+[info] >     'extend type Query {\n  game(id: Int!): String!\n}\n\nschema {\n  query: Query\n}\n' }
+[warn] ⚠  Error: Must provide only one schema definition.
+
+There can be only one query type in schema.
+    at assertValidSDL (/Users/pierre/Repositories/dixitonline/functions/node_modules/graphql/validation/validate.js:108:11)
+    at Object.buildASTSchema (/Users/pierre/Repositories/dixitonline/functions/node_modules/graphql/utilities/buildASTSchema.js:71:34)
+    at Object.buildSchemaFromTypeDefinitions (/Users/pierre/Repositories/dixitonline/functions/node_modules/graphql-tools/dist/generate/buildSchemaFromTypeDefinitions.js:25:28)
+    at makeExecutableSchema (/Users/pierre/Repositories/dixitonline/functions/node_modules/graphql-tools/dist/makeExecutableSchema.js:26:29)
+    at Object.<anonymous> (/Users/pierre/Repositories/dixitonline/functions/index.js:22:16)
+    at Module._compile (internal/modules/cjs/loader.js:778:30)
+    at Object.Module._extensions..js (internal/modules/cjs/loader.js:789:10)
+    at Module.load (internal/modules/cjs/loader.js:653:32)
+    at tryModuleLoad (internal/modules/cjs/loader.js:593:12)
+    at Function.Module._load (internal/modules/cjs/loader.js:585:3)
+[warn] ⚠  We were unable to load your functions code. (see above)
+[debug] [2020-03-16T22:54:31.590Z] [worker-~diagnostic~-ac0bc955-f0b3-4678-b2e8-7378bbe59e02]: exited
+[debug] [2020-03-16T22:54:31.590Z] [worker-~diagnostic~-ac0bc955-f0b3-4678-b2e8-7378bbe59e02]: FINISHED
+[debug] [2020-03-16T22:54:38.762Z] [work-queue] {"queueLength":1,"workRunningCount":8}
+[debug] [2020-03-16T22:54:38.762Z] [work-queue] {"queueLength":0,"workRunningCount":9}
+[debug] [2020-03-16T22:54:38.762Z] Accepted request POST /dixit-af060/us-central1/api/graphql --> api
+[debug] [2020-03-16T22:54:38.762Z] [worker-pool] Cleaned up workers for ~diagnostic~: 1 --> 0
+[debug] [2020-03-16T22:54:38.766Z] [worker-pool] addWorker(api)
+[debug] [2020-03-16T22:54:38.766Z] [worker-pool] Adding worker with key api, total=1
+[debug] [2020-03-16T22:54:38.766Z] [worker-pool] submitWork(triggerId=api)
+[debug] [2020-03-16T22:54:38.766Z] [worker-api-c38f4b8c-89cc-44e2-a82f-d34eabfca44e]: Assigning socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_89692.sock
+[debug] [2020-03-16T22:54:38.766Z] [worker-api-c38f4b8c-89cc-44e2-a82f-d34eabfca44e]: BUSY
+[debug] [2020-03-16T22:54:39.041Z] [runtime-status] [89692] Functions runtime initialized. {"cwd":"/Users/pierre/Repositories/dixitonline/functions","node_version":"10.18.1"}
+[debug] [2020-03-16T22:54:39.043Z] [runtime-status] [89692] Disabled runtime features: undefined
+[debug] [2020-03-16T22:54:39.045Z] [runtime-status] [89692] Resolved module firebase-admin {"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}
+[debug] [2020-03-16T22:54:39.046Z] [runtime-status] [89692] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T22:54:39.209Z] [runtime-status] [89692] Found google-gax at /Users/pierre/Repositories/dixitonline/functions/node_modules/google-gax/build/src/index.js
+[debug] [2020-03-16T22:54:39.209Z] [runtime-status] [89692] Outgoing network have been stubbed. [{"name":"http","status":"mocked"},{"name":"http","status":"mocked"},{"name":"https","status":"mocked"},{"name":"https","status":"mocked"},{"name":"net","status":"mocked"},{"name":"google-gax","status":"mocked"}]
+[debug] [2020-03-16T22:54:39.244Z] [runtime-status] [89692] Checked functions.config() {"config":{}}
+[debug] [2020-03-16T22:54:39.244Z] [runtime-status] [89692] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T22:54:39.245Z] [runtime-status] [89692] Resolved module firebase-admin {"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}
+[debug] [2020-03-16T22:54:39.245Z] [runtime-status] [89692] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T22:54:39.275Z] [runtime-status] [89692] firebase-admin has been stubbed. {"adminResolution":{"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}}
+[info] >  { Lobby:
+[info] >     'extend type Query {\n  greet(name: String!): String!\n}\n\nschema {\n  query: Query\n}\n',
+[info] >    Game:
+[info] >     'extend type Query {\n  game(id: Int!): String!\n}\n\nschema {\n  query: Query\n}\n' }
+[warn] ⚠  Error: Must provide only one schema definition.
+
+There can be only one query type in schema.
+    at assertValidSDL (/Users/pierre/Repositories/dixitonline/functions/node_modules/graphql/validation/validate.js:108:11)
+    at Object.buildASTSchema (/Users/pierre/Repositories/dixitonline/functions/node_modules/graphql/utilities/buildASTSchema.js:71:34)
+    at Object.buildSchemaFromTypeDefinitions (/Users/pierre/Repositories/dixitonline/functions/node_modules/graphql-tools/dist/generate/buildSchemaFromTypeDefinitions.js:25:28)
+    at makeExecutableSchema (/Users/pierre/Repositories/dixitonline/functions/node_modules/graphql-tools/dist/makeExecutableSchema.js:26:29)
+    at Object.<anonymous> (/Users/pierre/Repositories/dixitonline/functions/index.js:22:16)
+    at Module._compile (internal/modules/cjs/loader.js:778:30)
+    at Object.Module._extensions..js (internal/modules/cjs/loader.js:789:10)
+    at Module.load (internal/modules/cjs/loader.js:653:32)
+    at tryModuleLoad (internal/modules/cjs/loader.js:593:12)
+    at Function.Module._load (internal/modules/cjs/loader.js:585:3)
+[warn] ⚠  We were unable to load your functions code. (see above)
+[debug] [2020-03-16T22:54:39.703Z] [worker-api-c38f4b8c-89cc-44e2-a82f-d34eabfca44e]: exited
+[debug] [2020-03-16T22:54:39.703Z] [worker-api-c38f4b8c-89cc-44e2-a82f-d34eabfca44e]: FINISHED
+[debug] [2020-03-16T22:55:35.552Z] [work-queue] {"queueLength":1,"workRunningCount":9}
+[debug] [2020-03-16T22:55:35.552Z] [work-queue] {"queueLength":0,"workRunningCount":10}
+[debug] [2020-03-16T22:55:35.552Z] Accepted request POST /dixit-af060/us-central1/api/graphql --> api
+[debug] [2020-03-16T22:55:35.552Z] [worker-pool] Cleaned up workers for api: 1 --> 0
+[debug] [2020-03-16T22:55:35.556Z] [worker-pool] addWorker(api)
+[debug] [2020-03-16T22:55:35.557Z] [worker-pool] Adding worker with key api, total=1
+[debug] [2020-03-16T22:55:35.557Z] [worker-pool] submitWork(triggerId=api)
+[debug] [2020-03-16T22:55:35.557Z] [worker-api-ed884b0d-93ce-46b4-97eb-033d2f9e0445]: Assigning socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_89714.sock
+[debug] [2020-03-16T22:55:35.557Z] [worker-api-ed884b0d-93ce-46b4-97eb-033d2f9e0445]: BUSY
+[debug] [2020-03-16T22:55:35.841Z] [runtime-status] [89714] Functions runtime initialized. {"cwd":"/Users/pierre/Repositories/dixitonline/functions","node_version":"10.18.1"}
+[debug] [2020-03-16T22:55:35.843Z] [runtime-status] [89714] Disabled runtime features: undefined
+[debug] [2020-03-16T22:55:35.845Z] [runtime-status] [89714] Resolved module firebase-admin {"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}
+[debug] [2020-03-16T22:55:35.846Z] [runtime-status] [89714] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T22:55:36.010Z] [runtime-status] [89714] Found google-gax at /Users/pierre/Repositories/dixitonline/functions/node_modules/google-gax/build/src/index.js
+[debug] [2020-03-16T22:55:36.011Z] [runtime-status] [89714] Outgoing network have been stubbed. [{"name":"http","status":"mocked"},{"name":"http","status":"mocked"},{"name":"https","status":"mocked"},{"name":"https","status":"mocked"},{"name":"net","status":"mocked"},{"name":"google-gax","status":"mocked"}]
+[debug] [2020-03-16T22:55:36.052Z] [runtime-status] [89714] Checked functions.config() {"config":{}}
+[debug] [2020-03-16T22:55:36.052Z] [runtime-status] [89714] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T22:55:36.053Z] [runtime-status] [89714] Resolved module firebase-admin {"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}
+[debug] [2020-03-16T22:55:36.054Z] [runtime-status] [89714] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T22:55:36.084Z] [runtime-status] [89714] firebase-admin has been stubbed. {"adminResolution":{"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}}
+[info] >  { Lobby:
+[info] >     'extend type Query {\n  greet(name: String!): String!\n}\n\nschema {\n  query: Query\n}\n',
+[info] >    Game:
+[info] >     'extend type Query {\n  game(id: Int!): String!\n}\n\nschema {\n  query: Query\n}\n' }
+[warn] ⚠  Error: Must provide only one schema definition.
+
+There can be only one query type in schema.
+    at assertValidSDL (/Users/pierre/Repositories/dixitonline/functions/node_modules/graphql/validation/validate.js:108:11)
+    at Object.buildASTSchema (/Users/pierre/Repositories/dixitonline/functions/node_modules/graphql/utilities/buildASTSchema.js:71:34)
+    at Object.buildSchemaFromTypeDefinitions (/Users/pierre/Repositories/dixitonline/functions/node_modules/graphql-tools/dist/generate/buildSchemaFromTypeDefinitions.js:25:28)
+    at makeExecutableSchema (/Users/pierre/Repositories/dixitonline/functions/node_modules/graphql-tools/dist/makeExecutableSchema.js:26:29)
+    at Object.<anonymous> (/Users/pierre/Repositories/dixitonline/functions/index.js:22:16)
+    at Module._compile (internal/modules/cjs/loader.js:778:30)
+    at Object.Module._extensions..js (internal/modules/cjs/loader.js:789:10)
+    at Module.load (internal/modules/cjs/loader.js:653:32)
+    at tryModuleLoad (internal/modules/cjs/loader.js:593:12)
+    at Function.Module._load (internal/modules/cjs/loader.js:585:3)
+[warn] ⚠  We were unable to load your functions code. (see above)
+[debug] [2020-03-16T22:55:36.531Z] [worker-api-ed884b0d-93ce-46b4-97eb-033d2f9e0445]: exited
+[debug] [2020-03-16T22:55:36.531Z] [worker-api-ed884b0d-93ce-46b4-97eb-033d2f9e0445]: FINISHED
+[debug] [2020-03-16T23:00:11.582Z] ----------------------------------------------------------------------
+[debug] [2020-03-16T23:00:11.583Z] Command:       /usr/local/bin/node /usr/local/bin/firebase emulators:start --only functions
+[debug] [2020-03-16T23:00:11.584Z] CLI Version:   7.14.0
+[debug] [2020-03-16T23:00:11.584Z] Platform:      darwin
+[debug] [2020-03-16T23:00:11.584Z] Node Version:  v10.18.1
+[debug] [2020-03-16T23:00:11.584Z] Time:          Tue Mar 17 2020 00:00:11 GMT+0100 (GMT+01:00)
+[debug] [2020-03-16T23:00:11.585Z] ----------------------------------------------------------------------
+[debug] [2020-03-16T23:00:11.585Z] 
+[debug] [2020-03-16T23:00:11.594Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2020-03-16T23:00:11.594Z] > authorizing via signed-in user
+[info] i  emulators: Starting emulators: functions
+[warn] ⚠  emulators: It seems that you are running multiple instances of the emulator suite for project dixit-af060. This may result in unexpected behavior.
+[debug] [2020-03-16T23:00:11.652Z] [hub] writing locator at /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/hub-dixit-af060.json
+[info] ✔  hub: emulator hub started at http://localhost:4400
+[info] ✔  functions: Using node@10 from host.
+[info] ✔  functions: functions emulator started at http://localhost:5001
+[info] i  functions: Watching "/Users/pierre/Repositories/dixitonline/functions" for Cloud Functions...
+[debug] [2020-03-16T23:00:11.945Z] [worker-pool] addWorker(~diagnostic~)
+[debug] [2020-03-16T23:00:11.945Z] [worker-pool] Adding worker with key ~diagnostic~, total=1
+[debug] [2020-03-16T23:00:11.945Z] [worker-pool] submitWork(triggerId=)
+[debug] [2020-03-16T23:00:11.945Z] [worker-~diagnostic~-b8037e2b-43b8-4987-a2d8-a17f32a68f73]: Assigning socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_90145.sock
+[debug] [2020-03-16T23:00:11.946Z] [worker-~diagnostic~-b8037e2b-43b8-4987-a2d8-a17f32a68f73]: BUSY
+[debug] [2020-03-16T23:00:12.251Z] [runtime-status] [90145] Functions runtime initialized. {"cwd":"/Users/pierre/Repositories/dixitonline/functions","node_version":"10.18.1"}
+[debug] [2020-03-16T23:00:12.252Z] [runtime-status] [90145] Disabled runtime features: undefined
+[debug] [2020-03-16T23:00:12.255Z] [runtime-status] [90145] Resolved module firebase-admin {"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}
+[debug] [2020-03-16T23:00:12.256Z] [runtime-status] [90145] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T23:00:12.507Z] [runtime-status] [90145] Found google-gax at /Users/pierre/Repositories/dixitonline/functions/node_modules/google-gax/build/src/index.js
+[debug] [2020-03-16T23:00:12.507Z] [runtime-status] [90145] Outgoing network have been stubbed. [{"name":"http","status":"mocked"},{"name":"http","status":"mocked"},{"name":"https","status":"mocked"},{"name":"https","status":"mocked"},{"name":"net","status":"mocked"},{"name":"google-gax","status":"mocked"}]
+[debug] [2020-03-16T23:00:12.566Z] [runtime-status] [90145] Checked functions.config() {"config":{}}
+[debug] [2020-03-16T23:00:12.567Z] [runtime-status] [90145] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T23:00:12.568Z] [runtime-status] [90145] Resolved module firebase-admin {"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}
+[debug] [2020-03-16T23:00:12.568Z] [runtime-status] [90145] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T23:00:12.632Z] [runtime-status] [90145] firebase-admin has been stubbed. {"adminResolution":{"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}}
+[info] >  { mergedTypeDefs: 'schema {\n  query: Query\n}\n' }
+[warn] ⚠  Error: Query.greet defined in resolvers, but not in schema
+[warn] ⚠  We were unable to load your functions code. (see above)
+[debug] [2020-03-16T23:00:13.263Z] [worker-~diagnostic~-b8037e2b-43b8-4987-a2d8-a17f32a68f73]: exited
+[debug] [2020-03-16T23:00:13.263Z] [worker-~diagnostic~-b8037e2b-43b8-4987-a2d8-a17f32a68f73]: FINISHED
+[debug] [2020-03-16T23:00:19.200Z] [work-queue] {"queueLength":1,"workRunningCount":0}
+[debug] [2020-03-16T23:00:19.200Z] [work-queue] {"queueLength":0,"workRunningCount":1}
+[debug] [2020-03-16T23:00:19.201Z] Accepted request POST /dixit-af060/us-central1/api/graphql --> api
+[debug] [2020-03-16T23:00:19.201Z] [worker-pool] Cleaned up workers for ~diagnostic~: 1 --> 0
+[debug] [2020-03-16T23:00:19.205Z] [worker-pool] addWorker(api)
+[debug] [2020-03-16T23:00:19.205Z] [worker-pool] Adding worker with key api, total=1
+[debug] [2020-03-16T23:00:19.205Z] [worker-pool] submitWork(triggerId=api)
+[debug] [2020-03-16T23:00:19.206Z] [worker-api-0d9fcd58-1264-42b8-bdd4-ef5a1400237d]: Assigning socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_90146.sock
+[debug] [2020-03-16T23:00:19.206Z] [worker-api-0d9fcd58-1264-42b8-bdd4-ef5a1400237d]: BUSY
+[debug] [2020-03-16T23:00:19.477Z] [runtime-status] [90146] Functions runtime initialized. {"cwd":"/Users/pierre/Repositories/dixitonline/functions","node_version":"10.18.1"}
+[debug] [2020-03-16T23:00:19.479Z] [runtime-status] [90146] Disabled runtime features: undefined
+[debug] [2020-03-16T23:00:19.481Z] [runtime-status] [90146] Resolved module firebase-admin {"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}
+[debug] [2020-03-16T23:00:19.481Z] [runtime-status] [90146] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T23:00:19.634Z] [runtime-status] [90146] Found google-gax at /Users/pierre/Repositories/dixitonline/functions/node_modules/google-gax/build/src/index.js
+[debug] [2020-03-16T23:00:19.634Z] [runtime-status] [90146] Outgoing network have been stubbed. [{"name":"http","status":"mocked"},{"name":"http","status":"mocked"},{"name":"https","status":"mocked"},{"name":"https","status":"mocked"},{"name":"net","status":"mocked"},{"name":"google-gax","status":"mocked"}]
+[debug] [2020-03-16T23:00:19.671Z] [runtime-status] [90146] Checked functions.config() {"config":{}}
+[debug] [2020-03-16T23:00:19.671Z] [runtime-status] [90146] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T23:00:19.686Z] [runtime-status] [90146] Resolved module firebase-admin {"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}
+[debug] [2020-03-16T23:00:19.686Z] [runtime-status] [90146] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T23:00:19.705Z] [runtime-status] [90146] firebase-admin has been stubbed. {"adminResolution":{"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}}
+[info] >  { mergedTypeDefs: 'schema {\n  query: Query\n}\n' }
+[warn] ⚠  Error: Query.greet defined in resolvers, but not in schema
+[warn] ⚠  We were unable to load your functions code. (see above)
+[debug] [2020-03-16T23:00:20.050Z] [worker-api-0d9fcd58-1264-42b8-bdd4-ef5a1400237d]: exited
+[debug] [2020-03-16T23:00:20.050Z] [worker-api-0d9fcd58-1264-42b8-bdd4-ef5a1400237d]: FINISHED
+[debug] [2020-03-16T23:02:24.809Z] [work-queue] {"queueLength":1,"workRunningCount":1}
+[debug] [2020-03-16T23:02:24.809Z] [work-queue] {"queueLength":0,"workRunningCount":2}
+[debug] [2020-03-16T23:02:24.809Z] Accepted request POST /dixit-af060/us-central1/api/graphql --> api
+[debug] [2020-03-16T23:02:24.809Z] [worker-pool] Cleaned up workers for api: 1 --> 0
+[debug] [2020-03-16T23:02:24.814Z] [worker-pool] addWorker(api)
+[debug] [2020-03-16T23:02:24.814Z] [worker-pool] Adding worker with key api, total=1
+[debug] [2020-03-16T23:02:24.814Z] [worker-pool] submitWork(triggerId=api)
+[debug] [2020-03-16T23:02:24.814Z] [worker-api-c28afc78-229c-401a-9b1a-e3fb86a2e816]: Assigning socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_90155.sock
+[debug] [2020-03-16T23:02:24.814Z] [worker-api-c28afc78-229c-401a-9b1a-e3fb86a2e816]: BUSY
+[debug] [2020-03-16T23:02:25.221Z] [runtime-status] [90155] Functions runtime initialized. {"cwd":"/Users/pierre/Repositories/dixitonline/functions","node_version":"10.18.1"}
+[debug] [2020-03-16T23:02:25.223Z] [runtime-status] [90155] Disabled runtime features: undefined
+[debug] [2020-03-16T23:02:25.227Z] [runtime-status] [90155] Resolved module firebase-admin {"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}
+[debug] [2020-03-16T23:02:25.229Z] [runtime-status] [90155] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T23:02:25.529Z] [runtime-status] [90155] Found google-gax at /Users/pierre/Repositories/dixitonline/functions/node_modules/google-gax/build/src/index.js
+[debug] [2020-03-16T23:02:25.530Z] [runtime-status] [90155] Outgoing network have been stubbed. [{"name":"http","status":"mocked"},{"name":"http","status":"mocked"},{"name":"https","status":"mocked"},{"name":"https","status":"mocked"},{"name":"net","status":"mocked"},{"name":"google-gax","status":"mocked"}]
+[debug] [2020-03-16T23:02:25.577Z] [runtime-status] [90155] Checked functions.config() {"config":{}}
+[debug] [2020-03-16T23:02:25.577Z] [runtime-status] [90155] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T23:02:25.578Z] [runtime-status] [90155] Resolved module firebase-admin {"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}
+[debug] [2020-03-16T23:02:25.578Z] [runtime-status] [90155] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T23:02:25.639Z] [runtime-status] [90155] firebase-admin has been stubbed. {"adminResolution":{"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}}
+[info] >  { mergedTypeDefs: 'schema {\n  query: Query\n}\n' }
+[warn] ⚠  Error: Query.greet defined in resolvers, but not in schema
+[warn] ⚠  We were unable to load your functions code. (see above)
+[debug] [2020-03-16T23:02:26.241Z] [worker-api-c28afc78-229c-401a-9b1a-e3fb86a2e816]: exited
+[debug] [2020-03-16T23:02:26.241Z] [worker-api-c28afc78-229c-401a-9b1a-e3fb86a2e816]: FINISHED
+[debug] [2020-03-16T23:02:45.409Z] File /Users/pierre/Repositories/dixitonline/functions/index.js changed, reloading triggers
+[debug] [2020-03-16T23:02:46.414Z] [worker-pool] Cleaned up workers for api: 1 --> 0
+[debug] [2020-03-16T23:02:46.419Z] [worker-pool] addWorker(~diagnostic~)
+[debug] [2020-03-16T23:02:46.419Z] [worker-pool] Adding worker with key ~diagnostic~, total=1
+[debug] [2020-03-16T23:02:46.419Z] [worker-pool] submitWork(triggerId=)
+[debug] [2020-03-16T23:02:46.419Z] [worker-~diagnostic~-201324a7-92d7-495f-a23c-3e68673dc9f7]: Assigning socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_90156.sock
+[debug] [2020-03-16T23:02:46.419Z] [worker-~diagnostic~-201324a7-92d7-495f-a23c-3e68673dc9f7]: BUSY
+[debug] [2020-03-16T23:02:46.708Z] [runtime-status] [90156] Functions runtime initialized. {"cwd":"/Users/pierre/Repositories/dixitonline/functions","node_version":"10.18.1"}
+[debug] [2020-03-16T23:02:46.710Z] [runtime-status] [90156] Disabled runtime features: undefined
+[debug] [2020-03-16T23:02:46.712Z] [runtime-status] [90156] Resolved module firebase-admin {"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}
+[debug] [2020-03-16T23:02:46.713Z] [runtime-status] [90156] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T23:02:46.866Z] [runtime-status] [90156] Found google-gax at /Users/pierre/Repositories/dixitonline/functions/node_modules/google-gax/build/src/index.js
+[debug] [2020-03-16T23:02:46.867Z] [runtime-status] [90156] Outgoing network have been stubbed. [{"name":"http","status":"mocked"},{"name":"http","status":"mocked"},{"name":"https","status":"mocked"},{"name":"https","status":"mocked"},{"name":"net","status":"mocked"},{"name":"google-gax","status":"mocked"}]
+[debug] [2020-03-16T23:02:46.902Z] [runtime-status] [90156] Checked functions.config() {"config":{}}
+[debug] [2020-03-16T23:02:46.903Z] [runtime-status] [90156] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T23:02:46.904Z] [runtime-status] [90156] Resolved module firebase-admin {"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}
+[debug] [2020-03-16T23:02:46.904Z] [runtime-status] [90156] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T23:02:46.933Z] [runtime-status] [90156] firebase-admin has been stubbed. {"adminResolution":{"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}}
+[info] >  [ [ 'extend type Query {\n  greet(name: String!): String!\n}\n' ],
+[info] >    [ 'extend type Query {\n  game(id: Int!): String!\n}\n' ] ]
+[info] >  { mergedTypeDefs: 'schema {\n  query: Query\n}\n' }
+[warn] ⚠  Error: Query.greet defined in resolvers, but not in schema
+[warn] ⚠  We were unable to load your functions code. (see above)
+[debug] [2020-03-16T23:02:47.296Z] [worker-~diagnostic~-201324a7-92d7-495f-a23c-3e68673dc9f7]: exited
+[debug] [2020-03-16T23:02:47.296Z] [worker-~diagnostic~-201324a7-92d7-495f-a23c-3e68673dc9f7]: FINISHED
+[debug] [2020-03-16T23:03:11.245Z] File /Users/pierre/Repositories/dixitonline/functions/index.js changed, reloading triggers
+[debug] [2020-03-16T23:03:12.249Z] [worker-pool] Cleaned up workers for ~diagnostic~: 1 --> 0
+[debug] [2020-03-16T23:03:12.252Z] [worker-pool] addWorker(~diagnostic~)
+[debug] [2020-03-16T23:03:12.252Z] [worker-pool] Adding worker with key ~diagnostic~, total=1
+[debug] [2020-03-16T23:03:12.252Z] [worker-pool] submitWork(triggerId=)
+[debug] [2020-03-16T23:03:12.252Z] [worker-~diagnostic~-10b03a5f-0f50-4525-8e4f-512e7da58fb9]: Assigning socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_90165.sock
+[debug] [2020-03-16T23:03:12.253Z] [worker-~diagnostic~-10b03a5f-0f50-4525-8e4f-512e7da58fb9]: BUSY
+[debug] [2020-03-16T23:03:12.660Z] [runtime-status] [90165] Functions runtime initialized. {"cwd":"/Users/pierre/Repositories/dixitonline/functions","node_version":"10.18.1"}
+[debug] [2020-03-16T23:03:12.663Z] [runtime-status] [90165] Disabled runtime features: undefined
+[debug] [2020-03-16T23:03:12.666Z] [runtime-status] [90165] Resolved module firebase-admin {"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}
+[debug] [2020-03-16T23:03:12.667Z] [runtime-status] [90165] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T23:03:12.915Z] [runtime-status] [90165] Found google-gax at /Users/pierre/Repositories/dixitonline/functions/node_modules/google-gax/build/src/index.js
+[debug] [2020-03-16T23:03:12.915Z] [runtime-status] [90165] Outgoing network have been stubbed. [{"name":"http","status":"mocked"},{"name":"http","status":"mocked"},{"name":"https","status":"mocked"},{"name":"https","status":"mocked"},{"name":"net","status":"mocked"},{"name":"google-gax","status":"mocked"}]
+[debug] [2020-03-16T23:03:12.964Z] [runtime-status] [90165] Checked functions.config() {"config":{}}
+[debug] [2020-03-16T23:03:12.964Z] [runtime-status] [90165] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T23:03:12.965Z] [runtime-status] [90165] Resolved module firebase-admin {"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}
+[debug] [2020-03-16T23:03:12.965Z] [runtime-status] [90165] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T23:03:13.018Z] [runtime-status] [90165] firebase-admin has been stubbed. {"adminResolution":{"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}}
+[info] >  [ 'extend type Query {\n  game(id: Int!): String!\n}\n' ]
+[info] >  { mergedTypeDefs: 'schema {\n  query: Query\n}\n' }
+[warn] ⚠  Error: Query.greet defined in resolvers, but not in schema
+[warn] ⚠  We were unable to load your functions code. (see above)
+[debug] [2020-03-16T23:03:13.639Z] [worker-~diagnostic~-10b03a5f-0f50-4525-8e4f-512e7da58fb9]: exited
+[debug] [2020-03-16T23:03:13.639Z] [worker-~diagnostic~-10b03a5f-0f50-4525-8e4f-512e7da58fb9]: FINISHED
+[debug] [2020-03-16T23:03:45.471Z] File /Users/pierre/Repositories/dixitonline/functions/index.js changed, reloading triggers
+[debug] [2020-03-16T23:03:46.474Z] [worker-pool] Cleaned up workers for ~diagnostic~: 1 --> 0
+[debug] [2020-03-16T23:03:46.477Z] [worker-pool] addWorker(~diagnostic~)
+[debug] [2020-03-16T23:03:46.477Z] [worker-pool] Adding worker with key ~diagnostic~, total=1
+[debug] [2020-03-16T23:03:46.477Z] [worker-pool] submitWork(triggerId=)
+[debug] [2020-03-16T23:03:46.478Z] [worker-~diagnostic~-ca07d571-6c43-4e1d-bf18-50efed321465]: Assigning socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_90174.sock
+[debug] [2020-03-16T23:03:46.478Z] [worker-~diagnostic~-ca07d571-6c43-4e1d-bf18-50efed321465]: BUSY
+[debug] [2020-03-16T23:03:46.888Z] [runtime-status] [90174] Functions runtime initialized. {"cwd":"/Users/pierre/Repositories/dixitonline/functions","node_version":"10.18.1"}
+[debug] [2020-03-16T23:03:46.891Z] [runtime-status] [90174] Disabled runtime features: undefined
+[debug] [2020-03-16T23:03:46.895Z] [runtime-status] [90174] Resolved module firebase-admin {"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}
+[debug] [2020-03-16T23:03:46.898Z] [runtime-status] [90174] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T23:03:47.149Z] [runtime-status] [90174] Found google-gax at /Users/pierre/Repositories/dixitonline/functions/node_modules/google-gax/build/src/index.js
+[debug] [2020-03-16T23:03:47.149Z] [runtime-status] [90174] Outgoing network have been stubbed. [{"name":"http","status":"mocked"},{"name":"http","status":"mocked"},{"name":"https","status":"mocked"},{"name":"https","status":"mocked"},{"name":"net","status":"mocked"},{"name":"google-gax","status":"mocked"}]
+[debug] [2020-03-16T23:03:47.199Z] [runtime-status] [90174] Checked functions.config() {"config":{}}
+[debug] [2020-03-16T23:03:47.200Z] [runtime-status] [90174] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T23:03:47.200Z] [runtime-status] [90174] Resolved module firebase-admin {"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}
+[debug] [2020-03-16T23:03:47.200Z] [runtime-status] [90174] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T23:03:47.255Z] [runtime-status] [90174] firebase-admin has been stubbed. {"adminResolution":{"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}}
+[info] >  [ 'extend type Query {\n  greet(name: String!): String!\n}\n',
+[info] >    'extend type Query {\n  game(id: Int!): String!\n}\n' ]
+[info] >  { mergedTypeDefs: 'schema {\n  query: Query\n}\n' }
+[warn] ⚠  Error: Query.greet defined in resolvers, but not in schema
+[warn] ⚠  We were unable to load your functions code. (see above)
+[debug] [2020-03-16T23:03:47.850Z] [worker-~diagnostic~-ca07d571-6c43-4e1d-bf18-50efed321465]: exited
+[debug] [2020-03-16T23:03:47.850Z] [worker-~diagnostic~-ca07d571-6c43-4e1d-bf18-50efed321465]: FINISHED
+[debug] [2020-03-16T23:03:55.826Z] File /Users/pierre/Repositories/dixitonline/functions/index.js changed, reloading triggers
+[debug] [2020-03-16T23:03:56.829Z] [worker-pool] Cleaned up workers for ~diagnostic~: 1 --> 0
+[debug] [2020-03-16T23:03:56.834Z] [worker-pool] addWorker(~diagnostic~)
+[debug] [2020-03-16T23:03:56.834Z] [worker-pool] Adding worker with key ~diagnostic~, total=1
+[debug] [2020-03-16T23:03:56.834Z] [worker-pool] submitWork(triggerId=)
+[debug] [2020-03-16T23:03:56.834Z] [worker-~diagnostic~-a14036fa-b901-43e8-99c2-771de834d64d]: Assigning socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_90183.sock
+[debug] [2020-03-16T23:03:56.834Z] [worker-~diagnostic~-a14036fa-b901-43e8-99c2-771de834d64d]: BUSY
+[debug] [2020-03-16T23:03:57.127Z] [runtime-status] [90183] Functions runtime initialized. {"cwd":"/Users/pierre/Repositories/dixitonline/functions","node_version":"10.18.1"}
+[debug] [2020-03-16T23:03:57.130Z] [runtime-status] [90183] Disabled runtime features: undefined
+[debug] [2020-03-16T23:03:57.132Z] [runtime-status] [90183] Resolved module firebase-admin {"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}
+[debug] [2020-03-16T23:03:57.132Z] [runtime-status] [90183] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T23:03:57.301Z] [runtime-status] [90183] Found google-gax at /Users/pierre/Repositories/dixitonline/functions/node_modules/google-gax/build/src/index.js
+[debug] [2020-03-16T23:03:57.301Z] [runtime-status] [90183] Outgoing network have been stubbed. [{"name":"http","status":"mocked"},{"name":"http","status":"mocked"},{"name":"https","status":"mocked"},{"name":"https","status":"mocked"},{"name":"net","status":"mocked"},{"name":"google-gax","status":"mocked"}]
+[debug] [2020-03-16T23:03:57.335Z] [runtime-status] [90183] Checked functions.config() {"config":{}}
+[debug] [2020-03-16T23:03:57.336Z] [runtime-status] [90183] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T23:03:57.337Z] [runtime-status] [90183] Resolved module firebase-admin {"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}
+[debug] [2020-03-16T23:03:57.337Z] [runtime-status] [90183] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T23:03:57.366Z] [runtime-status] [90183] firebase-admin has been stubbed. {"adminResolution":{"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}}
+[info] >  [ 'extend type Query {\n  greet(name: String!): String!\n}\n',
+[info] >    'extend type Query {\n  game(id: Int!): String!\n}\n' ]
+[info] >  { mergedTypeDefs:
+[info] >     'extend type Query {\n  greet(name: String!): String!\n  game(id: Int!): String!\n}\n\nschema {\n  query: Query\n}\n' }
+[info] ✔  functions[api]: http function initialized (http://localhost:5001/dixit-af060/us-central1/api).
+[debug] [2020-03-16T23:03:57.951Z] [worker-~diagnostic~-a14036fa-b901-43e8-99c2-771de834d64d]: IDLE
+[debug] [2020-03-16T23:04:05.361Z] File /Users/pierre/Repositories/dixitonline/functions/index.js changed, reloading triggers
+[debug] [2020-03-16T23:04:06.365Z] [worker-pool] Shutting down IDLE worker (~diagnostic~)
+[debug] [2020-03-16T23:04:06.365Z] [worker-~diagnostic~-a14036fa-b901-43e8-99c2-771de834d64d]: FINISHING
+[debug] [2020-03-16T23:04:06.377Z] [worker-pool] addWorker(~diagnostic~)
+[debug] [2020-03-16T23:04:06.377Z] [worker-pool] Adding worker with key ~diagnostic~, total=2
+[debug] [2020-03-16T23:04:06.377Z] [worker-pool] submitWork(triggerId=)
+[debug] [2020-03-16T23:04:06.377Z] [worker-~diagnostic~-c52cde20-5747-487a-aeb1-3d7b1434c40c]: Assigning socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_90192.sock
+[debug] [2020-03-16T23:04:06.377Z] [worker-~diagnostic~-c52cde20-5747-487a-aeb1-3d7b1434c40c]: BUSY
+[debug] [2020-03-16T23:04:06.378Z] [worker-~diagnostic~-a14036fa-b901-43e8-99c2-771de834d64d]: exited
+[debug] [2020-03-16T23:04:06.378Z] [worker-~diagnostic~-a14036fa-b901-43e8-99c2-771de834d64d]: FINISHED
+[debug] [2020-03-16T23:04:06.669Z] [runtime-status] [90192] Functions runtime initialized. {"cwd":"/Users/pierre/Repositories/dixitonline/functions","node_version":"10.18.1"}
+[debug] [2020-03-16T23:04:06.672Z] [runtime-status] [90192] Disabled runtime features: undefined
+[debug] [2020-03-16T23:04:06.674Z] [runtime-status] [90192] Resolved module firebase-admin {"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}
+[debug] [2020-03-16T23:04:06.675Z] [runtime-status] [90192] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T23:04:06.849Z] [runtime-status] [90192] Found google-gax at /Users/pierre/Repositories/dixitonline/functions/node_modules/google-gax/build/src/index.js
+[debug] [2020-03-16T23:04:06.849Z] [runtime-status] [90192] Outgoing network have been stubbed. [{"name":"http","status":"mocked"},{"name":"http","status":"mocked"},{"name":"https","status":"mocked"},{"name":"https","status":"mocked"},{"name":"net","status":"mocked"},{"name":"google-gax","status":"mocked"}]
+[debug] [2020-03-16T23:04:06.884Z] [runtime-status] [90192] Checked functions.config() {"config":{}}
+[debug] [2020-03-16T23:04:06.885Z] [runtime-status] [90192] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T23:04:06.885Z] [runtime-status] [90192] Resolved module firebase-admin {"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}
+[debug] [2020-03-16T23:04:06.885Z] [runtime-status] [90192] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T23:04:06.917Z] [runtime-status] [90192] firebase-admin has been stubbed. {"adminResolution":{"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}}
+[info] >  { mergedTypeDefs:
+[info] >     'extend type Query {\n  greet(name: String!): String!\n  game(id: Int!): String!\n}\n\nschema {\n  query: Query\n}\n' }
+[debug] [2020-03-16T23:04:07.472Z] [worker-~diagnostic~-c52cde20-5747-487a-aeb1-3d7b1434c40c]: IDLE
+[debug] [2020-03-16T23:04:14.545Z] [work-queue] {"queueLength":1,"workRunningCount":2}
+[debug] [2020-03-16T23:04:14.545Z] [work-queue] {"queueLength":0,"workRunningCount":3}
+[debug] [2020-03-16T23:04:14.546Z] Accepted request GET /dixit-af060/us-central1/api/graphql --> api
+[debug] [2020-03-16T23:04:14.546Z] [worker-pool] Cleaned up workers for ~diagnostic~: 2 --> 1
+[debug] [2020-03-16T23:04:14.554Z] [worker-pool] addWorker(api)
+[debug] [2020-03-16T23:04:14.554Z] [worker-pool] Adding worker with key api, total=1
+[debug] [2020-03-16T23:04:14.554Z] [worker-pool] submitWork(triggerId=api)
+[debug] [2020-03-16T23:04:14.555Z] [worker-api-2e177569-42e2-4890-9aca-e254057650b3]: Assigning socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_90202.sock
+[debug] [2020-03-16T23:04:14.555Z] [worker-api-2e177569-42e2-4890-9aca-e254057650b3]: BUSY
+[debug] [2020-03-16T23:04:14.872Z] [runtime-status] [90202] Functions runtime initialized. {"cwd":"/Users/pierre/Repositories/dixitonline/functions","node_version":"10.18.1"}
+[debug] [2020-03-16T23:04:14.875Z] [runtime-status] [90202] Disabled runtime features: undefined
+[debug] [2020-03-16T23:04:14.877Z] [runtime-status] [90202] Resolved module firebase-admin {"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}
+[debug] [2020-03-16T23:04:14.878Z] [runtime-status] [90202] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T23:04:15.047Z] [runtime-status] [90202] Found google-gax at /Users/pierre/Repositories/dixitonline/functions/node_modules/google-gax/build/src/index.js
+[debug] [2020-03-16T23:04:15.047Z] [runtime-status] [90202] Outgoing network have been stubbed. [{"name":"http","status":"mocked"},{"name":"http","status":"mocked"},{"name":"https","status":"mocked"},{"name":"https","status":"mocked"},{"name":"net","status":"mocked"},{"name":"google-gax","status":"mocked"}]
+[debug] [2020-03-16T23:04:15.085Z] [runtime-status] [90202] Checked functions.config() {"config":{}}
+[debug] [2020-03-16T23:04:15.085Z] [runtime-status] [90202] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T23:04:15.086Z] [runtime-status] [90202] Resolved module firebase-admin {"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}
+[debug] [2020-03-16T23:04:15.086Z] [runtime-status] [90202] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T23:04:15.120Z] [runtime-status] [90202] firebase-admin has been stubbed. {"adminResolution":{"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}}
+[info] >  { mergedTypeDefs:
+[info] >     'extend type Query {\n  greet(name: String!): String!\n  game(id: Int!): String!\n}\n\nschema {\n  query: Query\n}\n' }
+[debug] [2020-03-16T23:04:15.471Z] [runtime-status] [90202] Trigger "api" has been found, beginning invocation!
+[info] i  functions: Beginning execution of "api"
+[debug] [2020-03-16T23:04:15.472Z] [runtime-status] [90202] triggerDefinition {"httpsTrigger":{},"name":"api","entryPoint":"api"}
+[debug] [2020-03-16T23:04:15.472Z] [runtime-status] [90202] Running api in mode HTTPS
+[debug] [2020-03-16T23:04:15.477Z] [runtime-status] [90202] Attempting to listen to socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_90202.sock
+[debug] [2020-03-16T23:04:15.486Z] [functions] Runtime ready! Sending request!
+[debug] [2020-03-16T23:04:15.495Z] [runtime-status] [90202] Ephemeral server handling GET request
+[debug] [2020-03-16T23:04:15.501Z] [runtime-status] [90202] Ephemeral server survived.
+[info] i  functions: Finished "api" in ~1s
+[debug] [2020-03-16T23:04:15.506Z] [worker-api-2e177569-42e2-4890-9aca-e254057650b3]: IDLE
+[debug] [2020-03-16T23:04:15.506Z] [work-queue] {"queueLength":0,"workRunningCount":2}
+[debug] [2020-03-16T23:04:16.352Z] [work-queue] {"queueLength":1,"workRunningCount":2}
+[debug] [2020-03-16T23:04:16.353Z] [work-queue] {"queueLength":0,"workRunningCount":3}
+[debug] [2020-03-16T23:04:16.353Z] Accepted request POST /dixit-af060/us-central1/api/graphql --> api
+[debug] [2020-03-16T23:04:16.353Z] [worker-pool] submitWork(triggerId=api)
+[debug] [2020-03-16T23:04:16.353Z] [worker-api-2e177569-42e2-4890-9aca-e254057650b3]: Assigning socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_90202.sock
+[debug] [2020-03-16T23:04:16.354Z] [worker-api-2e177569-42e2-4890-9aca-e254057650b3]: BUSY
+[debug] [2020-03-16T23:04:16.354Z] [runtime-status] [90202] Trigger "api" has been found, beginning invocation!
+[info] i  functions: Beginning execution of "api"
+[debug] [2020-03-16T23:04:16.355Z] [runtime-status] [90202] triggerDefinition {"httpsTrigger":{},"name":"api","entryPoint":"api"}
+[debug] [2020-03-16T23:04:16.355Z] [runtime-status] [90202] Running api in mode HTTPS
+[debug] [2020-03-16T23:04:16.355Z] [runtime-status] [90202] Attempting to listen to socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_90202.sock
+[debug] [2020-03-16T23:04:16.357Z] [functions] Runtime ready! Sending request!
+[debug] [2020-03-16T23:04:16.380Z] [runtime-status] [90202] Ephemeral server handling POST request
+[debug] [2020-03-16T23:04:16.383Z] [runtime-status] [90202] Ephemeral server survived.
+[info] i  functions: Finished "api" in ~1s
+[debug] [2020-03-16T23:04:16.407Z] [worker-api-2e177569-42e2-4890-9aca-e254057650b3]: IDLE
+[debug] [2020-03-16T23:04:16.407Z] [work-queue] {"queueLength":0,"workRunningCount":2}
+[debug] [2020-03-16T23:04:16.436Z] [work-queue] {"queueLength":1,"workRunningCount":2}
+[debug] [2020-03-16T23:04:16.436Z] [work-queue] {"queueLength":0,"workRunningCount":3}
+[debug] [2020-03-16T23:04:16.436Z] Accepted request POST /dixit-af060/us-central1/api/graphql --> api
+[debug] [2020-03-16T23:04:16.436Z] [worker-pool] submitWork(triggerId=api)
+[debug] [2020-03-16T23:04:16.436Z] [worker-api-2e177569-42e2-4890-9aca-e254057650b3]: Assigning socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_90202.sock
+[debug] [2020-03-16T23:04:16.436Z] [worker-api-2e177569-42e2-4890-9aca-e254057650b3]: BUSY
+[debug] [2020-03-16T23:04:16.436Z] [runtime-status] [90202] Trigger "api" has been found, beginning invocation!
+[info] i  functions: Beginning execution of "api"
+[debug] [2020-03-16T23:04:16.437Z] [runtime-status] [90202] triggerDefinition {"httpsTrigger":{},"name":"api","entryPoint":"api"}
+[debug] [2020-03-16T23:04:16.437Z] [runtime-status] [90202] Running api in mode HTTPS
+[debug] [2020-03-16T23:04:16.437Z] [runtime-status] [90202] Attempting to listen to socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_90202.sock
+[debug] [2020-03-16T23:04:16.438Z] [functions] Runtime ready! Sending request!
+[debug] [2020-03-16T23:04:16.441Z] [runtime-status] [90202] Ephemeral server handling POST request
+[debug] [2020-03-16T23:04:16.441Z] [runtime-status] [90202] Ephemeral server survived.
+[info] i  functions: Finished "api" in ~1s
+[debug] [2020-03-16T23:04:16.448Z] [worker-api-2e177569-42e2-4890-9aca-e254057650b3]: IDLE
+[debug] [2020-03-16T23:04:16.448Z] [work-queue] {"queueLength":0,"workRunningCount":2}
+[debug] [2020-03-16T23:04:18.433Z] [work-queue] {"queueLength":1,"workRunningCount":2}
+[debug] [2020-03-16T23:04:18.433Z] [work-queue] {"queueLength":0,"workRunningCount":3}
+[debug] [2020-03-16T23:04:18.433Z] Accepted request POST /dixit-af060/us-central1/api/graphql --> api
+[debug] [2020-03-16T23:04:18.433Z] [worker-pool] submitWork(triggerId=api)
+[debug] [2020-03-16T23:04:18.433Z] [worker-api-2e177569-42e2-4890-9aca-e254057650b3]: Assigning socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_90202.sock
+[debug] [2020-03-16T23:04:18.433Z] [worker-api-2e177569-42e2-4890-9aca-e254057650b3]: BUSY
+[debug] [2020-03-16T23:04:18.433Z] [runtime-status] [90202] Trigger "api" has been found, beginning invocation!
+[info] i  functions: Beginning execution of "api"
+[debug] [2020-03-16T23:04:18.434Z] [runtime-status] [90202] triggerDefinition {"httpsTrigger":{},"name":"api","entryPoint":"api"}
+[debug] [2020-03-16T23:04:18.434Z] [runtime-status] [90202] Running api in mode HTTPS
+[debug] [2020-03-16T23:04:18.434Z] [runtime-status] [90202] Attempting to listen to socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_90202.sock
+[debug] [2020-03-16T23:04:18.435Z] [functions] Runtime ready! Sending request!
+[debug] [2020-03-16T23:04:18.437Z] [runtime-status] [90202] Ephemeral server handling POST request
+[debug] [2020-03-16T23:04:18.438Z] [runtime-status] [90202] Ephemeral server survived.
+[info] i  functions: Finished "api" in ~1s
+[debug] [2020-03-16T23:04:18.449Z] [worker-api-2e177569-42e2-4890-9aca-e254057650b3]: IDLE
+[debug] [2020-03-16T23:04:18.449Z] [work-queue] {"queueLength":0,"workRunningCount":2}
+[debug] [2020-03-16T23:04:20.470Z] [work-queue] {"queueLength":1,"workRunningCount":2}
+[debug] [2020-03-16T23:04:20.470Z] [work-queue] {"queueLength":0,"workRunningCount":3}
+[debug] [2020-03-16T23:04:20.470Z] Accepted request POST /dixit-af060/us-central1/api/graphql --> api
+[debug] [2020-03-16T23:04:20.470Z] [worker-pool] submitWork(triggerId=api)
+[debug] [2020-03-16T23:04:20.470Z] [worker-api-2e177569-42e2-4890-9aca-e254057650b3]: Assigning socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_90202.sock
+[debug] [2020-03-16T23:04:20.470Z] [worker-api-2e177569-42e2-4890-9aca-e254057650b3]: BUSY
+[debug] [2020-03-16T23:04:20.471Z] [runtime-status] [90202] Trigger "api" has been found, beginning invocation!
+[info] i  functions: Beginning execution of "api"
+[debug] [2020-03-16T23:04:20.471Z] [runtime-status] [90202] triggerDefinition {"httpsTrigger":{},"name":"api","entryPoint":"api"}
+[debug] [2020-03-16T23:04:20.471Z] [runtime-status] [90202] Running api in mode HTTPS
+[debug] [2020-03-16T23:04:20.471Z] [runtime-status] [90202] Attempting to listen to socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_90202.sock
+[debug] [2020-03-16T23:04:20.472Z] [functions] Runtime ready! Sending request!
+[debug] [2020-03-16T23:04:20.476Z] [runtime-status] [90202] Ephemeral server handling POST request
+[debug] [2020-03-16T23:04:20.477Z] [runtime-status] [90202] Ephemeral server survived.
+[info] i  functions: Finished "api" in ~1s
+[debug] [2020-03-16T23:04:20.485Z] [worker-api-2e177569-42e2-4890-9aca-e254057650b3]: IDLE
+[debug] [2020-03-16T23:04:20.485Z] [work-queue] {"queueLength":0,"workRunningCount":2}
+[debug] [2020-03-16T23:04:22.496Z] [work-queue] {"queueLength":1,"workRunningCount":2}
+[debug] [2020-03-16T23:04:22.496Z] [work-queue] {"queueLength":0,"workRunningCount":3}
+[debug] [2020-03-16T23:04:22.496Z] Accepted request POST /dixit-af060/us-central1/api/graphql --> api
+[debug] [2020-03-16T23:04:22.496Z] [worker-pool] submitWork(triggerId=api)
+[debug] [2020-03-16T23:04:22.496Z] [worker-api-2e177569-42e2-4890-9aca-e254057650b3]: Assigning socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_90202.sock
+[debug] [2020-03-16T23:04:22.496Z] [worker-api-2e177569-42e2-4890-9aca-e254057650b3]: BUSY
+[debug] [2020-03-16T23:04:22.497Z] [runtime-status] [90202] Trigger "api" has been found, beginning invocation!
+[info] i  functions: Beginning execution of "api"
+[debug] [2020-03-16T23:04:22.497Z] [runtime-status] [90202] triggerDefinition {"httpsTrigger":{},"name":"api","entryPoint":"api"}
+[debug] [2020-03-16T23:04:22.497Z] [runtime-status] [90202] Running api in mode HTTPS
+[debug] [2020-03-16T23:04:22.497Z] [runtime-status] [90202] Attempting to listen to socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_90202.sock
+[debug] [2020-03-16T23:04:22.498Z] [functions] Runtime ready! Sending request!
+[debug] [2020-03-16T23:04:22.500Z] [runtime-status] [90202] Ephemeral server handling POST request
+[debug] [2020-03-16T23:04:22.501Z] [runtime-status] [90202] Ephemeral server survived.
+[info] i  functions: Finished "api" in ~1s
+[debug] [2020-03-16T23:04:22.508Z] [worker-api-2e177569-42e2-4890-9aca-e254057650b3]: IDLE
+[debug] [2020-03-16T23:04:22.508Z] [work-queue] {"queueLength":0,"workRunningCount":2}
+[debug] [2020-03-16T23:04:24.518Z] [work-queue] {"queueLength":1,"workRunningCount":2}
+[debug] [2020-03-16T23:04:24.518Z] [work-queue] {"queueLength":0,"workRunningCount":3}
+[debug] [2020-03-16T23:04:24.518Z] Accepted request POST /dixit-af060/us-central1/api/graphql --> api
+[debug] [2020-03-16T23:04:24.518Z] [worker-pool] submitWork(triggerId=api)
+[debug] [2020-03-16T23:04:24.518Z] [worker-api-2e177569-42e2-4890-9aca-e254057650b3]: Assigning socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_90202.sock
+[debug] [2020-03-16T23:04:24.518Z] [worker-api-2e177569-42e2-4890-9aca-e254057650b3]: BUSY
+[debug] [2020-03-16T23:04:24.520Z] [runtime-status] [90202] Trigger "api" has been found, beginning invocation!
+[info] i  functions: Beginning execution of "api"
+[debug] [2020-03-16T23:04:24.521Z] [runtime-status] [90202] triggerDefinition {"httpsTrigger":{},"name":"api","entryPoint":"api"}
+[debug] [2020-03-16T23:04:24.521Z] [runtime-status] [90202] Running api in mode HTTPS
+[debug] [2020-03-16T23:04:24.521Z] [runtime-status] [90202] Attempting to listen to socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_90202.sock
+[debug] [2020-03-16T23:04:24.523Z] [functions] Runtime ready! Sending request!
+[debug] [2020-03-16T23:04:24.528Z] [runtime-status] [90202] Ephemeral server handling POST request
+[debug] [2020-03-16T23:04:24.529Z] [runtime-status] [90202] Ephemeral server survived.
+[info] i  functions: Finished "api" in ~1s
+[debug] [2020-03-16T23:04:24.544Z] [worker-api-2e177569-42e2-4890-9aca-e254057650b3]: IDLE
+[debug] [2020-03-16T23:04:24.544Z] [work-queue] {"queueLength":0,"workRunningCount":2}
+[debug] [2020-03-16T23:04:26.114Z] [work-queue] {"queueLength":1,"workRunningCount":2}
+[debug] [2020-03-16T23:04:26.114Z] [work-queue] {"queueLength":0,"workRunningCount":3}
+[debug] [2020-03-16T23:04:26.114Z] Accepted request POST /dixit-af060/us-central1/api/graphql --> api
+[debug] [2020-03-16T23:04:26.114Z] [worker-pool] submitWork(triggerId=api)
+[debug] [2020-03-16T23:04:26.114Z] [worker-api-2e177569-42e2-4890-9aca-e254057650b3]: Assigning socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_90202.sock
+[debug] [2020-03-16T23:04:26.114Z] [worker-api-2e177569-42e2-4890-9aca-e254057650b3]: BUSY
+[debug] [2020-03-16T23:04:26.115Z] [runtime-status] [90202] Trigger "api" has been found, beginning invocation!
+[info] i  functions: Beginning execution of "api"
+[debug] [2020-03-16T23:04:26.115Z] [runtime-status] [90202] triggerDefinition {"httpsTrigger":{},"name":"api","entryPoint":"api"}
+[debug] [2020-03-16T23:04:26.115Z] [runtime-status] [90202] Running api in mode HTTPS
+[debug] [2020-03-16T23:04:26.115Z] [runtime-status] [90202] Attempting to listen to socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_90202.sock
+[debug] [2020-03-16T23:04:26.116Z] [functions] Runtime ready! Sending request!
+[debug] [2020-03-16T23:04:26.119Z] [runtime-status] [90202] Ephemeral server handling POST request
+[debug] [2020-03-16T23:04:26.120Z] [runtime-status] [90202] Ephemeral server survived.
+[info] i  functions: Finished "api" in ~1s
+[debug] [2020-03-16T23:04:26.123Z] [worker-api-2e177569-42e2-4890-9aca-e254057650b3]: IDLE
+[debug] [2020-03-16T23:04:26.124Z] [work-queue] {"queueLength":0,"workRunningCount":2}
+[debug] [2020-03-16T23:04:26.553Z] [work-queue] {"queueLength":1,"workRunningCount":2}
+[debug] [2020-03-16T23:04:26.553Z] [work-queue] {"queueLength":0,"workRunningCount":3}
+[debug] [2020-03-16T23:04:26.553Z] Accepted request POST /dixit-af060/us-central1/api/graphql --> api
+[debug] [2020-03-16T23:04:26.553Z] [worker-pool] submitWork(triggerId=api)
+[debug] [2020-03-16T23:04:26.553Z] [worker-api-2e177569-42e2-4890-9aca-e254057650b3]: Assigning socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_90202.sock
+[debug] [2020-03-16T23:04:26.553Z] [worker-api-2e177569-42e2-4890-9aca-e254057650b3]: BUSY
+[debug] [2020-03-16T23:04:26.553Z] [runtime-status] [90202] Trigger "api" has been found, beginning invocation!
+[info] i  functions: Beginning execution of "api"
+[debug] [2020-03-16T23:04:26.554Z] [runtime-status] [90202] triggerDefinition {"httpsTrigger":{},"name":"api","entryPoint":"api"}
+[debug] [2020-03-16T23:04:26.554Z] [runtime-status] [90202] Running api in mode HTTPS
+[debug] [2020-03-16T23:04:26.554Z] [runtime-status] [90202] Attempting to listen to socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_90202.sock
+[debug] [2020-03-16T23:04:26.555Z] [functions] Runtime ready! Sending request!
+[debug] [2020-03-16T23:04:26.557Z] [runtime-status] [90202] Ephemeral server handling POST request
+[debug] [2020-03-16T23:04:26.557Z] [runtime-status] [90202] Ephemeral server survived.
+[info] i  functions: Finished "api" in ~1s
+[debug] [2020-03-16T23:04:26.564Z] [worker-api-2e177569-42e2-4890-9aca-e254057650b3]: IDLE
+[debug] [2020-03-16T23:04:26.564Z] [work-queue] {"queueLength":0,"workRunningCount":2}
+[debug] [2020-03-16T23:04:28.571Z] [work-queue] {"queueLength":1,"workRunningCount":2}
+[debug] [2020-03-16T23:04:28.571Z] [work-queue] {"queueLength":0,"workRunningCount":3}
+[debug] [2020-03-16T23:04:28.571Z] Accepted request POST /dixit-af060/us-central1/api/graphql --> api
+[debug] [2020-03-16T23:04:28.571Z] [worker-pool] submitWork(triggerId=api)
+[debug] [2020-03-16T23:04:28.571Z] [worker-api-2e177569-42e2-4890-9aca-e254057650b3]: Assigning socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_90202.sock
+[debug] [2020-03-16T23:04:28.571Z] [worker-api-2e177569-42e2-4890-9aca-e254057650b3]: BUSY
+[debug] [2020-03-16T23:04:28.572Z] [runtime-status] [90202] Trigger "api" has been found, beginning invocation!
+[info] i  functions: Beginning execution of "api"
+[debug] [2020-03-16T23:04:28.572Z] [runtime-status] [90202] triggerDefinition {"httpsTrigger":{},"name":"api","entryPoint":"api"}
+[debug] [2020-03-16T23:04:28.572Z] [runtime-status] [90202] Running api in mode HTTPS
+[debug] [2020-03-16T23:04:28.572Z] [runtime-status] [90202] Attempting to listen to socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_90202.sock
+[debug] [2020-03-16T23:04:28.573Z] [functions] Runtime ready! Sending request!
+[debug] [2020-03-16T23:04:28.575Z] [runtime-status] [90202] Ephemeral server handling POST request
+[debug] [2020-03-16T23:04:28.575Z] [runtime-status] [90202] Ephemeral server survived.
+[info] i  functions: Finished "api" in ~1s
+[debug] [2020-03-16T23:04:28.581Z] [worker-api-2e177569-42e2-4890-9aca-e254057650b3]: IDLE
+[debug] [2020-03-16T23:04:28.581Z] [work-queue] {"queueLength":0,"workRunningCount":2}
+[debug] [2020-03-16T23:04:29.531Z] [work-queue] {"queueLength":1,"workRunningCount":2}
+[debug] [2020-03-16T23:04:29.532Z] [work-queue] {"queueLength":0,"workRunningCount":3}
+[debug] [2020-03-16T23:04:29.532Z] Accepted request POST /dixit-af060/us-central1/api/graphql --> api
+[debug] [2020-03-16T23:04:29.533Z] [worker-pool] submitWork(triggerId=api)
+[debug] [2020-03-16T23:04:29.533Z] [worker-api-2e177569-42e2-4890-9aca-e254057650b3]: Assigning socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_90202.sock
+[debug] [2020-03-16T23:04:29.533Z] [worker-api-2e177569-42e2-4890-9aca-e254057650b3]: BUSY
+[debug] [2020-03-16T23:04:29.534Z] [runtime-status] [90202] Trigger "api" has been found, beginning invocation!
+[info] i  functions: Beginning execution of "api"
+[debug] [2020-03-16T23:04:29.534Z] [runtime-status] [90202] triggerDefinition {"httpsTrigger":{},"name":"api","entryPoint":"api"}
+[debug] [2020-03-16T23:04:29.534Z] [runtime-status] [90202] Running api in mode HTTPS
+[debug] [2020-03-16T23:04:29.535Z] [runtime-status] [90202] Attempting to listen to socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_90202.sock
+[debug] [2020-03-16T23:04:29.535Z] [functions] Runtime ready! Sending request!
+[debug] [2020-03-16T23:04:29.537Z] [runtime-status] [90202] Ephemeral server handling POST request
+[debug] [2020-03-16T23:04:29.538Z] [runtime-status] [90202] Ephemeral server survived.
+[info] i  functions: Finished "api" in ~1s
+[debug] [2020-03-16T23:04:29.540Z] [worker-api-2e177569-42e2-4890-9aca-e254057650b3]: IDLE
+[debug] [2020-03-16T23:04:29.540Z] [work-queue] {"queueLength":0,"workRunningCount":2}
+[debug] [2020-03-16T23:04:30.587Z] [work-queue] {"queueLength":1,"workRunningCount":2}
+[debug] [2020-03-16T23:04:30.588Z] [work-queue] {"queueLength":0,"workRunningCount":3}
+[debug] [2020-03-16T23:04:30.588Z] Accepted request POST /dixit-af060/us-central1/api/graphql --> api
+[debug] [2020-03-16T23:04:30.588Z] [worker-pool] submitWork(triggerId=api)
+[debug] [2020-03-16T23:04:30.588Z] [worker-api-2e177569-42e2-4890-9aca-e254057650b3]: Assigning socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_90202.sock
+[debug] [2020-03-16T23:04:30.588Z] [worker-api-2e177569-42e2-4890-9aca-e254057650b3]: BUSY
+[debug] [2020-03-16T23:04:30.588Z] [runtime-status] [90202] Trigger "api" has been found, beginning invocation!
+[info] i  functions: Beginning execution of "api"
+[debug] [2020-03-16T23:04:30.589Z] [runtime-status] [90202] triggerDefinition {"httpsTrigger":{},"name":"api","entryPoint":"api"}
+[debug] [2020-03-16T23:04:30.589Z] [runtime-status] [90202] Running api in mode HTTPS
+[debug] [2020-03-16T23:04:30.589Z] [runtime-status] [90202] Attempting to listen to socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_90202.sock
+[debug] [2020-03-16T23:04:30.590Z] [functions] Runtime ready! Sending request!
+[debug] [2020-03-16T23:04:30.592Z] [runtime-status] [90202] Ephemeral server handling POST request
+[debug] [2020-03-16T23:04:30.592Z] [runtime-status] [90202] Ephemeral server survived.
+[info] i  functions: Finished "api" in ~1s
+[debug] [2020-03-16T23:04:30.597Z] [worker-api-2e177569-42e2-4890-9aca-e254057650b3]: IDLE
+[debug] [2020-03-16T23:04:30.597Z] [work-queue] {"queueLength":0,"workRunningCount":2}
+[debug] [2020-03-16T23:05:24.205Z] File /Users/pierre/Repositories/dixitonline/functions/index.js changed, reloading triggers
+[debug] [2020-03-16T23:05:25.211Z] [worker-pool] Shutting down IDLE worker (~diagnostic~)
+[debug] [2020-03-16T23:05:25.212Z] [worker-~diagnostic~-c52cde20-5747-487a-aeb1-3d7b1434c40c]: FINISHING
+[debug] [2020-03-16T23:05:25.212Z] [worker-pool] Shutting down IDLE worker (api)
+[debug] [2020-03-16T23:05:25.212Z] [worker-api-2e177569-42e2-4890-9aca-e254057650b3]: FINISHING
+[debug] [2020-03-16T23:05:25.218Z] [worker-pool] addWorker(~diagnostic~)
+[debug] [2020-03-16T23:05:25.218Z] [worker-pool] Adding worker with key ~diagnostic~, total=2
+[debug] [2020-03-16T23:05:25.218Z] [worker-pool] submitWork(triggerId=)
+[debug] [2020-03-16T23:05:25.218Z] [worker-~diagnostic~-68456ec5-26ad-4c73-9abe-f7c9a79f8725]: Assigning socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_90216.sock
+[debug] [2020-03-16T23:05:25.218Z] [worker-~diagnostic~-68456ec5-26ad-4c73-9abe-f7c9a79f8725]: BUSY
+[debug] [2020-03-16T23:05:25.223Z] [worker-~diagnostic~-c52cde20-5747-487a-aeb1-3d7b1434c40c]: exited
+[debug] [2020-03-16T23:05:25.224Z] [worker-~diagnostic~-c52cde20-5747-487a-aeb1-3d7b1434c40c]: FINISHED
+[debug] [2020-03-16T23:05:25.224Z] [worker-api-2e177569-42e2-4890-9aca-e254057650b3]: exited
+[debug] [2020-03-16T23:05:25.224Z] [worker-api-2e177569-42e2-4890-9aca-e254057650b3]: FINISHED
+[debug] [2020-03-16T23:05:25.619Z] [runtime-status] [90216] Functions runtime initialized. {"cwd":"/Users/pierre/Repositories/dixitonline/functions","node_version":"10.18.1"}
+[debug] [2020-03-16T23:05:25.621Z] [runtime-status] [90216] Disabled runtime features: undefined
+[debug] [2020-03-16T23:05:25.624Z] [runtime-status] [90216] Resolved module firebase-admin {"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}
+[debug] [2020-03-16T23:05:25.625Z] [runtime-status] [90216] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T23:05:25.885Z] [runtime-status] [90216] Found google-gax at /Users/pierre/Repositories/dixitonline/functions/node_modules/google-gax/build/src/index.js
+[debug] [2020-03-16T23:05:25.885Z] [runtime-status] [90216] Outgoing network have been stubbed. [{"name":"http","status":"mocked"},{"name":"http","status":"mocked"},{"name":"https","status":"mocked"},{"name":"https","status":"mocked"},{"name":"net","status":"mocked"},{"name":"google-gax","status":"mocked"}]
+[debug] [2020-03-16T23:05:25.938Z] [runtime-status] [90216] Checked functions.config() {"config":{}}
+[debug] [2020-03-16T23:05:25.938Z] [runtime-status] [90216] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T23:05:25.940Z] [runtime-status] [90216] Resolved module firebase-admin {"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}
+[debug] [2020-03-16T23:05:25.941Z] [runtime-status] [90216] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T23:05:25.997Z] [runtime-status] [90216] firebase-admin has been stubbed. {"adminResolution":{"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}}
+[info] >  { mergedTypeDefs:
+[info] >     'extend type Query {\n  greet(name: String!): String!\n  game(id: Int!): String!\n}\n\nschema {\n  query: Query\n}\n' }
+[debug] [2020-03-16T23:05:26.583Z] [worker-~diagnostic~-68456ec5-26ad-4c73-9abe-f7c9a79f8725]: IDLE
+[debug] [2020-03-16T23:05:37.856Z] File /Users/pierre/Repositories/dixitonline/functions/index.js changed, reloading triggers
+[debug] [2020-03-16T23:05:38.861Z] [worker-pool] Shutting down IDLE worker (~diagnostic~)
+[debug] [2020-03-16T23:05:38.861Z] [worker-~diagnostic~-68456ec5-26ad-4c73-9abe-f7c9a79f8725]: FINISHING
+[debug] [2020-03-16T23:05:38.861Z] [worker-pool] Cleaned up workers for ~diagnostic~: 2 --> 1
+[debug] [2020-03-16T23:05:38.861Z] [worker-pool] Cleaned up workers for api: 1 --> 0
+[debug] [2020-03-16T23:05:38.866Z] [worker-pool] addWorker(~diagnostic~)
+[debug] [2020-03-16T23:05:38.866Z] [worker-pool] Adding worker with key ~diagnostic~, total=2
+[debug] [2020-03-16T23:05:38.866Z] [worker-pool] submitWork(triggerId=)
+[debug] [2020-03-16T23:05:38.866Z] [worker-~diagnostic~-5e05195e-a165-4547-b0cd-2d25e3271e8a]: Assigning socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_90226.sock
+[debug] [2020-03-16T23:05:38.866Z] [worker-~diagnostic~-5e05195e-a165-4547-b0cd-2d25e3271e8a]: BUSY
+[debug] [2020-03-16T23:05:38.869Z] [worker-~diagnostic~-68456ec5-26ad-4c73-9abe-f7c9a79f8725]: exited
+[debug] [2020-03-16T23:05:38.869Z] [worker-~diagnostic~-68456ec5-26ad-4c73-9abe-f7c9a79f8725]: FINISHED
+[debug] [2020-03-16T23:05:39.166Z] [runtime-status] [90226] Functions runtime initialized. {"cwd":"/Users/pierre/Repositories/dixitonline/functions","node_version":"10.18.1"}
+[debug] [2020-03-16T23:05:39.168Z] [runtime-status] [90226] Disabled runtime features: undefined
+[debug] [2020-03-16T23:05:39.170Z] [runtime-status] [90226] Resolved module firebase-admin {"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}
+[debug] [2020-03-16T23:05:39.171Z] [runtime-status] [90226] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T23:05:39.327Z] [runtime-status] [90226] Found google-gax at /Users/pierre/Repositories/dixitonline/functions/node_modules/google-gax/build/src/index.js
+[debug] [2020-03-16T23:05:39.327Z] [runtime-status] [90226] Outgoing network have been stubbed. [{"name":"http","status":"mocked"},{"name":"http","status":"mocked"},{"name":"https","status":"mocked"},{"name":"https","status":"mocked"},{"name":"net","status":"mocked"},{"name":"google-gax","status":"mocked"}]
+[debug] [2020-03-16T23:05:39.361Z] [runtime-status] [90226] Checked functions.config() {"config":{}}
+[debug] [2020-03-16T23:05:39.362Z] [runtime-status] [90226] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T23:05:39.362Z] [runtime-status] [90226] Resolved module firebase-admin {"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}
+[debug] [2020-03-16T23:05:39.363Z] [runtime-status] [90226] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T23:05:39.392Z] [runtime-status] [90226] firebase-admin has been stubbed. {"adminResolution":{"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}}
+[info] >  { mergedTypeDefs:
+[info] >     'extend type Query {\n  greet(name: String!): String!\n  game(id: Int!): String!\n}\n\nschema {\n  query: Query\n}\n' }
+[debug] [2020-03-16T23:05:39.748Z] [worker-~diagnostic~-5e05195e-a165-4547-b0cd-2d25e3271e8a]: IDLE
+[debug] [2020-03-16T23:05:48.252Z] [work-queue] {"queueLength":1,"workRunningCount":2}
+[debug] [2020-03-16T23:05:48.252Z] [work-queue] {"queueLength":0,"workRunningCount":3}
+[debug] [2020-03-16T23:05:48.252Z] Accepted request GET /dixit-af060/us-central1/api/graphql --> api
+[debug] [2020-03-16T23:05:48.252Z] [worker-pool] Cleaned up workers for ~diagnostic~: 2 --> 1
+[debug] [2020-03-16T23:05:48.257Z] [worker-pool] addWorker(api)
+[debug] [2020-03-16T23:05:48.258Z] [worker-pool] Adding worker with key api, total=1
+[debug] [2020-03-16T23:05:48.258Z] [worker-pool] submitWork(triggerId=api)
+[debug] [2020-03-16T23:05:48.258Z] [worker-api-d00b8cfe-b294-484d-8846-eba2ed381086]: Assigning socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_90235.sock
+[debug] [2020-03-16T23:05:48.258Z] [worker-api-d00b8cfe-b294-484d-8846-eba2ed381086]: BUSY
+[debug] [2020-03-16T23:05:48.684Z] [runtime-status] [90235] Functions runtime initialized. {"cwd":"/Users/pierre/Repositories/dixitonline/functions","node_version":"10.18.1"}
+[debug] [2020-03-16T23:05:48.686Z] [runtime-status] [90235] Disabled runtime features: undefined
+[debug] [2020-03-16T23:05:48.689Z] [runtime-status] [90235] Resolved module firebase-admin {"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}
+[debug] [2020-03-16T23:05:48.691Z] [runtime-status] [90235] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T23:05:48.953Z] [runtime-status] [90235] Found google-gax at /Users/pierre/Repositories/dixitonline/functions/node_modules/google-gax/build/src/index.js
+[debug] [2020-03-16T23:05:48.953Z] [runtime-status] [90235] Outgoing network have been stubbed. [{"name":"http","status":"mocked"},{"name":"http","status":"mocked"},{"name":"https","status":"mocked"},{"name":"https","status":"mocked"},{"name":"net","status":"mocked"},{"name":"google-gax","status":"mocked"}]
+[debug] [2020-03-16T23:05:49.006Z] [runtime-status] [90235] Checked functions.config() {"config":{}}
+[debug] [2020-03-16T23:05:49.007Z] [runtime-status] [90235] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T23:05:49.008Z] [runtime-status] [90235] Resolved module firebase-admin {"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}
+[debug] [2020-03-16T23:05:49.008Z] [runtime-status] [90235] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.3.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-functions/lib/index.js"}
+[debug] [2020-03-16T23:05:49.040Z] [runtime-status] [90235] firebase-admin has been stubbed. {"adminResolution":{"declared":true,"installed":true,"version":"8.10.0","resolution":"/Users/pierre/Repositories/dixitonline/functions/node_modules/firebase-admin/lib/index.js"}}
+[info] >  { mergedTypeDefs:
+[info] >     'extend type Query {\n  greet(name: String!): String!\n  game(id: Int!): String!\n}\n\nschema {\n  query: Query\n}\n' }
+[debug] [2020-03-16T23:05:49.411Z] [runtime-status] [90235] Trigger "api" has been found, beginning invocation!
+[info] i  functions: Beginning execution of "api"
+[debug] [2020-03-16T23:05:49.411Z] [runtime-status] [90235] triggerDefinition {"httpsTrigger":{},"name":"api","entryPoint":"api"}
+[debug] [2020-03-16T23:05:49.411Z] [runtime-status] [90235] Running api in mode HTTPS
+[debug] [2020-03-16T23:05:49.415Z] [runtime-status] [90235] Attempting to listen to socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_90235.sock
+[debug] [2020-03-16T23:05:49.418Z] [functions] Runtime ready! Sending request!
+[debug] [2020-03-16T23:05:49.430Z] [runtime-status] [90235] Ephemeral server handling GET request
+[debug] [2020-03-16T23:05:49.437Z] [runtime-status] [90235] Ephemeral server survived.
+[info] i  functions: Finished "api" in ~1s
+[debug] [2020-03-16T23:05:49.442Z] [worker-api-d00b8cfe-b294-484d-8846-eba2ed381086]: IDLE
+[debug] [2020-03-16T23:05:49.442Z] [work-queue] {"queueLength":0,"workRunningCount":2}
+[debug] [2020-03-16T23:05:50.277Z] [work-queue] {"queueLength":1,"workRunningCount":2}
+[debug] [2020-03-16T23:05:50.277Z] [work-queue] {"queueLength":0,"workRunningCount":3}
+[debug] [2020-03-16T23:05:50.277Z] Accepted request POST /dixit-af060/us-central1/api/graphql --> api
+[debug] [2020-03-16T23:05:50.277Z] [worker-pool] submitWork(triggerId=api)
+[debug] [2020-03-16T23:05:50.277Z] [worker-api-d00b8cfe-b294-484d-8846-eba2ed381086]: Assigning socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_90235.sock
+[debug] [2020-03-16T23:05:50.277Z] [worker-api-d00b8cfe-b294-484d-8846-eba2ed381086]: BUSY
+[debug] [2020-03-16T23:05:50.278Z] [runtime-status] [90235] Trigger "api" has been found, beginning invocation!
+[info] i  functions: Beginning execution of "api"
+[debug] [2020-03-16T23:05:50.278Z] [runtime-status] [90235] triggerDefinition {"httpsTrigger":{},"name":"api","entryPoint":"api"}
+[debug] [2020-03-16T23:05:50.278Z] [runtime-status] [90235] Running api in mode HTTPS
+[debug] [2020-03-16T23:05:50.278Z] [runtime-status] [90235] Attempting to listen to socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_90235.sock
+[debug] [2020-03-16T23:05:50.279Z] [functions] Runtime ready! Sending request!
+[debug] [2020-03-16T23:05:50.302Z] [runtime-status] [90235] Ephemeral server handling POST request
+[debug] [2020-03-16T23:05:50.307Z] [runtime-status] [90235] Ephemeral server survived.
+[info] i  functions: Finished "api" in ~1s
+[debug] [2020-03-16T23:05:50.328Z] [worker-api-d00b8cfe-b294-484d-8846-eba2ed381086]: IDLE
+[debug] [2020-03-16T23:05:50.328Z] [work-queue] {"queueLength":0,"workRunningCount":2}
+[debug] [2020-03-16T23:05:50.348Z] [work-queue] {"queueLength":1,"workRunningCount":2}
+[debug] [2020-03-16T23:05:50.349Z] [work-queue] {"queueLength":0,"workRunningCount":3}
+[debug] [2020-03-16T23:05:50.349Z] Accepted request POST /dixit-af060/us-central1/api/graphql --> api
+[debug] [2020-03-16T23:05:50.349Z] [worker-pool] submitWork(triggerId=api)
+[debug] [2020-03-16T23:05:50.349Z] [worker-api-d00b8cfe-b294-484d-8846-eba2ed381086]: Assigning socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_90235.sock
+[debug] [2020-03-16T23:05:50.349Z] [worker-api-d00b8cfe-b294-484d-8846-eba2ed381086]: BUSY
+[debug] [2020-03-16T23:05:50.349Z] [runtime-status] [90235] Trigger "api" has been found, beginning invocation!
+[info] i  functions: Beginning execution of "api"
+[debug] [2020-03-16T23:05:50.349Z] [runtime-status] [90235] triggerDefinition {"httpsTrigger":{},"name":"api","entryPoint":"api"}
+[debug] [2020-03-16T23:05:50.349Z] [runtime-status] [90235] Running api in mode HTTPS
+[debug] [2020-03-16T23:05:50.349Z] [runtime-status] [90235] Attempting to listen to socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_90235.sock
+[debug] [2020-03-16T23:05:50.350Z] [functions] Runtime ready! Sending request!
+[debug] [2020-03-16T23:05:50.352Z] [runtime-status] [90235] Ephemeral server handling POST request
+[debug] [2020-03-16T23:05:50.353Z] [runtime-status] [90235] Ephemeral server survived.
+[info] i  functions: Finished "api" in ~1s
+[debug] [2020-03-16T23:05:50.360Z] [worker-api-d00b8cfe-b294-484d-8846-eba2ed381086]: IDLE
+[debug] [2020-03-16T23:05:50.360Z] [work-queue] {"queueLength":0,"workRunningCount":2}
+[debug] [2020-03-16T23:05:51.258Z] [work-queue] {"queueLength":1,"workRunningCount":2}
+[debug] [2020-03-16T23:05:51.258Z] [work-queue] {"queueLength":0,"workRunningCount":3}
+[debug] [2020-03-16T23:05:51.258Z] Accepted request POST /dixit-af060/us-central1/api/graphql --> api
+[debug] [2020-03-16T23:05:51.258Z] [worker-pool] submitWork(triggerId=api)
+[debug] [2020-03-16T23:05:51.258Z] [worker-api-d00b8cfe-b294-484d-8846-eba2ed381086]: Assigning socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_90235.sock
+[debug] [2020-03-16T23:05:51.259Z] [worker-api-d00b8cfe-b294-484d-8846-eba2ed381086]: BUSY
+[debug] [2020-03-16T23:05:51.259Z] [runtime-status] [90235] Trigger "api" has been found, beginning invocation!
+[info] i  functions: Beginning execution of "api"
+[debug] [2020-03-16T23:05:51.259Z] [runtime-status] [90235] triggerDefinition {"httpsTrigger":{},"name":"api","entryPoint":"api"}
+[debug] [2020-03-16T23:05:51.259Z] [runtime-status] [90235] Running api in mode HTTPS
+[debug] [2020-03-16T23:05:51.260Z] [runtime-status] [90235] Attempting to listen to socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_90235.sock
+[debug] [2020-03-16T23:05:51.261Z] [functions] Runtime ready! Sending request!
+[debug] [2020-03-16T23:05:51.263Z] [runtime-status] [90235] Ephemeral server handling POST request
+[debug] [2020-03-16T23:05:51.266Z] [runtime-status] [90235] Ephemeral server survived.
+[info] i  functions: Finished "api" in ~1s
+[debug] [2020-03-16T23:05:51.270Z] [worker-api-d00b8cfe-b294-484d-8846-eba2ed381086]: IDLE
+[debug] [2020-03-16T23:05:51.270Z] [work-queue] {"queueLength":0,"workRunningCount":2}
+[debug] [2020-03-16T23:05:51.727Z] [work-queue] {"queueLength":1,"workRunningCount":2}
+[debug] [2020-03-16T23:05:51.728Z] [work-queue] {"queueLength":0,"workRunningCount":3}
+[debug] [2020-03-16T23:05:51.728Z] Accepted request POST /dixit-af060/us-central1/api/graphql --> api
+[debug] [2020-03-16T23:05:51.728Z] [worker-pool] submitWork(triggerId=api)
+[debug] [2020-03-16T23:05:51.728Z] [worker-api-d00b8cfe-b294-484d-8846-eba2ed381086]: Assigning socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_90235.sock
+[debug] [2020-03-16T23:05:51.729Z] [worker-api-d00b8cfe-b294-484d-8846-eba2ed381086]: BUSY
+[debug] [2020-03-16T23:05:51.729Z] [runtime-status] [90235] Trigger "api" has been found, beginning invocation!
+[info] i  functions: Beginning execution of "api"
+[debug] [2020-03-16T23:05:51.729Z] [runtime-status] [90235] triggerDefinition {"httpsTrigger":{},"name":"api","entryPoint":"api"}
+[debug] [2020-03-16T23:05:51.729Z] [runtime-status] [90235] Running api in mode HTTPS
+[debug] [2020-03-16T23:05:51.730Z] [runtime-status] [90235] Attempting to listen to socketPath: /var/folders/d2/7ccr_nkj4717rymkbdlqvdhw0000gn/T/fire_emu_90235.sock
+[debug] [2020-03-16T23:05:51.730Z] [functions] Runtime ready! Sending request!
+[debug] [2020-03-16T23:05:51.733Z] [runtime-status] [90235] Ephemeral server handling POST request
+[debug] [2020-03-16T23:05:51.733Z] [runtime-status] [90235] Ephemeral server survived.
+[info] i  functions: Finished "api" in ~1s
+[debug] [2020-03-16T23:05:51.739Z] [worker-api-d00b8cfe-b294-484d-8846-eba2ed381086]: IDLE
+[debug] [2020-03-16T23:05:51.739Z] [work-queue] {"queueLength":0,"workRunningCount":2}

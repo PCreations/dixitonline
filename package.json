@@ -1,0 +1,21 @@
+{
+  "name": "dixitonline",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/PCreations/dixitonline.git",
+  "author": "Pierre Criulanscy <pcriulan@gmail.com>",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "create-graphql-package": "node ./scripts/create-graphql-package.js",
+    "build": "yarn workspaces run build && yarn workspaces run hoist-build",
+    "deploy": "yarn workspaces run test && yarn build && cd functions && npm run deploy",
+    "serve": "yarn build && cd functions && npm run serve"
+  },
+  "workspaces": [
+    "packages/*"
+  ],
+  "devDependencies": {
+    "json": "^9.0.6"
+  }
+}

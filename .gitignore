@@ -1,0 +1,25 @@
+# Created by https://www.gitignore.io/api/osx,visualstudiocode
+# Edit at https://www.gitignore.io/?templates=osx,visualstudiocode
+
+node_modules
+
+__scaffoldedPackage__
+
+### OSX ###
+# General
+.DS_Store
+.AppleDouble
+.LSOverride
+
+### VisualStudioCode ###
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+### VisualStudioCode Patch ###
+# Ignore all local history of files
+.history
+
+# End of https://www.gitignore.io/api/osx,visualstudiocode
