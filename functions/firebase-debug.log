@@ -938,3 +938,12 @@ INFO: Detected HTTP/2 connection.
 [info] i  functions: Finished "api" in ~1s
 [debug] [2020-03-19T12:37:18.598Z] [worker-api-fca98115-25d6-4cea-90f4-48f0ec247dfc]: IDLE
 [debug] [2020-03-19T12:37:18.598Z] [work-queue] {"queueLength":0,"workRunningCount":0}
+[debug] [2020-03-19T13:00:33.171Z] Mar 19, 2020 2:00:33 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected HTTP/2 connection.
+
+[debug] [2020-03-19T13:01:56.462Z] Mar 19, 2020 2:01:56 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected HTTP/2 connection.
+
+[debug] [2020-03-19T21:55:57.713Z] Mar 19, 2020 10:55:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected HTTP/2 connection.
+

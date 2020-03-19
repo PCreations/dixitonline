@@ -5,6 +5,9 @@ node_modules
 
 __scaffoldedPackage__
 
+firebase-debug.log
+firestore-debug.log
+
 ### OSX ###
 # General
 .DS_Store

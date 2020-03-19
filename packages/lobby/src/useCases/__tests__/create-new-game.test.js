@@ -1,6 +1,7 @@
 import { createTestClient } from 'apollo-server-testing';
 import gql from 'graphql-tag';
-import { makeTestServer } from '../../testsUtils/test-server';
+import { buildTestGame } from '../../__tests__/dataBuilders/game';
+import { makeTestServer } from '../../__tests__/test-server';
 import { makeNullLobbyRepository } from '../../repos/lobby-repository';
 import { makeGetDataSources } from '../../infra/graphql/get-data-sources';
 import { makeGetContext } from '../../infra/graphql/get-context';
@@ -26,6 +27,9 @@ describe('create new game', () => {
         }
       }
     `;
+    const expectedGame = buildTestGame()
+      .withId('g1')
+      .build();
 
     // act
     const { mutate } = createTestClient(server);
@@ -34,7 +38,7 @@ describe('create new game', () => {
     const response = await mutate({ mutation: LOBBY_CREATE_GAME });
     const createdGame = await lobbyRepository.getGameById('g1');
     expect(response).toMatchSnapshot();
-    expect(createdGame).toEqual({ id: 'g1' });
+    expect(createdGame).toEqual(expectedGame);
     expect(dispatchDomainEvents).toHaveBeenCalledWith([newGameCreatedEvent({ gameId: 'g1' })]);
   });
 });

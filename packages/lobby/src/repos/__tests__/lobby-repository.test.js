@@ -1,5 +1,6 @@
 import * as firebase from '@firebase/testing';
 import { makeLobbyRepository, makeNullLobbyRepository } from '../lobby-repository';
+import { buildTestGame } from '../../__tests__/dataBuilders/game';
 
 let firebaseApp;
 
@@ -25,32 +26,34 @@ describe('LobbyRepository', () => {
   it('can create a game', async () => {
     // arrange
     const lobbyRepository = makeLobbyRepository({ firestore: firebaseApp.firestore() });
+    const expectedGame = buildTestGame()
+      .withId('g1')
+      .build();
 
     // act
     await lobbyRepository.createGame({ id: 'g1' });
 
     // assert
     const game = await lobbyRepository.getGameById('g1');
-    expect(game).toEqual({ id: 'g1' });
+    expect(game).toEqual(expectedGame);
   });
   it('can retrieves all games', async () => {
     // arrange
     const lobbyRepository = makeLobbyRepository({ firestore: firebaseApp.firestore() });
-    await lobbyRepository.createGame({ id: 'g1' });
-    await lobbyRepository.createGame({ id: 'g2' });
+    const game1 = buildTestGame()
+      .withId('g1')
+      .build();
+    const game2 = buildTestGame()
+      .withId('g2')
+      .build();
+    await lobbyRepository.createGame(game1);
+    await lobbyRepository.createGame(game2);
 
     // act
     const games = await lobbyRepository.getAllGames();
 
     // assert
-    expect(games).toEqual([
-      {
-        id: 'g1',
-      },
-      {
-        id: 'g2',
-      },
-    ]);
+    expect(games).toEqual([game1, game2]);
   });
 });
 
@@ -68,22 +71,32 @@ describe('Null LobbyRepository', () => {
   it('creates a game', async () => {
     // arrange
     const lobbyRepository = makeNullLobbyRepository({ nextGameId: 'g1' });
+    const game = buildTestGame()
+      .withId('g1')
+      .build();
 
     // act
-    await lobbyRepository.createGame({ id: 'g1' });
+    await lobbyRepository.createGame(game);
     const createdGame = await lobbyRepository.getGameById('g1');
 
     // assert
-    expect(createdGame).toEqual({ id: 'g1' });
+    expect(createdGame).toEqual(game);
   });
   it('retrieves a provided game', async () => {
     // arrange
+    const game1 = buildTestGame()
+      .withId('g1')
+      .build();
+    const game2 = buildTestGame()
+      .withId('g2')
+      .build();
+    const initialGames = {
+      g1: game1,
+      g2: game2,
+    };
     const lobbyRepository = makeNullLobbyRepository({
       nextGameId: 'g3',
-      gamesData: {
-        g1: { id: 'g1' },
-        g2: { id: 'g2' },
-      },
+      gamesData: initialGames,
     });
 
     // act
@@ -91,30 +104,30 @@ describe('Null LobbyRepository', () => {
     const gameG2 = await lobbyRepository.getGameById('g2');
 
     // assert
-    expect(gameG1).toEqual({ id: 'g1' });
-    expect(gameG2).toEqual({ id: 'g2' });
+    expect(gameG1).toEqual(game1);
+    expect(gameG2).toEqual(game2);
   });
   it('retrieves all given games', async () => {
     // arrange
+    const game1 = buildTestGame()
+      .withId('g1')
+      .build();
+    const game2 = buildTestGame()
+      .withId('g2')
+      .build();
+    const initialGames = {
+      g1: game1,
+      g2: game2,
+    };
     const lobbyRepository = makeNullLobbyRepository({
       nextGameId: 'g3',
-      gamesData: {
-        g1: { id: 'g1' },
-        g2: { id: 'g2' },
-      },
+      gamesData: initialGames,
     });
 
     // act
     const games = await lobbyRepository.getAllGames();
 
     // assert
-    expect(games).toEqual([
-      {
-        id: 'g1',
-      },
-      {
-        id: 'g2',
-      },
-    ]);
+    expect(games).toEqual([game1, game2]);
   });
 });
