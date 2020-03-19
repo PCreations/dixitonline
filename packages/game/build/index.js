@@ -15,7 +15,16 @@ Object.defineProperty(exports, "typeDefs", {
     return _typeDefs.typeDefs;
   }
 });
+exports.makeGetContext = exports.makeGetDataSources = void 0;
 
 var _resolvers = require("./resolvers");
 
 var _typeDefs = require("./typeDefs");
+
+const makeGetDataSources = () => () => ({});
+
+exports.makeGetDataSources = makeGetDataSources;
+
+const makeGetContext = () => () => ({});
+
+exports.makeGetContext = makeGetContext;

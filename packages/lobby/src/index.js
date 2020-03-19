@@ -1,7 +1,4 @@
-import { makeGetDataSources } from './get-data-sources';
-import { makeGetContext } from './get-context';
-
-export { resolvers } from './resolvers';
-export { typeDefs } from './typeDefs';
-export const getDataSources = makeGetDataSources();
-export const getContext = makeGetContext();
+export { resolvers } from './infra/graphql/resolvers';
+export { typeDefs } from './infra/graphql/typeDefs';
+export { makeGetDataSources } from './infra/graphql/get-data-sources';
+export { makeGetContext } from './infra/graphql/get-context';

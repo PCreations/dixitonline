@@ -1,0 +1,23 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`getGames gets all the lobby games 1`] = `
+Object {
+  "data": Object {
+    "lobbyGames": Array [
+      Object {
+        "id": "g1",
+      },
+      Object {
+        "id": "g2",
+      },
+    ],
+  },
+  "errors": undefined,
+  "extensions": undefined,
+  "http": Object {
+    "headers": Headers {
+      Symbol(map): Object {},
+    },
+  },
+}
+`;

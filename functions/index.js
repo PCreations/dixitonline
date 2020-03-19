@@ -1,3 +1,4 @@
+const admin = require("firebase-admin");
 const { merge, flatten } = require("lodash");
 const { makeExecutableSchema } = require("graphql-tools");
 const { mergeTypes } = require("merge-graphql-schemas");
@@ -9,13 +10,18 @@ const functions = require("firebase-functions");
 const {
   typeDefs: Lobby,
   resolvers: lobbyResolvers,
-  getDataSources: getLobbyDataSources
+  makeGetDataSources: makeGetLobbyDataSources,
+  makeGetContext: makeGetLobbyContext
 } = require("./builds/lobby");
+const { makeLobbyRepository } = require("./builds/lobby/repos");
 const {
   typeDefs: Game,
   resolvers: gameResolvers,
-  getDataSources: getGameDataSources
+  makeGetDataSources: makeGetGameDataSources,
+  makeGetContext: makeGetGameContext
 } = require("./builds/game");
+
+const firebaseApp = admin.initializeApp();
 
 const Query = `
   type Query
@@ -29,17 +35,28 @@ const resolvers = {};
 
 const mergedTypeDefs = mergeTypes(flatten([Lobby, Game]), { all: true });
 
+const getLobbyDataSources = makeGetLobbyDataSources({
+  lobbyRepository: makeLobbyRepository({ firestore: firebaseApp.firestore() })
+});
+const getLobbyContext = makeGetLobbyContext({ dispatchDomainEvents: () => {} });
+const getGameDataSources = makeGetGameDataSources();
+const getGameContext = makeGetGameContext();
+
 const schema = makeExecutableSchema({
   typeDefs: [Query, Mutation, mergedTypeDefs],
-  resolvers: merge(resolvers, lobbyResolvers, gameResolvers),
-  dataSources: () => ({
-    ...getLobbyDataSources(),
-    ...getGameDataSources()
-  })
+  resolvers: merge(resolvers, lobbyResolvers, gameResolvers)
 });
 
 const server = new ApolloServer({
-  schema
+  schema,
+  dataSources: () => ({
+    ...getLobbyDataSources(),
+    ...getGameDataSources()
+  }),
+  context: () => ({
+    ...getLobbyContext(),
+    ...getGameContext()
+  })
 });
 
 const app = express();

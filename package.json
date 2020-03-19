@@ -18,5 +18,8 @@
   "devDependencies": {
     "firebase-tools": "^7.15.1",
     "json": "^9.0.6"
+  },
+  "dependencies": {
+    "firebase-admin": "^8.10.0"
   }
 }
