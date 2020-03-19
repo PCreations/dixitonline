@@ -16,6 +16,7 @@
     "packages/*"
   ],
   "devDependencies": {
+    "firebase-tools": "^7.15.1",
     "json": "^9.0.6"
   }
 }

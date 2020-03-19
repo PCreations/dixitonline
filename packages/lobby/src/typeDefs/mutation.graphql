@@ -1,0 +1,7 @@
+extend type Mutation {
+  createGame: CreateGameResult
+}
+
+type CreateGameResult {
+  game: LobbyGame!
+}

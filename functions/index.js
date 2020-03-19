@@ -8,23 +8,34 @@ const functions = require("firebase-functions");
 
 const {
   typeDefs: Lobby,
-  resolvers: lobbyResolvers
+  resolvers: lobbyResolvers,
+  getDataSources: getLobbyDataSources
 } = require("./builds/lobby");
-const { typeDefs: Game, resolvers: gameResolvers } = require("./builds/game");
+const {
+  typeDefs: Game,
+  resolvers: gameResolvers,
+  getDataSources: getGameDataSources
+} = require("./builds/game");
 
 const Query = `
   type Query
+`;
+
+const Mutation = `
+  type Mutation
 `;
 
 const resolvers = {};
 
 const mergedTypeDefs = mergeTypes(flatten([Lobby, Game]), { all: true });
 
-console.log({ mergedTypeDefs });
-
 const schema = makeExecutableSchema({
-  typeDefs: [Query, mergedTypeDefs],
-  resolvers: merge(resolvers, lobbyResolvers, gameResolvers)
+  typeDefs: [Query, Mutation, mergedTypeDefs],
+  resolvers: merge(resolvers, lobbyResolvers, gameResolvers),
+  dataSources: () => ({
+    ...getLobbyDataSources(),
+    ...getGameDataSources()
+  })
 });
 
 const server = new ApolloServer({
