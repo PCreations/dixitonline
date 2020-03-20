@@ -11,15 +11,15 @@ var _events = require("../domain/events");
 
 const makeCreateNewGame = ({
   lobbyRepository
-}) => async () => {
+}) => async host => {
   const gameId = lobbyRepository.getNextGameId();
   const game = (0, _game.makeGame)({
-    id: gameId
+    id: gameId,
+    host
   });
   const domainEvents = [(0, _events.newGameCreatedEvent)({
     gameId
   })];
-  console.log('saving game', game);
   await lobbyRepository.createGame(game);
   return [game, domainEvents];
 };

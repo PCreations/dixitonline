@@ -1,6 +1,7 @@
 import { createTestClient } from 'apollo-server-testing';
 import gql from 'graphql-tag';
 import { buildTestGame } from '../../__tests__/dataBuilders/game';
+import { buildTestPlayer } from '../../__tests__/dataBuilders/player';
 import { makeTestServer } from '../../__tests__/test-server';
 import { makeNullLobbyRepository } from '../../repos/lobby-repository';
 import { makeGetDataSources } from '../../infra/graphql/get-data-sources';
@@ -23,12 +24,21 @@ describe('create new game', () => {
         lobbyCreateGame {
           game {
             id
+            host {
+              id
+              name
+            }
           }
         }
       }
     `;
+    const host = buildTestPlayer()
+      .withId('p1')
+      .withName('player1')
+      .build();
     const expectedGame = buildTestGame()
       .withId('g1')
+      .withHost(host)
       .build();
 
     // act

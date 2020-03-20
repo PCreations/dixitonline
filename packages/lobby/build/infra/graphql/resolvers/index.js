@@ -9,6 +9,8 @@ var _createNewGame = require("../../../useCases/create-new-game");
 
 var _getGames = require("../../../useCases/get-games");
 
+var _player = require("../../../domain/player");
+
 const resolvers = {
   Query: {
     lobbyGames(_, __, {
@@ -29,7 +31,10 @@ const resolvers = {
       const createNewGame = (0, _createNewGame.makeCreateNewGame)({
         lobbyRepository: dataSources.lobbyRepository
       });
-      const [game, domainEvents] = await createNewGame();
+      const [game, domainEvents] = await createNewGame((0, _player.makePlayer)({
+        id: 'p1',
+        name: 'player1'
+      }));
       dispatchDomainEvents(domainEvents);
       return {
         game

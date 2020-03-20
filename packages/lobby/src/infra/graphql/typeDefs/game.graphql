@@ -1,3 +1,4 @@
 type LobbyGame {
   id: ID!
+  host: LobbyPlayer!
 }
