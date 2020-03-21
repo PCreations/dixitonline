@@ -1,1 +1,3 @@
-export const greeter = name => `Hello ${name}`;
+import { helloUser } from '@dixit/users';
+
+helloUser('toto');

@@ -10,7 +10,7 @@ const makeNullFirebaseAuth = ({ userIdInDecodedToken, currentUserUsername } = {}
 });
 
 export const makeGraphqlExpressAuthorizationService = ({ firebaseAuth = makeNullFirebaseAuth() } = {}) => ({
-  async getCurrentUser({ headers: { authorization } }) {
+  async getCurrentUser({ headers: { authorization } = {} } = {}) {
     const token = authorization.split('Bearer ')[1];
     const { uid } = await firebaseAuth.verifyIdToken(token);
     const currentUser = await firebaseAuth.getUser(uid);

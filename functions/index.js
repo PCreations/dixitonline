@@ -53,9 +53,9 @@ const server = new ApolloServer({
     ...getLobbyDataSources(),
     ...getGameDataSources()
   }),
-  context: () => ({
-    ...getLobbyContext(),
-    ...getGameContext()
+  context: async (...args) => ({
+    ...(await getLobbyContext(...args)),
+    ...(await getGameContext(...args))
   })
 });
 

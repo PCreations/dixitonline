@@ -21,6 +21,7 @@
     "babel-core": "^6.26.3",
     "babel-eslint": "^10.1.0",
     "babel-jest": "^25.1.0",
+    "babel-plugin-module-resolver": "^4.0.0",
     "eslint": "^6.8.0",
     "eslint-config-airbnb": "^18.1.0",
     "eslint-config-airbnb-base": "^14.1.0",
@@ -40,6 +41,7 @@
     ]
   },
   "dependencies": {
+    "@dixit/users": "1.0.0",
     "@firebase/testing": "^0.17.0",
     "apollo-server": "^2.11.0",
     "apollo-server-testing": "^2.11.0",
