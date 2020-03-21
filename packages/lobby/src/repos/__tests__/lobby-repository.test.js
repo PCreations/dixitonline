@@ -32,7 +32,7 @@ describe('LobbyRepository', () => {
       .build();
 
     // act
-    await lobbyRepository.createGame(expectedGame);
+    await lobbyRepository.saveGame(expectedGame);
 
     // assert
     const game = await lobbyRepository.getGameById('g1');
@@ -47,8 +47,8 @@ describe('LobbyRepository', () => {
     const game2 = buildTestGame()
       .withId('g2')
       .build();
-    await lobbyRepository.createGame(game1);
-    await lobbyRepository.createGame(game2);
+    await lobbyRepository.saveGame(game1);
+    await lobbyRepository.saveGame(game2);
 
     // act
     const games = await lobbyRepository.getAllGames();
@@ -77,7 +77,7 @@ describe('Null LobbyRepository', () => {
       .build();
 
     // act
-    await lobbyRepository.createGame(game);
+    await lobbyRepository.saveGame(game);
     const createdGame = await lobbyRepository.getGameById('g1');
 
     // assert

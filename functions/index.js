@@ -39,14 +39,16 @@ const mergedTypeDefs = mergeTypes(flatten([Lobby, Game]), { all: true });
 const getLobbyDataSources = makeGetLobbyDataSources({
   lobbyRepository: makeLobbyRepository({ firestore: firebaseApp.firestore() }),
 });
-const getLobbyContext = makeGetLobbyContext({
-  dispatchDomainEvents: () => {},
-  authorizationService: makeNullGraphqlExpressAuthorizationService({
-    token: 'token',
-    userIdInDecodedToken: 'adminId',
-    currentUserUsername: 'admin',
-  }),
-});
+const getLobbyContext = ({ req }) => {
+  return makeGetLobbyContext({
+    dispatchDomainEvents: () => {},
+    authorizationService: makeNullGraphqlExpressAuthorizationService({
+      token: 'token',
+      userIdInDecodedToken: req.headers['test-user-id'],
+      currentUserUsername: req.headers['test-username'],
+    }),
+  })({ req });
+};
 const getGameDataSources = makeGetGameDataSources();
 const getGameContext = makeGetGameContext();
 

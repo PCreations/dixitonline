@@ -7,6 +7,8 @@ exports.makeNullLobbyRepository = exports.makeLobbyRepository = void 0;
 
 var _uuid = require("uuid");
 
+var _game = require("../domain/game");
+
 const makeLobbyRepository = ({
   uuid = _uuid.v1,
   firestore = makeNullFirestore()
@@ -17,19 +19,19 @@ const makeLobbyRepository = ({
       return uuid();
     },
 
-    createGame(game) {
+    saveGame(game) {
       return lobbyGames.doc(game.id).set(game);
     },
 
     async getGameById(id) {
       const doc = await lobbyGames.doc(id).get();
-      return doc.data();
+      return (0, _game.makeGame)(doc.data());
     },
 
     getAllGames() {
       return lobbyGames.get().then(snapshot => {
         const games = [];
-        snapshot.forEach(doc => games.push(doc.data()));
+        snapshot.forEach(doc => games.push((0, _game.makeGame)(doc.data())));
         return games;
       });
     }
@@ -68,7 +70,7 @@ const makeNullFirestore = (gamesInitialData = {}) => {
               };
             },
 
-            set(game) {
+            async set(game) {
               gamesData[gameId] = game;
             }
 

@@ -7,7 +7,7 @@ export const makeCreateNewGame = ({ lobbyRepository }) => async host => {
   const game = makeGame({ id: gameId, host });
   const domainEvents = [newGameCreatedEvent({ gameId })];
 
-  await lobbyRepository.createGame(game);
+  await lobbyRepository.saveGame(game);
 
   return [game, domainEvents];
 };

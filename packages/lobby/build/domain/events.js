@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.newGameCreatedEvent = void 0;
+exports.playerJoinedGame = exports.newGameCreatedEvent = void 0;
 
 const newGameCreatedEvent = ({
   gameId
@@ -15,3 +15,16 @@ const newGameCreatedEvent = ({
 });
 
 exports.newGameCreatedEvent = newGameCreatedEvent;
+
+const playerJoinedGame = ({
+  gameId,
+  playerId
+}) => ({
+  type: '[lobby] - a new player has joined a game',
+  payload: {
+    gameId,
+    playerId
+  }
+});
+
+exports.playerJoinedGame = playerJoinedGame;

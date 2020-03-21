@@ -1,4 +1,5 @@
 import { v1 as uuidv1 } from 'uuid';
+import { makeGame } from '../domain/game';
 
 export const makeLobbyRepository = ({ uuid = uuidv1, firestore = makeNullFirestore() } = {}) => {
   const lobbyGames = firestore.collection('lobby-games');
@@ -6,17 +7,17 @@ export const makeLobbyRepository = ({ uuid = uuidv1, firestore = makeNullFiresto
     getNextGameId() {
       return uuid();
     },
-    createGame(game) {
+    saveGame(game) {
       return lobbyGames.doc(game.id).set(game);
     },
     async getGameById(id) {
       const doc = await lobbyGames.doc(id).get();
-      return doc.data();
+      return makeGame(doc.data());
     },
     getAllGames() {
       return lobbyGames.get().then(snapshot => {
         const games = [];
-        snapshot.forEach(doc => games.push(doc.data()));
+        snapshot.forEach(doc => games.push(makeGame(doc.data())));
         return games;
       });
     },
@@ -42,7 +43,7 @@ const makeNullFirestore = (gamesInitialData = {}) => {
                 },
               };
             },
-            set(game) {
+            async set(game) {
               gamesData[gameId] = game;
             },
           };

@@ -6,6 +6,7 @@ import { buildLobbyRepositoryInitialGames } from '../../__tests__/dataBuilders/l
 import { buildTestGame } from '../../__tests__/dataBuilders/game';
 import { buildTestPlayer } from '../../__tests__/dataBuilders/player';
 import { makeGetDataSources } from '../../infra/graphql/get-data-sources';
+import { playerJoinedGame } from '../../domain/events';
 
 describe('join game', () => {
   test('a player can join a game', async () => {
@@ -18,11 +19,21 @@ describe('join game', () => {
       .withId('g1')
       .withHost(host)
       .build();
-    const intialGames = buildLobbyRepositoryInitialGames()
+    const expectedUpdatedGame = buildTestGame(game)
+      .withPlayers([
+        buildTestPlayer()
+          .withId('p2')
+          .withName('player2')
+          .build(),
+      ])
+      .build();
+    const initialGames = buildLobbyRepositoryInitialGames()
       .withGames([game])
       .build();
 
-    const lobbyRepository = makeNullLobbyRepository({ intialGames });
+    const lobbyRepository = makeNullLobbyRepository({
+      gamesData: initialGames,
+    });
     const dispatchDomainEvents = jest.fn();
     const server = makeTestServer({
       getDataSources: makeGetDataSources({
@@ -57,11 +68,12 @@ describe('join game', () => {
       variables: { lobbyJoinGameInput: { gameId: 'g1' } },
       operationName: 'LobbyCreateGame',
     });
+    const updatedGame = await lobbyRepository.getGameById('g1');
 
     // assert
     expect(response).toMatchSnapshot();
-    expect(dispatchDomainEvents).toHaveBeenCalledWith([
-      { type: '[lobby] - a new player has joined a game', payload: { playerId: 'p2', gameId: 'g1' } },
-    ]);
+    // TODO : change this when https://github.com/facebook/jest/pull/9575 is released
+    expect({ ...updatedGame }).toEqual({ ...expectedUpdatedGame });
+    expect(dispatchDomainEvents).toHaveBeenCalledWith([playerJoinedGame({ gameId: 'g1', playerId: 'p2' })]);
   });
 });

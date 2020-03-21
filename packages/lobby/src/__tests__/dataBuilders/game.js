@@ -2,10 +2,11 @@ import faker from 'faker';
 import { buildTestPlayer } from './player';
 import { makeGame } from '../../domain/game';
 
-export const buildTestGame = () => {
+export const buildTestGame = (baseGame = {}) => {
   const defaultProperties = {
     id: faker.random.uuid(),
     host: buildTestPlayer().build(),
+    players: [],
   };
   const overrides = {};
   return {
@@ -17,9 +18,14 @@ export const buildTestGame = () => {
       overrides.host = host;
       return this;
     },
+    withPlayers(players = defaultProperties.players) {
+      overrides.players = players;
+      return this;
+    },
     build() {
       return makeGame({
         ...defaultProperties,
+        ...baseGame,
         ...overrides,
       });
     },

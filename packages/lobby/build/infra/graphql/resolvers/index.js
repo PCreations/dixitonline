@@ -11,6 +11,12 @@ var _getGames = require("../../../useCases/get-games");
 
 var _player = require("../../../domain/player");
 
+var _game = require("../../../domain/game");
+
+var _events = require("../../../domain/events");
+
+var _joinGame = require("../../../useCases/join-game");
+
 const resolvers = {
   Query: {
     lobbyGames(_, __, {
@@ -37,6 +43,30 @@ const resolvers = {
         id: currentUser.id,
         name: currentUser.username
       }));
+      dispatchDomainEvents(domainEvents);
+      return {
+        game
+      };
+    },
+
+    async lobbyJoinGame(_, {
+      lobbyJoinGameInput
+    }, context) {
+      const {
+        dataSources,
+        dispatchDomainEvents,
+        currentUser
+      } = context;
+      const {
+        gameId
+      } = lobbyJoinGameInput;
+      const joinGame = (0, _joinGame.makeJoinGame)({
+        lobbyRepository: dataSources.lobbyRepository
+      });
+      const [game, domainEvents] = await joinGame({
+        gameId,
+        currentUser
+      });
       dispatchDomainEvents(domainEvents);
       return {
         game

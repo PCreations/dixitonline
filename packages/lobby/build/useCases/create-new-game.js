@@ -20,7 +20,7 @@ const makeCreateNewGame = ({
   const domainEvents = [(0, _events.newGameCreatedEvent)({
     gameId
   })];
-  await lobbyRepository.createGame(game);
+  await lobbyRepository.saveGame(game);
   return [game, domainEvents];
 };
 

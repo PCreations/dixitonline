@@ -1,6 +1,9 @@
 import { makeCreateNewGame } from '../../../useCases/create-new-game';
 import { makeGetGames } from '../../../useCases/get-games';
 import { makePlayer } from '../../../domain/player';
+import { makeGame } from '../../../domain/game';
+import { playerJoinedGame } from '../../../domain/events';
+import { makeJoinGame } from '../../../useCases/join-game';
 
 export const resolvers = {
   Query: {
@@ -20,23 +23,15 @@ export const resolvers = {
       };
     },
     async lobbyJoinGame(_, { lobbyJoinGameInput }, context) {
-      context.dispatchDomainEvents([
-        { type: '[lobby] - a new player has joined a game', payload: { playerId: 'p2', gameId: 'g1' } },
-      ]);
+      const { dataSources, dispatchDomainEvents, currentUser } = context;
+      const { gameId } = lobbyJoinGameInput;
+      const joinGame = makeJoinGame({ lobbyRepository: dataSources.lobbyRepository });
+
+      const [game, domainEvents] = await joinGame({ gameId, currentUser });
+
+      dispatchDomainEvents(domainEvents);
       return {
-        game: {
-          id: 'g1',
-          host: {
-            id: 'p1',
-            name: 'player1',
-          },
-          players: [
-            {
-              id: 'p2',
-              name: 'player2',
-            },
-          ],
-        },
+        game,
       };
     },
   },
