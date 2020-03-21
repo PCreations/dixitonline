@@ -31,7 +31,7 @@ describe('LobbyRepository', () => {
       .build();
 
     // act
-    await lobbyRepository.createGame({ id: 'g1' });
+    await lobbyRepository.createGame(expectedGame);
 
     // assert
     const game = await lobbyRepository.getGameById('g1');

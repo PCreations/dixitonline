@@ -24,16 +24,18 @@ const resolvers = {
 
   },
   Mutation: {
-    async lobbyCreateGame(_, __, {
-      dataSources,
-      dispatchDomainEvents
-    }) {
+    async lobbyCreateGame(_, __, context) {
+      const {
+        dataSources,
+        dispatchDomainEvents,
+        currentUser
+      } = context;
       const createNewGame = (0, _createNewGame.makeCreateNewGame)({
         lobbyRepository: dataSources.lobbyRepository
       });
       const [game, domainEvents] = await createNewGame((0, _player.makePlayer)({
-        id: 'p1',
-        name: 'player1'
+        id: currentUser.id,
+        name: currentUser.username
       }));
       dispatchDomainEvents(domainEvents);
       return {

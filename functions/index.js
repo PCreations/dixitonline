@@ -1,25 +1,26 @@
-const admin = require("firebase-admin");
-const { merge, flatten } = require("lodash");
-const { makeExecutableSchema } = require("graphql-tools");
-const { mergeTypes } = require("merge-graphql-schemas");
-const express = require("express");
-const cors = require("cors");
-const { ApolloServer } = require("apollo-server-express");
-const functions = require("firebase-functions");
+const admin = require('firebase-admin');
+const { merge, flatten } = require('lodash');
+const { makeExecutableSchema } = require('graphql-tools');
+const { mergeTypes } = require('merge-graphql-schemas');
+const express = require('express');
+const cors = require('cors');
+const { ApolloServer } = require('apollo-server-express');
+const functions = require('firebase-functions');
 
 const {
   typeDefs: Lobby,
   resolvers: lobbyResolvers,
   makeGetDataSources: makeGetLobbyDataSources,
-  makeGetContext: makeGetLobbyContext
-} = require("./builds/lobby");
-const { makeLobbyRepository } = require("./builds/lobby/repos");
+  makeGetContext: makeGetLobbyContext,
+} = require('./builds/lobby');
+const { makeLobbyRepository } = require('./builds/lobby/repos');
 const {
   typeDefs: Game,
   resolvers: gameResolvers,
   makeGetDataSources: makeGetGameDataSources,
-  makeGetContext: makeGetGameContext
-} = require("./builds/game");
+  makeGetContext: makeGetGameContext,
+} = require('./builds/game');
+const { makeNullGraphqlExpressAuthorizationService } = require('./builds/users');
 
 const firebaseApp = admin.initializeApp();
 
@@ -36,27 +37,34 @@ const resolvers = {};
 const mergedTypeDefs = mergeTypes(flatten([Lobby, Game]), { all: true });
 
 const getLobbyDataSources = makeGetLobbyDataSources({
-  lobbyRepository: makeLobbyRepository({ firestore: firebaseApp.firestore() })
+  lobbyRepository: makeLobbyRepository({ firestore: firebaseApp.firestore() }),
 });
-const getLobbyContext = makeGetLobbyContext({ dispatchDomainEvents: () => {} });
+const getLobbyContext = makeGetLobbyContext({
+  dispatchDomainEvents: () => {},
+  authorizationService: makeNullGraphqlExpressAuthorizationService({
+    token: 'token',
+    userIdInDecodedToken: 'adminId',
+    currentUserUsername: 'admin',
+  }),
+});
 const getGameDataSources = makeGetGameDataSources();
 const getGameContext = makeGetGameContext();
 
 const schema = makeExecutableSchema({
   typeDefs: [Query, Mutation, mergedTypeDefs],
-  resolvers: merge(resolvers, lobbyResolvers, gameResolvers)
+  resolvers: merge(resolvers, lobbyResolvers, gameResolvers),
 });
 
 const server = new ApolloServer({
   schema,
   dataSources: () => ({
     ...getLobbyDataSources(),
-    ...getGameDataSources()
+    ...getGameDataSources(),
   }),
   context: async (...args) => ({
     ...(await getLobbyContext(...args)),
-    ...(await getGameContext(...args))
-  })
+    ...(await getGameContext(...args)),
+  }),
 });
 
 const app = express();

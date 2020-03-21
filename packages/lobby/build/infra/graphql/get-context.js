@@ -6,9 +6,11 @@ Object.defineProperty(exports, "__esModule", {
 exports.makeGetContext = void 0;
 
 const makeGetContext = ({
-  dispatchDomainEvents
-} = {}) => () => ({
-  dispatchDomainEvents
+  dispatchDomainEvents,
+  authorizationService
+} = {}) => async () => ({
+  dispatchDomainEvents,
+  currentUser: await authorizationService.getCurrentUser()
 });
 
 exports.makeGetContext = makeGetContext;

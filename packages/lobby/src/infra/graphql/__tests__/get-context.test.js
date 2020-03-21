@@ -9,14 +9,12 @@ describe('getContext', () => {
     };
     const dispatchDomainEvents = jest.fn();
     const getContext = makeGetContext({ dispatchDomainEvents, authorizationService });
-    const req = {};
 
     // act
-    const context = await getContext({ req });
+    const context = await getContext();
 
     // assert
     expect(context.dispatchDomainEvents).toBe(dispatchDomainEvents);
     expect(context.currentUser).toBe(currentUser);
-    expect(authorizationService.getCurrentUser).toHaveBeenCalledWith(req);
   });
 });

@@ -10,9 +10,10 @@ export const resolvers = {
     },
   },
   Mutation: {
-    async lobbyCreateGame(_, __, { dataSources, dispatchDomainEvents }) {
+    async lobbyCreateGame(_, __, context) {
+      const { dataSources, dispatchDomainEvents, currentUser } = context;
       const createNewGame = makeCreateNewGame({ lobbyRepository: dataSources.lobbyRepository });
-      const [game, domainEvents] = await createNewGame(makePlayer({ id: 'p1', name: 'player1' }));
+      const [game, domainEvents] = await createNewGame(makePlayer({ id: currentUser.id, name: currentUser.username }));
       dispatchDomainEvents(domainEvents);
       return {
         game,

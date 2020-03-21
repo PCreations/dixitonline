@@ -2,9 +2,9 @@
 # Edit at https://www.gitignore.io/?templates=osx,visualstudiocode
 
 node_modules
+build
 
 __scaffoldedPackage__
-build
 firebase-debug.log
 firestore-debug.log
 

@@ -5,41 +5,12 @@
   "scripts": {
     "test": "jest",
     "watch": "nodemon --exec babel-node ./src/index.js",
-    "build": "babel -d ./build ./src --ignore 'src/**/*.test.js' --copy-files --no-copy-ignored",
+    "build": "babel --root-mode upward -d ./build ./src --ignore 'src/**/*.test.js' --copy-files --no-copy-ignored",
     "prebuild": "rm -rf ./build/*",
     "hoist-build": "rm -rf ../../functions/builds/lobby && cp -R build ../../functions/builds/lobby"
   },
   "license": "MIT",
   "private": true,
-  "devDependencies": {
-    "@babel/cli": "^7.8.4",
-    "@babel/core": "^7.8.7",
-    "@babel/node": "^7.8.7",
-    "@babel/plugin-proposal-nullish-coalescing-operator": "^7.8.3",
-    "@babel/plugin-proposal-optional-chaining": "^7.8.3",
-    "@babel/preset-env": "^7.8.7",
-    "babel-core": "^6.26.3",
-    "babel-eslint": "^10.1.0",
-    "babel-jest": "^25.1.0",
-    "babel-plugin-module-resolver": "^4.0.0",
-    "eslint": "^6.8.0",
-    "eslint-config-airbnb": "^18.1.0",
-    "eslint-config-airbnb-base": "^14.1.0",
-    "eslint-config-prettier": "^6.10.0",
-    "eslint-plugin-import": "^2.20.1",
-    "eslint-plugin-prettier": "^3.1.2",
-    "jest": "^25.1.0",
-    "nodemon": "^2.0.2",
-    "prettier": "^1.19.1",
-    "regenerator-runtime": "^0.13.5"
-  },
-  "jest": {
-    "rootDir": "src",
-    "clearMocks": true,
-    "testMatch": [
-      "**/__tests__/**/*.test.js"
-    ]
-  },
   "dependencies": {
     "@dixit/users": "1.0.0",
     "@firebase/testing": "^0.17.0",

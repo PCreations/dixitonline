@@ -9,13 +9,14 @@ describe('graphql express authorization service', () => {
     const authorizationService = makeNullGraphqlExpressAuthorizationService({
       userIdInDecodedToken: 'user1',
       currentUserUsername: 'user 1',
+      token: 'some token',
     });
-    const request = { headers: { authorization: 'Bearer some token' } };
 
     // act
-    const user = await authorizationService.getCurrentUser(request);
+    const user = await authorizationService.getCurrentUser();
 
     // assert
     expect(user).toEqual({ id: 'user1', username: 'user 1' });
+    expect(authorizationService.getLastVerifiedIdToken()).toBe('some token');
   });
 });

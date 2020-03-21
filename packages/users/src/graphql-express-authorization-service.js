@@ -1,3 +1,5 @@
+import { makeNullRequest, makeRequest } from './request';
+
 const makeNullFirebaseAuth = ({ userIdInDecodedToken, currentUserUsername } = {}) => ({
   async verifyIdToken() {
     return { uid: userIdInDecodedToken };
@@ -9,20 +11,33 @@ const makeNullFirebaseAuth = ({ userIdInDecodedToken, currentUserUsername } = {}
   },
 });
 
-export const makeGraphqlExpressAuthorizationService = ({ firebaseAuth = makeNullFirebaseAuth() } = {}) => ({
-  async getCurrentUser({ headers: { authorization } = {} } = {}) {
-    const token = authorization.split('Bearer ')[1];
-    const { uid } = await firebaseAuth.verifyIdToken(token);
-    const currentUser = await firebaseAuth.getUser(uid);
+const makeGetRequestFromContext = () => context => makeRequest(context.req);
 
-    return {
-      id: uid,
-      username: currentUser.displayName,
-    };
-  },
-});
+export const makeGraphqlExpressAuthorizationService = ({
+  firebaseAuth = makeNullFirebaseAuth(),
+  getRequestFromContext = makeGetRequestFromContext(),
+} = {}) => {
+  let idToken;
+  return {
+    async getCurrentUser(context) {
+      const request = getRequestFromContext(context);
+      idToken = request.getBearerToken();
+      const { uid } = await firebaseAuth.verifyIdToken(idToken);
+      const currentUser = await firebaseAuth.getUser(uid);
 
-export const makeNullGraphqlExpressAuthorizationService = ({ userIdInDecodedToken, currentUserUsername }) =>
+      return {
+        id: uid,
+        username: currentUser.displayName,
+      };
+    },
+    getLastVerifiedIdToken() {
+      return idToken;
+    },
+  };
+};
+
+export const makeNullGraphqlExpressAuthorizationService = ({ token, userIdInDecodedToken, currentUserUsername }) =>
   makeGraphqlExpressAuthorizationService({
     firebaseAuth: makeNullFirebaseAuth({ userIdInDecodedToken, currentUserUsername }),
+    getRequestFromContext: () => makeNullRequest({ token }),
   });

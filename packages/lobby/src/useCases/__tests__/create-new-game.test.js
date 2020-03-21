@@ -16,13 +16,13 @@ describe('create new game', () => {
     const lobbyRepository = makeNullLobbyRepository({ nextGameId: 'g1' });
     const authorizationService = makeNullGraphqlExpressAuthorizationService({
       userIdInDecodedToken: 'p1',
-      currentUserUsername: 'player1',
+      currentUserUsername: 'player2',
     });
     const server = makeTestServer({
       getDataSources: makeGetDataSources({
         lobbyRepository,
       }),
-      getContext: () => makeGetContext({ dispatchDomainEvents, authorizationService }),
+      getContext: makeGetContext({ dispatchDomainEvents, authorizationService }),
     });
     const LOBBY_CREATE_GAME = gql`
       mutation LobbyCreateGame {
