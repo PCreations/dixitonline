@@ -1,8 +1,6 @@
 import { makeCreateNewGame } from '../../../useCases/create-new-game';
 import { makeGetGames } from '../../../useCases/get-games';
 import { makePlayer } from '../../../domain/player';
-import { makeGame } from '../../../domain/game';
-import { playerJoinedGame } from '../../../domain/events';
 import { makeJoinGame } from '../../../useCases/join-game';
 
 export const resolvers = {
@@ -27,12 +25,22 @@ export const resolvers = {
       const { gameId } = lobbyJoinGameInput;
       const joinGame = makeJoinGame({ lobbyRepository: dataSources.lobbyRepository });
 
-      const [game, domainEvents] = await joinGame({ gameId, currentUser });
-
-      dispatchDomainEvents(domainEvents);
-      return {
-        game,
-      };
+      try {
+        const [game, domainEvents] = await joinGame({ gameId, currentUser });
+        dispatchDomainEvents(domainEvents);
+        return {
+          __typename: 'LobbyJoinGameResultSuccess',
+          game,
+        };
+      } catch (error) {
+        return {
+          __typename: 'LobbyJoinGameResultError',
+          type: 'GAME_ALREADY_JOINED',
+        };
+      }
     },
+  },
+  LobbyGame: {
+    players: game => [game.host, ...game.players],
   },
 };

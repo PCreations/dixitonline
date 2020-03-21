@@ -1,6 +1,7 @@
-import { makeGame, joinPlayer } from '../game';
+import { makeGame, joinPlayer, GameAlreadyJoinedByPlayerError } from '../game';
 import { buildTestPlayer } from '../../__tests__/dataBuilders/player';
 import { playerJoinedGame } from '../events';
+import { buildTestGame } from '../../__tests__/dataBuilders/game';
 
 describe('Game', () => {
   it('can be correctly created', () => {
@@ -21,17 +22,42 @@ describe('Game', () => {
 
     expect(game.players).toEqual([]);
   });
-  it('joins a player', () => {
-    // arrange
-    const host = buildTestPlayer().build();
-    const game = makeGame({ id: 'g1', host });
-    const playerThatWantsToJoinTheGame = buildTestPlayer().build();
+  describe('join player', () => {
+    it('joins a player', () => {
+      // arrange
+      const host = buildTestPlayer().build();
+      const game = makeGame({ id: 'g1', host });
+      const playerThatWantsToJoinTheGame = buildTestPlayer().build();
 
-    // act
-    const [gameEdited, events] = joinPlayer(game, playerThatWantsToJoinTheGame);
+      // act
+      const [gameEdited, events] = joinPlayer(game, playerThatWantsToJoinTheGame);
 
-    // assert
-    expect(gameEdited.players).toEqual([playerThatWantsToJoinTheGame]);
-    expect(events).toEqual([playerJoinedGame({ gameId: game.id, playerId: playerThatWantsToJoinTheGame.id })]);
+      // assert
+      expect(gameEdited.players).toEqual([playerThatWantsToJoinTheGame]);
+      expect(events).toEqual([playerJoinedGame({ gameId: game.id, playerId: playerThatWantsToJoinTheGame.id })]);
+    });
+    it('throws a GameAlreadyJoinedByPlayerError if the player is the host', () => {
+      // arrange
+      const host = buildTestPlayer().build();
+      const game = buildTestGame()
+        .withHost(host)
+        .build();
+
+      // act & assert
+      expect(() => joinPlayer(game, host)).toThrow(GameAlreadyJoinedByPlayerError);
+    });
+    it('throws a GameAlreadyJoinedByPlayerError if the player has already joined the game', () => {
+      // arrange
+      const host = buildTestPlayer().build();
+      const player1 = buildTestPlayer().build();
+      const player2 = buildTestPlayer().build();
+      const game = buildTestGame()
+        .withHost(host)
+        .withPlayers([player1, player2])
+        .build();
+
+      // act & assert
+      expect(() => joinPlayer(game, player2)).toThrow(GameAlreadyJoinedByPlayerError);
+    });
   });
 });

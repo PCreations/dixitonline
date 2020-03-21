@@ -12,11 +12,32 @@ Object {
         "id": "g1",
         "players": Array [
           Object {
+            "id": "p1",
+            "name": "player1",
+          },
+          Object {
             "id": "p2",
             "name": "player2",
           },
         ],
       },
+    },
+  },
+  "errors": undefined,
+  "extensions": undefined,
+  "http": Object {
+    "headers": Headers {
+      Symbol(map): Object {},
+    },
+  },
+}
+`;
+
+exports[`join game a player can't join a game she has already joined 1`] = `
+Object {
+  "data": Object {
+    "lobbyJoinGame": Object {
+      "type": "GAME_ALREADY_JOINED",
     },
   },
   "errors": undefined,
