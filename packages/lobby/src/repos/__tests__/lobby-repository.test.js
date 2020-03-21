@@ -1,6 +1,7 @@
 import * as firebase from '@firebase/testing';
 import { makeLobbyRepository, makeNullLobbyRepository } from '../lobby-repository';
 import { buildTestGame } from '../../__tests__/dataBuilders/game';
+import { buildLobbyRepositoryInitialGames } from '../../__tests__/dataBuilders/lobby-repository-initial-games';
 
 let firebaseApp;
 
@@ -90,10 +91,9 @@ describe('Null LobbyRepository', () => {
     const game2 = buildTestGame()
       .withId('g2')
       .build();
-    const initialGames = {
-      g1: game1,
-      g2: game2,
-    };
+    const initialGames = buildLobbyRepositoryInitialGames()
+      .withGames([game1, game2])
+      .build();
     const lobbyRepository = makeNullLobbyRepository({
       nextGameId: 'g3',
       gamesData: initialGames,
@@ -115,10 +115,9 @@ describe('Null LobbyRepository', () => {
     const game2 = buildTestGame()
       .withId('g2')
       .build();
-    const initialGames = {
-      g1: game1,
-      g2: game2,
-    };
+    const initialGames = buildLobbyRepositoryInitialGames()
+      .withGames([game1, game2])
+      .build();
     const lobbyRepository = makeNullLobbyRepository({
       nextGameId: 'g3',
       gamesData: initialGames,

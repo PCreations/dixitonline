@@ -1,15 +1,21 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`create new game creates a new game 1`] = `
+exports[`join game a player can join a game 1`] = `
 Object {
   "data": Object {
-    "lobbyCreateGame": Object {
+    "lobbyJoinGame": Object {
       "game": Object {
         "host": Object {
           "id": "p1",
           "name": "player1",
         },
         "id": "g1",
+        "players": Array [
+          Object {
+            "id": "p2",
+            "name": "player2",
+          },
+        ],
       },
     },
   },

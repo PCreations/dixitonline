@@ -44,9 +44,9 @@ describe('create new game', () => {
 
     // act
     const { mutate } = createTestClient(server);
+    const response = await mutate({ mutation: LOBBY_CREATE_GAME });
 
     // assert
-    const response = await mutate({ mutation: LOBBY_CREATE_GAME });
     const createdGame = await lobbyRepository.getGameById('g1');
     expect(response).toMatchSnapshot();
     expect(createdGame).toEqual(expectedGame);

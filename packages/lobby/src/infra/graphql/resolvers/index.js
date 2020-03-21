@@ -19,5 +19,25 @@ export const resolvers = {
         game,
       };
     },
+    async lobbyJoinGame(_, { lobbyJoinGameInput }, context) {
+      context.dispatchDomainEvents([
+        { type: '[lobby] - a new player has joined a game', payload: { playerId: 'p2', gameId: 'g1' } },
+      ]);
+      return {
+        game: {
+          id: 'g1',
+          host: {
+            id: 'p1',
+            name: 'player1',
+          },
+          players: [
+            {
+              id: 'p2',
+              name: 'player2',
+            },
+          ],
+        },
+      };
+    },
   },
 };

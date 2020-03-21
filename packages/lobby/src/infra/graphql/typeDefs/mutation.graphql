@@ -1,7 +1,16 @@
 extend type Mutation {
   lobbyCreateGame: LobbyCreateGameResult
+  lobbyJoinGame(lobbyJoinGameInput: LobbyJoinGameInput!): LobbyJoinGameResult
 }
 
 type LobbyCreateGameResult {
+  game: LobbyGame!
+}
+
+input LobbyJoinGameInput {
+  gameId: ID!
+}
+
+type LobbyJoinGameResult {
   game: LobbyGame!
 }

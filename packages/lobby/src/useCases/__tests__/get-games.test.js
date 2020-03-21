@@ -4,18 +4,22 @@ import { makeNullLobbyRepository } from '../../repos/lobby-repository';
 import { makeGetDataSources } from '../../infra/graphql/get-data-sources';
 import { makeTestServer } from '../../__tests__/test-server';
 import { buildTestGame } from '../../__tests__/dataBuilders/game';
+import { buildLobbyRepositoryInitialGames } from '../../__tests__/dataBuilders/lobby-repository-initial-games';
 
 describe('getGames', () => {
   test('gets all the lobby games', async () => {
     // arrange
-    const initialGames = {
-      g1: buildTestGame()
-        .withId('g1')
-        .build(),
-      g2: buildTestGame()
-        .withId('g2')
-        .build(),
-    };
+    const initialGames = buildLobbyRepositoryInitialGames()
+      .withGames([
+        buildTestGame()
+          .withId('g1')
+          .build(),
+        buildTestGame()
+          .withId('g2')
+          .build(),
+      ])
+      .build();
+
     const server = makeTestServer({
       getDataSources: makeGetDataSources({
         lobbyRepository: makeNullLobbyRepository({
