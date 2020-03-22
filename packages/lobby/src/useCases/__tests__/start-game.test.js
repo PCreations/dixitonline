@@ -29,8 +29,8 @@ describe('start game', () => {
       currentUserUsername: game.host.name,
     });
     const LOBBY_START_GAME = gql`
-      mutation {
-        lobbyStartGame {
+      mutation LobbyStartGame($lobbyStartGameInput: LobbyStartGameInput!) {
+        lobbyStartGame(lobbyStartGameInput: $lobbyStartGameInput) {
           gameId
         }
       }
@@ -41,6 +41,8 @@ describe('start game', () => {
     const { mutate } = createTestClient(server);
     const response = await mutate({
       mutation: LOBBY_START_GAME,
+      variables: { lobbyStartGameInput: { gameId: 'g42' } },
+      operationName: 'LobbyStartGame',
     });
     expect(response).toMatchSnapshot();
     await expect(lobbyRepository.getGameById('g42')).rejects.toEqual(new GameNotFoundError('g42'));

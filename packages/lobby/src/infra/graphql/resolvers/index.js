@@ -47,7 +47,10 @@ export const resolvers = {
         throw error;
       }
     },
-    async lobbyStartGame() {
+    async lobbyStartGame(_, { lobbyStartGameInput }, { dataSources }) {
+      const { lobbyRepository } = dataSources;
+      const { gameId } = lobbyStartGameInput;
+      await lobbyRepository.deleteGameById(gameId);
       return {
         gameId: 'g42',
       };

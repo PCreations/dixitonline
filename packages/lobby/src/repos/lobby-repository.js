@@ -13,10 +13,10 @@ export const makeLobbyRepository = ({ uuid = uuidv1, firestore = makeNullFiresto
       return lobbyGames.doc(game.id).set(game);
     },
     async getGameById(id) {
-      if (id === 'g42') {
+      const doc = await lobbyGames.doc(id).get();
+      if (!doc.exists) {
         throw new GameNotFoundError(id);
       }
-      const doc = await lobbyGames.doc(id).get();
       return makeGame(doc.data());
     },
     getAllGames() {
@@ -49,6 +49,7 @@ const makeNullFirestore = (gamesInitialData = {}) => {
                 data() {
                   return gamesData[gameId];
                 },
+                exists: typeof gamesData[gameId] !== 'undefined',
               };
             },
             async set(game) {

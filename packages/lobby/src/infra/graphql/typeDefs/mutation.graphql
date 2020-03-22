@@ -1,7 +1,7 @@
 extend type Mutation {
   lobbyCreateGame: LobbyCreateGameResult!
   lobbyJoinGame(lobbyJoinGameInput: LobbyJoinGameInput!): LobbyJoinGameResult!
-  lobbyStartGame: LobbyStartGameResult!
+  lobbyStartGame(lobbyStartGameInput: LobbyStartGameInput!): LobbyStartGameResult!
 }
 
 type LobbyCreateGameResult {
@@ -26,6 +26,10 @@ enum LobbyJoinGameErrorType {
 }
 
 union LobbyJoinGameResult = LobbyJoinGameResultSuccess | LobbyJoinGameResultError
+
+input LobbyStartGameInput {
+  gameId: ID!
+}
 
 type LobbyStartGameResult {
   gameId: ID!

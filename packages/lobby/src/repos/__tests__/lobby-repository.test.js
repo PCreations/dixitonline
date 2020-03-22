@@ -1,5 +1,5 @@
 import * as firebase from '@firebase/testing';
-import { makeLobbyRepository, makeNullLobbyRepository } from '../lobby-repository';
+import { makeLobbyRepository, makeNullLobbyRepository, GameNotFoundError } from '../lobby-repository';
 import { buildTestGame } from '../../__tests__/dataBuilders/game';
 import { buildLobbyRepositoryInitialGames } from '../../__tests__/dataBuilders/lobby-repository-initial-games';
 
@@ -74,6 +74,16 @@ describe('LobbyRepository', () => {
 
     // assert
     expect(games).toEqual([game2]);
+  });
+  it('throws a GameNotFoundError if game was not found', async () => {
+    // arrange
+    const lobbyRepository = makeLobbyRepository({
+      firestore: firebaseApp.firestore(),
+    });
+
+    // act & assert
+    expect.assertions(1);
+    await expect(lobbyRepository.getGameById('nonExistingId')).rejects.toEqual(new GameNotFoundError('nonExistingId'));
   });
 });
 
