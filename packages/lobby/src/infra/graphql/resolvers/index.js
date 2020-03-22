@@ -1,8 +1,13 @@
 import { makeCreateNewGame } from '../../../useCases/create-new-game';
 import { makeGetGames } from '../../../useCases/get-games';
-import { makePlayer } from '../../../domain/player';
-import { GameAlreadyJoinedByPlayerError, MaximumNumberOfPlayerReachedError } from '../../../domain/game';
 import { makeJoinGame } from '../../../useCases/join-game';
+import { makeStartGame } from '../../../useCases/start-game';
+import { makePlayer } from '../../../domain/player';
+import {
+  GameAlreadyJoinedByPlayerError,
+  MaximumNumberOfPlayerReachedError,
+  OnlyHostCanStartGameError,
+} from '../../../domain/game';
 
 export const resolvers = {
   Query: {
@@ -47,12 +52,23 @@ export const resolvers = {
         throw error;
       }
     },
-    async lobbyStartGame(_, { lobbyStartGameInput }, { dataSources }) {
+    async lobbyStartGame(_, { lobbyStartGameInput }, { dataSources, dispatchDomainEvents, currentUser }) {
       const { lobbyRepository } = dataSources;
       const { gameId } = lobbyStartGameInput;
-      await lobbyRepository.deleteGameById(gameId);
+      const startGame = makeStartGame({ lobbyRepository, currentUser });
+      const result = await startGame({ gameId });
+      if (result.error) {
+        if (result.error instanceof OnlyHostCanStartGameError) {
+          return {
+            __typename: 'LobbyStartGameResultError',
+            type: 'ONLY_HOST_CAN_START_GAME',
+          };
+        }
+      }
+      dispatchDomainEvents(result.events);
       return {
-        gameId: 'g42',
+        __typename: 'LobbyStartGameResultSuccess',
+        gameId: result.value,
       };
     },
   },

@@ -1,9 +1,10 @@
 /* eslint-disable max-classes-per-file */
-import { playerJoinedGame } from './events';
+import { playerJoinedGame, newGameStartedEvent } from './events';
 import { equals as playerEquals } from './player';
 
 export class GameAlreadyJoinedByPlayerError extends Error {}
 export class MaximumNumberOfPlayerReachedError extends Error {}
+export class OnlyHostCanStartGameError extends Error {}
 
 export const MAXIMUM_NUMBER_OF_PLAYERS = 6;
 
@@ -18,7 +19,7 @@ export const makeGame = ({ id, host, players = [] } = {}) => {
   });
 };
 
-const getAllPlayers = game => [game.host, ...game.players];
+export const getAllPlayers = game => [game.host, ...game.players];
 
 const isGameFull = game => getAllPlayers(game).length === MAXIMUM_NUMBER_OF_PLAYERS;
 
@@ -29,4 +30,17 @@ export const joinPlayer = (game, player) => {
     makeGame({ ...game, players: game.players.concat(player) }),
     [playerJoinedGame({ gameId: game.id, playerId: player.id })],
   ];
+};
+
+export const startGame = (game, player) => {
+  if (playerEquals(game.host, player)) {
+    return {
+      value: game.id,
+      events: [newGameStartedEvent({ gameId: game.id, playerIds: getAllPlayers(game).map(({ id }) => id) })],
+    };
+  }
+  return {
+    error: new OnlyHostCanStartGameError(),
+    events: [],
+  };
 };

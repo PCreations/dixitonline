@@ -16,3 +16,20 @@ Object {
   },
 }
 `;
+
+exports[`start game a player can't start a game if she's not the host 1`] = `
+Object {
+  "data": Object {
+    "lobbyStartGame": Object {
+      "type": "ONLY_HOST_CAN_START_GAME",
+    },
+  },
+  "errors": undefined,
+  "extensions": undefined,
+  "http": Object {
+    "headers": Headers {
+      Symbol(map): Object {},
+    },
+  },
+}
+`;

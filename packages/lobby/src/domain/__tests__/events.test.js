@@ -1,4 +1,4 @@
-import { newGameCreatedEvent, playerJoinedGame } from '../events';
+import { newGameCreatedEvent, playerJoinedGame, newGameStartedEvent } from '../events';
 
 describe('lobby domain events', () => {
   test('newGameCreated event', () => {
@@ -16,6 +16,12 @@ describe('lobby domain events', () => {
         gameId: 'g1',
         playerId: 'p1',
       },
+    });
+  });
+  test('newGameStarted event', () => {
+    expect(newGameStartedEvent({ gameId: 'g1', playerIds: ['p1', 'p2', 'p3'] })).toEqual({
+      type: '[lobby] - a new game has started',
+      payload: { gameId: 'g1', playerIds: ['p1', 'p2', 'p3'] },
     });
   });
 });

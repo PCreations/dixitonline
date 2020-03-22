@@ -17,7 +17,7 @@ type LobbyJoinGameResultSuccess {
 }
 
 type LobbyJoinGameResultError {
-  type: LobbyJoinGameErrorType
+  type: LobbyJoinGameErrorType!
 }
 
 enum LobbyJoinGameErrorType {
@@ -31,6 +31,16 @@ input LobbyStartGameInput {
   gameId: ID!
 }
 
-type LobbyStartGameResult {
+type LobbyStartGameResultSuccess {
   gameId: ID!
 }
+
+type LobbyStartGameResultError {
+  type: LobbyStartGameErrorType!
+}
+
+enum LobbyStartGameErrorType {
+  ONLY_HOST_CAN_START_GAME
+}
+
+union LobbyStartGameResult = LobbyStartGameResultSuccess | LobbyStartGameResultError

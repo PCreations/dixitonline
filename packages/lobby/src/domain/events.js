@@ -12,3 +12,11 @@ export const playerJoinedGame = ({ gameId, playerId }) => ({
     playerId,
   },
 });
+
+export const newGameStartedEvent = ({ gameId, playerIds }) => ({
+  type: '[lobby] - a new game has started',
+  payload: {
+    gameId,
+    playerIds,
+  },
+});

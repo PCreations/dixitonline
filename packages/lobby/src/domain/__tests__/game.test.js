@@ -1,6 +1,14 @@
-import { makeGame, joinPlayer, GameAlreadyJoinedByPlayerError, MaximumNumberOfPlayerReachedError } from '../game';
+import {
+  makeGame,
+  joinPlayer,
+  startGame,
+  GameAlreadyJoinedByPlayerError,
+  MaximumNumberOfPlayerReachedError,
+  OnlyHostCanStartGameError,
+  getAllPlayers,
+} from '../game';
 import { buildTestPlayer } from '../../__tests__/dataBuilders/player';
-import { playerJoinedGame } from '../events';
+import { playerJoinedGame, newGameStartedEvent } from '../events';
 import { buildTestGame } from '../../__tests__/dataBuilders/game';
 
 describe('Game', () => {
@@ -70,6 +78,36 @@ describe('Game', () => {
 
       // act & assert
       expect(() => joinPlayer(game, player)).toThrow(MaximumNumberOfPlayerReachedError);
+    });
+  });
+  describe('game can be started', () => {
+    it('can be started if the player who wants to start the game is the host', () => {
+      // arrange
+      const game = buildTestGame()
+        .withXPlayers(3)
+        .build();
+
+      // act
+      const { value, events, error } = startGame(game, game.host);
+
+      // assert
+      expect(value).toEqual(game.id);
+      expect(events).toEqual([
+        newGameStartedEvent({ gameId: game.id, playerIds: getAllPlayers(game).map(({ id }) => id) }),
+      ]);
+      expect(error).toBeUndefined();
+    });
+    it("can't be started if the player who wants to start the game is NOT the host", () => {
+      // arrange
+      const game = buildTestGame().build();
+      const player = buildTestPlayer().build();
+
+      // act
+      const { events, error } = startGame(game, player);
+
+      // assert
+      expect(events).toEqual([]);
+      expect(error).toEqual(new OnlyHostCanStartGameError());
     });
   });
 });
