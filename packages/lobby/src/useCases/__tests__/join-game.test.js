@@ -8,17 +8,56 @@ import { buildTestPlayer } from '../../__tests__/dataBuilders/player';
 import { makeGetDataSources } from '../../infra/graphql/get-data-sources';
 import { playerJoinedGame } from '../../domain/events';
 
+const getJoinGameTestServer = ({
+  currentUserId = 'p2',
+  currentUserUsername = 'player2',
+  maxOutPlayers = false,
+} = {}) => {
+  const host = buildTestPlayer()
+    .withId('p1')
+    .withName('player1')
+    .build();
+  let gameToBeBuilt = buildTestGame()
+    .withId('g1')
+    .withHost(host);
+  if (maxOutPlayers) {
+    gameToBeBuilt = gameToBeBuilt.withPlayers([
+      buildTestPlayer().build(),
+      buildTestPlayer().build(),
+      buildTestPlayer().build(),
+      buildTestPlayer().build(),
+      buildTestPlayer().build(),
+    ]);
+  }
+  const game = gameToBeBuilt.build();
+  const initialGames = buildLobbyRepositoryInitialGames()
+    .withGames([game])
+    .build();
+  const lobbyRepository = makeNullLobbyRepository({
+    gamesData: initialGames,
+  });
+  const dispatchDomainEvents = jest.fn();
+  const server = makeTestServer({
+    getDataSources: makeGetDataSources({
+      lobbyRepository,
+    }),
+    dispatchDomainEvents,
+    currentUserId,
+    currentUserUsername,
+  });
+
+  return {
+    game,
+    dispatchDomainEvents,
+    lobbyRepository,
+    server,
+  };
+};
+
 describe('join game', () => {
   test('a player can join a game', async () => {
     // arrange
-    const host = buildTestPlayer()
-      .withId('p1')
-      .withName('player1')
-      .build();
-    const game = buildTestGame()
-      .withId('g1')
-      .withHost(host)
-      .build();
+    const { game, dispatchDomainEvents, lobbyRepository, server } = getJoinGameTestServer();
     const expectedUpdatedGame = buildTestGame(game)
       .withPlayers([
         buildTestPlayer()
@@ -27,22 +66,6 @@ describe('join game', () => {
           .build(),
       ])
       .build();
-    const initialGames = buildLobbyRepositoryInitialGames()
-      .withGames([game])
-      .build();
-
-    const lobbyRepository = makeNullLobbyRepository({
-      gamesData: initialGames,
-    });
-    const dispatchDomainEvents = jest.fn();
-    const server = makeTestServer({
-      getDataSources: makeGetDataSources({
-        lobbyRepository,
-      }),
-      dispatchDomainEvents,
-      currentUserId: 'p2',
-      currentUserUsername: 'player2',
-    });
     const LOBBY_JOIN_GAME = gql`
       mutation LobbyCreateGame($lobbyJoinGameInput: LobbyJoinGameInput!) {
         lobbyJoinGame(lobbyJoinGameInput: $lobbyJoinGameInput) {
@@ -80,36 +103,9 @@ describe('join game', () => {
   });
   test("a player can't join a game she has already joined", async () => {
     // arrange
-    const host = buildTestPlayer()
-      .withId('p1')
-      .withName('player1')
-      .build();
-    const game = buildTestGame()
-      .withId('g1')
-      .withHost(host)
-      .withPlayers([
-        buildTestPlayer()
-          .withId('p2')
-          .withName('player2')
-          .build(),
-      ])
-      .build();
-
-    const initialGames = buildLobbyRepositoryInitialGames()
-      .withGames([game])
-      .build();
-
-    const lobbyRepository = makeNullLobbyRepository({
-      gamesData: initialGames,
-    });
-    const dispatchDomainEvents = jest.fn();
-    const server = makeTestServer({
-      getDataSources: makeGetDataSources({
-        lobbyRepository,
-      }),
-      dispatchDomainEvents,
-      currentUserId: 'p2',
-      currentUserUsername: 'player2',
+    const { game, dispatchDomainEvents, lobbyRepository, server } = getJoinGameTestServer({
+      currentUserUsername: 'player1',
+      currentUserId: 'p1',
     });
     const LOBBY_JOIN_GAME = gql`
       mutation LobbyCreateGame($lobbyJoinGameInput: LobbyJoinGameInput!) {
@@ -142,38 +138,7 @@ describe('join game', () => {
   });
   test("a player can't join a game with already the maximum number of player", async () => {
     // arrange
-    const host = buildTestPlayer()
-      .withId('p1')
-      .withName('player1')
-      .build();
-    const game = buildTestGame()
-      .withId('g1')
-      .withHost(host)
-      .withPlayers([
-        buildTestPlayer().build(),
-        buildTestPlayer().build(),
-        buildTestPlayer().build(),
-        buildTestPlayer().build(),
-        buildTestPlayer().build(),
-      ])
-      .build();
-
-    const initialGames = buildLobbyRepositoryInitialGames()
-      .withGames([game])
-      .build();
-
-    const lobbyRepository = makeNullLobbyRepository({
-      gamesData: initialGames,
-    });
-    const dispatchDomainEvents = jest.fn();
-    const server = makeTestServer({
-      getDataSources: makeGetDataSources({
-        lobbyRepository,
-      }),
-      dispatchDomainEvents,
-      currentUserId: 'p2',
-      currentUserUsername: 'player2',
-    });
+    const { game, dispatchDomainEvents, lobbyRepository, server } = getJoinGameTestServer({ maxOutPlayers: true });
     const LOBBY_JOIN_GAME = gql`
       mutation LobbyCreateGame($lobbyJoinGameInput: LobbyJoinGameInput!) {
         lobbyJoinGame(lobbyJoinGameInput: $lobbyJoinGameInput) {
@@ -203,4 +168,5 @@ describe('join game', () => {
     });
     expect(dispatchDomainEvents).not.toHaveBeenCalled();
   });
+  test.todo("a player can't join an already started game");
 });

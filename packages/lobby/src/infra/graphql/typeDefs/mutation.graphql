@@ -21,7 +21,7 @@ type LobbyJoinGameResultError {
 
 enum LobbyJoinGameErrorType {
   GAME_ALREADY_JOINED
-  MAXIMUM_NUMBER_OF_PLAYER_REACHED
+  MAXIMUM_NUMBER_OF_PLAYERS_REACHED
 }
 
 union LobbyJoinGameResult = LobbyJoinGameResultSuccess | LobbyJoinGameResultError

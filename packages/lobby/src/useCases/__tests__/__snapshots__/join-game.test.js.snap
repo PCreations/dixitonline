@@ -54,7 +54,7 @@ exports[`join game a player can't join a game with already the maximum number of
 Object {
   "data": Object {
     "lobbyJoinGame": Object {
-      "type": "MAXIMUM_NUMBER_OF_PLAYER_REACHED",
+      "type": "MAXIMUM_NUMBER_OF_PLAYERS_REACHED",
     },
   },
   "errors": undefined,

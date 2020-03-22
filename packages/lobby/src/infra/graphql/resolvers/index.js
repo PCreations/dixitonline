@@ -38,7 +38,7 @@ export const resolvers = {
           const type =
             error instanceof GameAlreadyJoinedByPlayerError
               ? 'GAME_ALREADY_JOINED'
-              : 'MAXIMUM_NUMBER_OF_PLAYER_REACHED';
+              : 'MAXIMUM_NUMBER_OF_PLAYERS_REACHED';
           return {
             __typename: 'LobbyJoinGameResultError',
             type,
