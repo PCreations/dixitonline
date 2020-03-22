@@ -3,12 +3,15 @@ import { newGameCreatedEvent, playerJoinedGame, newGameStartedEvent } from './ev
 import { equals as playerEquals } from './player';
 import { makeResult, makeErrorResult } from './result';
 
-export class GameAlreadyJoinedByPlayerError extends Error {}
-export class MaximumNumberOfPlayerReachedError extends Error {}
-export class OnlyHostCanStartGameError extends Error {}
-export class NotEnoughPlayersError extends Error {}
+export const GameError = {
+  GAME_ALREADY_JOINED: 'GAME_ALREADY_JOINED',
+  MAXIMUM_NUMBER_OF_PLAYERS_REACHED: 'MAXIMUM_NUMBER_OF_PLAYERS_REACHED',
+  ONLY_HOST_CAN_START_GAME: 'ONLY_HOST_CAN_START_GAME',
+  NOT_ENOUGH_PLAYERS: 'NOT_ENOUGH_PLAYERS',
+};
 
 export const MAXIMUM_NUMBER_OF_PLAYERS = 6;
+export const MINIMUM_NUMBER_OF_PLAYERS = 3;
 
 export const makeGame = ({ id, host, players = [] } = {}) => {
   if (!id) throw new Error('Game must contain an id');
@@ -29,19 +32,21 @@ export const createGame = ({ gameId, host }) =>
   makeResult(makeGame({ id: gameId, host }), [newGameCreatedEvent({ gameId })]);
 
 export const joinPlayer = (game, player) => {
-  if (getAllPlayers(game).some(playerEquals.bind(null, player)))
-    return makeErrorResult(new GameAlreadyJoinedByPlayerError());
-  if (isGameFull(game)) return makeErrorResult(new MaximumNumberOfPlayerReachedError());
+  if (getAllPlayers(game).some(playerEquals.bind(null, player))) return makeErrorResult(GameError.GAME_ALREADY_JOINED);
+  if (isGameFull(game)) return makeErrorResult(GameError.MAXIMUM_NUMBER_OF_PLAYERS_REACHED);
   return makeResult(makeGame({ ...game, players: game.players.concat(player) }), [
     playerJoinedGame({ gameId: game.id, playerId: player.id }),
   ]);
 };
 
 export const startGame = (game, player) => {
+  if (getAllPlayers(game).length < MINIMUM_NUMBER_OF_PLAYERS) {
+    return makeErrorResult(GameError.NOT_ENOUGH_PLAYERS);
+  }
   if (playerEquals(game.host, player)) {
     return makeResult(game.id, [
       newGameStartedEvent({ gameId: game.id, playerIds: getAllPlayers(game).map(({ id }) => id) }),
     ]);
   }
-  return makeErrorResult(new OnlyHostCanStartGameError());
+  return makeErrorResult(GameError.ONLY_HOST_CAN_START_GAME);
 };

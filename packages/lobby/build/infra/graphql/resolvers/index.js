@@ -9,9 +9,13 @@ var _createNewGame = require("../../../useCases/create-new-game");
 
 var _getGames = require("../../../useCases/get-games");
 
+var _joinGame = require("../../../useCases/join-game");
+
+var _startGame = require("../../../useCases/start-game");
+
 var _player = require("../../../domain/player");
 
-var _joinGame = require("../../../useCases/join-game");
+var _game = require("../../../domain/game");
 
 const resolvers = {
   Query: {
@@ -35,13 +39,16 @@ const resolvers = {
       const createNewGame = (0, _createNewGame.makeCreateNewGame)({
         lobbyRepository: dataSources.lobbyRepository
       });
-      const [game, domainEvents] = await createNewGame((0, _player.makePlayer)({
+      const {
+        value,
+        events
+      } = await createNewGame((0, _player.makePlayer)({
         id: currentUser.id,
         name: currentUser.username
       }));
-      dispatchDomainEvents(domainEvents);
+      dispatchDomainEvents(events);
       return {
-        game
+        game: value
       };
     },
 
@@ -59,19 +66,63 @@ const resolvers = {
       const joinGame = (0, _joinGame.makeJoinGame)({
         lobbyRepository: dataSources.lobbyRepository
       });
-      const [game, domainEvents] = await joinGame({
+      const result = await joinGame({
         gameId,
         currentUser
       });
-      dispatchDomainEvents(domainEvents);
+
+      if (result.error) {
+        return {
+          __typename: 'LobbyJoinGameResultError',
+          type: result.error
+        };
+      }
+
+      dispatchDomainEvents(result.events);
       return {
-        game
+        __typename: 'LobbyJoinGameResultSuccess',
+        game: result.value
+      };
+    },
+
+    async lobbyStartGame(_, {
+      lobbyStartGameInput
+    }, {
+      dataSources,
+      dispatchDomainEvents,
+      currentUser
+    }) {
+      const {
+        lobbyRepository
+      } = dataSources;
+      const {
+        gameId
+      } = lobbyStartGameInput;
+      const startGame = (0, _startGame.makeStartGame)({
+        lobbyRepository,
+        currentUser
+      });
+      const result = await startGame({
+        gameId
+      });
+
+      if (result.error) {
+        return {
+          __typename: 'LobbyStartGameResultError',
+          type: result.error
+        };
+      }
+
+      dispatchDomainEvents(result.events);
+      return {
+        __typename: 'LobbyStartGameResultSuccess',
+        gameId: result.value
       };
     }
 
   },
   LobbyGame: {
-    players: game => [game.host, ...game.players]
+    players: _game.getAllPlayers
   }
 };
 exports.resolvers = resolvers;

@@ -1,14 +1,4 @@
-import {
-  makeGame,
-  createGame,
-  joinPlayer,
-  startGame,
-  GameAlreadyJoinedByPlayerError,
-  MaximumNumberOfPlayerReachedError,
-  OnlyHostCanStartGameError,
-  NotEnoughPlayersError,
-  getAllPlayers,
-} from '../game';
+import { makeGame, createGame, joinPlayer, startGame, GameError, getAllPlayers } from '../game';
 import { buildTestPlayer } from '../../__tests__/dataBuilders/player';
 import { playerJoinedGame, newGameStartedEvent, newGameCreatedEvent } from '../events';
 import { buildTestGame } from '../../__tests__/dataBuilders/game';
@@ -78,7 +68,7 @@ describe('Game', () => {
       const { error } = joinPlayer(game, host);
 
       // assert
-      expect(error).toEqual(new GameAlreadyJoinedByPlayerError());
+      expect(error).toEqual(GameError.GAME_ALREADY_JOINED);
     });
     it('returns a GameAlreadyJoinedByPlayerError if the player has already joined the game', () => {
       // arrange
@@ -94,7 +84,7 @@ describe('Game', () => {
       const { error } = joinPlayer(game, player2);
 
       // assert
-      expect(error).toEqual(new GameAlreadyJoinedByPlayerError());
+      expect(error).toEqual(GameError.GAME_ALREADY_JOINED);
     });
     it('returns a MaximumNumberOfPlayerReachedError when a player tries to join a game with already the maximum number of players in it', () => {
       // arrange
@@ -109,7 +99,7 @@ describe('Game', () => {
       const { error } = joinPlayer(game, player);
 
       // assert
-      expect(error).toEqual(new MaximumNumberOfPlayerReachedError());
+      expect(error).toEqual(GameError.MAXIMUM_NUMBER_OF_PLAYERS_REACHED);
     });
   });
 
@@ -132,7 +122,9 @@ describe('Game', () => {
     });
     it("can't be started if the player who wants to start the game is NOT the host", () => {
       // arrange
-      const game = buildTestGame().build();
+      const game = buildTestGame()
+        .withXPlayers(3)
+        .build();
       const player = buildTestPlayer().build();
 
       // act
@@ -140,9 +132,9 @@ describe('Game', () => {
 
       // assert
       expect(events).toEqual([]);
-      expect(error).toEqual(new OnlyHostCanStartGameError());
+      expect(error).toEqual(GameError.ONLY_HOST_CAN_START_GAME);
     });
-    it.skip("can't be started if there is not enough players", () => {
+    it("can't be started if there is not enough players", () => {
       // arrange
       const game = buildTestGame().build();
       const player = buildTestPlayer().build();
@@ -152,7 +144,7 @@ describe('Game', () => {
 
       // assert
       expect(events).toEqual([]);
-      expect(error).toEqual(new NotEnoughPlayersError());
+      expect(error).toEqual(GameError.NOT_ENOUGH_PLAYERS);
     });
   });
 });

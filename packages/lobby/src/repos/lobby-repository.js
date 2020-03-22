@@ -1,7 +1,12 @@
 import { v1 as uuidv1 } from 'uuid';
 import { makeGame } from '../domain/game';
 
-export class GameNotFoundError extends Error {}
+export class GameNotFoundError extends Error {
+  constructor(gameId) {
+    super();
+    this.message = `Game ${gameId} not found`;
+  }
+}
 
 export const makeLobbyRepository = ({ uuid = uuidv1, firestore = makeNullFirestore() } = {}) => {
   const lobbyGames = firestore.collection('lobby-games');

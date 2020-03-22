@@ -3,11 +3,21 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.makeNullLobbyRepository = exports.makeLobbyRepository = void 0;
+exports.makeNullLobbyRepository = exports.makeLobbyRepository = exports.GameNotFoundError = void 0;
 
 var _uuid = require("uuid");
 
 var _game = require("../domain/game");
+
+class GameNotFoundError extends Error {
+  constructor(gameId) {
+    super();
+    this.message = `Game ${gameId} not found`;
+  }
+
+}
+
+exports.GameNotFoundError = GameNotFoundError;
 
 const makeLobbyRepository = ({
   uuid = _uuid.v1,
@@ -25,6 +35,11 @@ const makeLobbyRepository = ({
 
     async getGameById(id) {
       const doc = await lobbyGames.doc(id).get();
+
+      if (!doc.exists) {
+        throw new GameNotFoundError(id);
+      }
+
       return (0, _game.makeGame)(doc.data());
     },
 
@@ -34,6 +49,10 @@ const makeLobbyRepository = ({
         snapshot.forEach(doc => games.push((0, _game.makeGame)(doc.data())));
         return games;
       });
+    },
+
+    deleteGameById(gameId) {
+      return lobbyGames.doc(gameId).delete();
     }
 
   };
@@ -65,20 +84,25 @@ const makeNullFirestore = (gamesInitialData = {}) => {
               return {
                 data() {
                   return gamesData[gameId];
-                }
+                },
 
+                exists: typeof gamesData[gameId] !== 'undefined'
               };
             },
 
             async set(game) {
               gamesData[gameId] = game;
+            },
+
+            delete() {
+              gamesData[gameId] = undefined;
             }
 
           };
         },
 
         async get() {
-          const docs = Object.values(gamesData).map(game => ({
+          const docs = Object.values(gamesData).filter(Boolean).map(game => ({
             data() {
               return game;
             }

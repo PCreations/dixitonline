@@ -3,7 +3,7 @@ import { makeGetGames } from '../../../useCases/get-games';
 import { makeJoinGame } from '../../../useCases/join-game';
 import { makeStartGame } from '../../../useCases/start-game';
 import { makePlayer } from '../../../domain/player';
-import { GameAlreadyJoinedByPlayerError, OnlyHostCanStartGameError } from '../../../domain/game';
+import { getAllPlayers } from '../../../domain/game';
 
 export const resolvers = {
   Query: {
@@ -28,13 +28,9 @@ export const resolvers = {
       const joinGame = makeJoinGame({ lobbyRepository: dataSources.lobbyRepository });
       const result = await joinGame({ gameId, currentUser });
       if (result.error) {
-        const type =
-          result.error instanceof GameAlreadyJoinedByPlayerError
-            ? 'GAME_ALREADY_JOINED'
-            : 'MAXIMUM_NUMBER_OF_PLAYERS_REACHED';
         return {
           __typename: 'LobbyJoinGameResultError',
-          type,
+          type: result.error,
         };
       }
       dispatchDomainEvents(result.events);
@@ -49,12 +45,10 @@ export const resolvers = {
       const startGame = makeStartGame({ lobbyRepository, currentUser });
       const result = await startGame({ gameId });
       if (result.error) {
-        if (result.error instanceof OnlyHostCanStartGameError) {
-          return {
-            __typename: 'LobbyStartGameResultError',
-            type: 'ONLY_HOST_CAN_START_GAME',
-          };
-        }
+        return {
+          __typename: 'LobbyStartGameResultError',
+          type: result.error,
+        };
       }
       dispatchDomainEvents(result.events);
       return {
@@ -64,6 +58,6 @@ export const resolvers = {
     },
   },
   LobbyGame: {
-    players: game => [game.host, ...game.players],
+    players: getAllPlayers,
   },
 };

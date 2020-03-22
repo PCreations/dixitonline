@@ -1,6 +1,7 @@
 extend type Mutation {
-  lobbyCreateGame: LobbyCreateGameResult
-  lobbyJoinGame(lobbyJoinGameInput: LobbyJoinGameInput!): LobbyJoinGameResult
+  lobbyCreateGame: LobbyCreateGameResult!
+  lobbyJoinGame(lobbyJoinGameInput: LobbyJoinGameInput!): LobbyJoinGameResult!
+  lobbyStartGame(lobbyStartGameInput: LobbyStartGameInput!): LobbyStartGameResult!
 }
 
 type LobbyCreateGameResult {
@@ -11,6 +12,36 @@ input LobbyJoinGameInput {
   gameId: ID!
 }
 
-type LobbyJoinGameResult {
+type LobbyJoinGameResultSuccess {
   game: LobbyGame!
 }
+
+type LobbyJoinGameResultError {
+  type: LobbyJoinGameErrorType!
+}
+
+enum LobbyJoinGameErrorType {
+  GAME_ALREADY_JOINED
+  MAXIMUM_NUMBER_OF_PLAYERS_REACHED
+}
+
+union LobbyJoinGameResult = LobbyJoinGameResultSuccess | LobbyJoinGameResultError
+
+input LobbyStartGameInput {
+  gameId: ID!
+}
+
+type LobbyStartGameResultSuccess {
+  gameId: ID!
+}
+
+type LobbyStartGameResultError {
+  type: LobbyStartGameErrorType!
+}
+
+enum LobbyStartGameErrorType {
+  ONLY_HOST_CAN_START_GAME
+  NOT_ENOUGH_PLAYERS
+}
+
+union LobbyStartGameResult = LobbyStartGameResultSuccess | LobbyStartGameResultError

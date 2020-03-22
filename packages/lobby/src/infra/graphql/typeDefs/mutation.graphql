@@ -41,6 +41,7 @@ type LobbyStartGameResultError {
 
 enum LobbyStartGameErrorType {
   ONLY_HOST_CAN_START_GAME
+  NOT_ENOUGH_PLAYERS
 }
 
 union LobbyStartGameResult = LobbyStartGameResultSuccess | LobbyStartGameResultError

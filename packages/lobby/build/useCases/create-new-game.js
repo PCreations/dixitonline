@@ -7,21 +7,20 @@ exports.makeCreateNewGame = void 0;
 
 var _game = require("../domain/game");
 
-var _events = require("../domain/events");
-
 const makeCreateNewGame = ({
   lobbyRepository
 }) => async host => {
   const gameId = lobbyRepository.getNextGameId();
-  const game = (0, _game.makeGame)({
-    id: gameId,
+  const result = (0, _game.createGame)({
+    gameId,
     host
   });
-  const domainEvents = [(0, _events.newGameCreatedEvent)({
-    gameId
-  })];
-  await lobbyRepository.saveGame(game);
-  return [game, domainEvents];
+
+  if (!result.error) {
+    await lobbyRepository.saveGame(result.value);
+  }
+
+  return result;
 };
 
 exports.makeCreateNewGame = makeCreateNewGame;
