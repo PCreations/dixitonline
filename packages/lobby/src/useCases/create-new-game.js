@@ -1,13 +1,13 @@
-import { makeGame } from '../domain/game';
-import { newGameCreatedEvent } from '../domain/events';
+import { createGame } from '../domain/game';
 
 export const makeCreateNewGame = ({ lobbyRepository }) => async host => {
   const gameId = lobbyRepository.getNextGameId();
 
-  const game = makeGame({ id: gameId, host });
-  const domainEvents = [newGameCreatedEvent({ gameId })];
+  const result = createGame({ gameId, host });
 
-  await lobbyRepository.saveGame(game);
+  if (!result.error) {
+    await lobbyRepository.saveGame(result.value);
+  }
 
-  return [game, domainEvents];
+  return result;
 };

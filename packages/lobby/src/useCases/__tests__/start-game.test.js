@@ -101,4 +101,52 @@ describe('start game', () => {
     expect(response).toMatchSnapshot();
     await expect(lobbyRepository.getGameById('g42')).resolves.toEqual(game);
   });
+  test("a player can't start a game if there is not enough player", async () => {
+    // arrange
+    const game = buildTestGame()
+      .withId('g42')
+      .build();
+    const randomPlayer = buildTestPlayer().build();
+    const initialGames = buildLobbyRepositoryInitialGames()
+      .withGames([game])
+      .build();
+    const lobbyRepository = makeNullLobbyRepository({
+      gamesData: initialGames,
+    });
+    const dispatchDomainEvents = jest.fn();
+    const server = makeTestServer({
+      getDataSources: makeGetDataSources({
+        lobbyRepository,
+      }),
+      dispatchDomainEvents,
+      currentUserId: randomPlayer.id,
+      currentUserUsername: randomPlayer.name,
+    });
+    const LOBBY_START_GAME = gql`
+      mutation LobbyStartGame($lobbyStartGameInput: LobbyStartGameInput!) {
+        lobbyStartGame(lobbyStartGameInput: $lobbyStartGameInput) {
+          ... on LobbyStartGameResultError {
+            type
+          }
+        }
+      }
+    `;
+
+    // act
+    const { mutate } = createTestClient(server);
+    const response = await mutate({
+      mutation: LOBBY_START_GAME,
+      variables: {
+        lobbyStartGameInput: {
+          gameId: 'g42',
+        },
+      },
+      operationName: 'LobbyStartGame',
+    });
+
+    // assert
+    expect.assertions(2);
+    expect(response).toMatchSnapshot();
+    await expect(lobbyRepository.getGameById('g42')).resolves.toEqual(game);
+  });
 });

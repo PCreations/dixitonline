@@ -34,6 +34,7 @@ describe('result', () => {
     // assert
     expect(result).toEqual({
       error,
+      events: [],
     });
   });
 });

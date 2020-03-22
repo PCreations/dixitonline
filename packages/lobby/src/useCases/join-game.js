@@ -4,9 +4,9 @@ import { makePlayer } from '../domain/player';
 export const makeJoinGame = ({ lobbyRepository }) => async ({ gameId, currentUser }) => {
   const game = await lobbyRepository.getGameById(gameId);
 
-  const [editedGame, domainEvents] = joinPlayer(game, makePlayer({ id: currentUser.id, name: currentUser.username }));
+  const result = joinPlayer(game, makePlayer({ id: currentUser.id, name: currentUser.username }));
 
-  await lobbyRepository.saveGame(editedGame);
+  if (!result.error) await lobbyRepository.saveGame(result.value);
 
-  return [editedGame, domainEvents];
+  return result;
 };

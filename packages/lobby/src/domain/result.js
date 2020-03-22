@@ -5,4 +5,5 @@ export const makeResult = (value, events = []) => ({
 
 export const makeErrorResult = error => ({
   error,
+  events: [],
 });
