@@ -5,7 +5,7 @@ import { equals as playerEquals } from './player';
 export class GameAlreadyJoinedByPlayerError extends Error {}
 export class MaximumNumberOfPlayerReachedError extends Error {}
 
-const MAXIMUM_NUMBER_OF_PLAYERS = 6;
+export const MAXIMUM_NUMBER_OF_PLAYERS = 6;
 
 export const makeGame = ({ id, host, players = [] } = {}) => {
   if (!id) throw new Error('Game must contain an id');

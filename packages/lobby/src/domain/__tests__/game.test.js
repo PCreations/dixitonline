@@ -65,13 +65,7 @@ describe('Game', () => {
       const player = buildTestPlayer().build();
       const game = buildTestGame()
         .withHost(host)
-        .withPlayers([
-          buildTestPlayer().build(),
-          buildTestPlayer().build(),
-          buildTestPlayer().build(),
-          buildTestPlayer().build(),
-          buildTestPlayer().build(),
-        ])
+        .asFullGame()
         .build();
 
       // act & assert

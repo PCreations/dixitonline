@@ -1,6 +1,8 @@
 import faker from 'faker';
 import { buildTestPlayer } from './player';
-import { makeGame } from '../../domain/game';
+import { makeGame, MAXIMUM_NUMBER_OF_PLAYERS } from '../../domain/game';
+
+const generatePlayers = numberOfPlayers => new Array(numberOfPlayers).fill().map(() => buildTestPlayer().build());
 
 export const buildTestGame = (baseGame = {}) => {
   const defaultProperties = {
@@ -20,6 +22,14 @@ export const buildTestGame = (baseGame = {}) => {
     },
     withPlayers(players = defaultProperties.players) {
       overrides.players = players;
+      return this;
+    },
+    withXPlayers(numberOfPlayers) {
+      overrides.players = generatePlayers(numberOfPlayers);
+      return this;
+    },
+    asFullGame() {
+      overrides.players = generatePlayers(MAXIMUM_NUMBER_OF_PLAYERS - 1);
       return this;
     },
     build() {

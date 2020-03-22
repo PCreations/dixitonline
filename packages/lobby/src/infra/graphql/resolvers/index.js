@@ -47,6 +47,11 @@ export const resolvers = {
         throw error;
       }
     },
+    async lobbyStartGame() {
+      return {
+        gameId: 'g42',
+      };
+    },
   },
   LobbyGame: {
     players: game => [game.host, ...game.players],

@@ -21,13 +21,7 @@ const getJoinGameTestServer = ({
     .withId('g1')
     .withHost(host);
   if (maxOutPlayers) {
-    gameToBeBuilt = gameToBeBuilt.withPlayers([
-      buildTestPlayer().build(),
-      buildTestPlayer().build(),
-      buildTestPlayer().build(),
-      buildTestPlayer().build(),
-      buildTestPlayer().build(),
-    ]);
+    gameToBeBuilt = gameToBeBuilt.asFullGame();
   }
   const game = gameToBeBuilt.build();
   const initialGames = buildLobbyRepositoryInitialGames()

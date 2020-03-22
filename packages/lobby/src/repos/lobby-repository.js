@@ -1,6 +1,8 @@
 import { v1 as uuidv1 } from 'uuid';
 import { makeGame } from '../domain/game';
 
+export class GameNotFoundError extends Error {}
+
 export const makeLobbyRepository = ({ uuid = uuidv1, firestore = makeNullFirestore() } = {}) => {
   const lobbyGames = firestore.collection('lobby-games');
   return {
@@ -11,6 +13,9 @@ export const makeLobbyRepository = ({ uuid = uuidv1, firestore = makeNullFiresto
       return lobbyGames.doc(game.id).set(game);
     },
     async getGameById(id) {
+      if (id === 'g42') {
+        throw new GameNotFoundError(id);
+      }
       const doc = await lobbyGames.doc(id).get();
       return makeGame(doc.data());
     },
