@@ -1,6 +1,7 @@
 import { makeCreateNewGame } from '../../../useCases/create-new-game';
 import { makeGetGames } from '../../../useCases/get-games';
 import { makePlayer } from '../../../domain/player';
+import { GameAlreadyJoinedByPlayerError, MaximumNumberOfPlayerReachedError } from '../../../domain/game';
 import { makeJoinGame } from '../../../useCases/join-game';
 
 export const resolvers = {
@@ -24,7 +25,6 @@ export const resolvers = {
       const { dataSources, dispatchDomainEvents, currentUser } = context;
       const { gameId } = lobbyJoinGameInput;
       const joinGame = makeJoinGame({ lobbyRepository: dataSources.lobbyRepository });
-
       try {
         const [game, domainEvents] = await joinGame({ gameId, currentUser });
         dispatchDomainEvents(domainEvents);
@@ -33,10 +33,18 @@ export const resolvers = {
           game,
         };
       } catch (error) {
-        return {
-          __typename: 'LobbyJoinGameResultError',
-          type: 'GAME_ALREADY_JOINED',
-        };
+        const knownErrors = [GameAlreadyJoinedByPlayerError, MaximumNumberOfPlayerReachedError];
+        if (knownErrors.some(KnownError => error instanceof KnownError)) {
+          const type =
+            error instanceof GameAlreadyJoinedByPlayerError
+              ? 'GAME_ALREADY_JOINED'
+              : 'MAXIMUM_NUMBER_OF_PLAYER_REACHED';
+          return {
+            __typename: 'LobbyJoinGameResultError',
+            type,
+          };
+        }
+        throw error;
       }
     },
   },

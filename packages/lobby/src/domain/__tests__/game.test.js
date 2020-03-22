@@ -1,4 +1,4 @@
-import { makeGame, joinPlayer, GameAlreadyJoinedByPlayerError } from '../game';
+import { makeGame, joinPlayer, GameAlreadyJoinedByPlayerError, MaximumNumberOfPlayerReachedError } from '../game';
 import { buildTestPlayer } from '../../__tests__/dataBuilders/player';
 import { playerJoinedGame } from '../events';
 import { buildTestGame } from '../../__tests__/dataBuilders/game';
@@ -58,6 +58,24 @@ describe('Game', () => {
 
       // act & assert
       expect(() => joinPlayer(game, player2)).toThrow(GameAlreadyJoinedByPlayerError);
+    });
+    it('throws a MaximumNumberOfPlayerReachedError when a player tries to join a game with already the maximum number of players in it', () => {
+      // arrange
+      const host = buildTestPlayer().build();
+      const player = buildTestPlayer().build();
+      const game = buildTestGame()
+        .withHost(host)
+        .withPlayers([
+          buildTestPlayer().build(),
+          buildTestPlayer().build(),
+          buildTestPlayer().build(),
+          buildTestPlayer().build(),
+          buildTestPlayer().build(),
+        ])
+        .build();
+
+      // act & assert
+      expect(() => joinPlayer(game, player)).toThrow(MaximumNumberOfPlayerReachedError);
     });
   });
 });
