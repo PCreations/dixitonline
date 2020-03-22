@@ -54,14 +54,19 @@ const makeNullFirestore = (gamesInitialData = {}) => {
             async set(game) {
               gamesData[gameId] = game;
             },
+            delete() {
+              gamesData[gameId] = undefined;
+            },
           };
         },
         async get() {
-          const docs = Object.values(gamesData).map(game => ({
-            data() {
-              return game;
-            },
-          }));
+          const docs = Object.values(gamesData)
+            .filter(Boolean)
+            .map(game => ({
+              data() {
+                return game;
+              },
+            }));
           return {
             forEach: docs.forEach.bind(docs),
           };

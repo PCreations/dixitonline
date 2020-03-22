@@ -148,4 +148,27 @@ describe('Null LobbyRepository', () => {
     // assert
     expect(games).toEqual([game1, game2]);
   });
+  it('can delete a game', async () => {
+    // arrange
+    const game1 = buildTestGame()
+      .withId('g1')
+      .build();
+    const game2 = buildTestGame()
+      .withId('g2')
+      .build();
+    const initialGames = buildLobbyRepositoryInitialGames()
+      .withGames([game1, game2])
+      .build();
+    const lobbyRepository = makeNullLobbyRepository({
+      nextGameId: 'g3',
+      gamesData: initialGames,
+    });
+
+    // act
+    await lobbyRepository.deleteGameById(game1.id);
+    const games = await lobbyRepository.getAllGames();
+
+    // assert
+    expect(games).toEqual([game2]);
+  });
 });
