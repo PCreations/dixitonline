@@ -26,6 +26,9 @@ export const makeLobbyRepository = ({ uuid = uuidv1, firestore = makeNullFiresto
         return games;
       });
     },
+    deleteGameById(gameId) {
+      return lobbyGames.doc(gameId).delete();
+    },
   };
 };
 

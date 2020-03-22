@@ -56,6 +56,25 @@ describe('LobbyRepository', () => {
     // assert
     expect(games).toEqual([game1, game2]);
   });
+  it('can delete a game', async () => {
+    // arrange
+    const lobbyRepository = makeLobbyRepository({ firestore: firebaseApp.firestore() });
+    const game1 = buildTestGame()
+      .withId('g1')
+      .build();
+    const game2 = buildTestGame()
+      .withId('g2')
+      .build();
+    await lobbyRepository.saveGame(game1);
+    await lobbyRepository.saveGame(game2);
+
+    // act
+    await lobbyRepository.deleteGameById(game1.id);
+    const games = await lobbyRepository.getAllGames();
+
+    // assert
+    expect(games).toEqual([game2]);
+  });
 });
 
 describe('Null LobbyRepository', () => {
