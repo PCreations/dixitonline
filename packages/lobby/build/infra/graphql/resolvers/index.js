@@ -17,6 +17,23 @@ var _player = require("../../../domain/player");
 
 var _game = require("../../../domain/game");
 
+/* eslint-disable no-underscore-dangle */
+const makeHandleUseCaseResult = ({
+  dispatchDomainEvents,
+  result
+}) => graphQLResultField => {
+  if (result.error) {
+    return {
+      type: result.error
+    };
+  }
+
+  dispatchDomainEvents(result.events);
+  return {
+    [graphQLResultField]: result.value
+  };
+};
+
 const resolvers = {
   Query: {
     lobbyGames(_, __, {
@@ -39,17 +56,15 @@ const resolvers = {
       const createNewGame = (0, _createNewGame.makeCreateNewGame)({
         lobbyRepository: dataSources.lobbyRepository
       });
-      const {
-        value,
-        events
-      } = await createNewGame((0, _player.makePlayer)({
+      const result = await createNewGame((0, _player.makePlayer)({
         id: currentUser.id,
         name: currentUser.username
       }));
-      dispatchDomainEvents(events);
-      return {
-        game: value
-      };
+      const handleUseCaseResult = makeHandleUseCaseResult({
+        dispatchDomainEvents,
+        result
+      });
+      return handleUseCaseResult('game');
     },
 
     async lobbyJoinGame(_, {
@@ -70,19 +85,11 @@ const resolvers = {
         gameId,
         currentUser
       });
-
-      if (result.error) {
-        return {
-          __typename: 'LobbyJoinGameResultError',
-          type: result.error
-        };
-      }
-
-      dispatchDomainEvents(result.events);
-      return {
-        __typename: 'LobbyJoinGameResultSuccess',
-        game: result.value
-      };
+      const handleUseCaseResult = makeHandleUseCaseResult({
+        dispatchDomainEvents,
+        result
+      });
+      return handleUseCaseResult('game');
     },
 
     async lobbyStartGame(_, {
@@ -105,24 +112,28 @@ const resolvers = {
       const result = await startGame({
         gameId
       });
-
-      if (result.error) {
-        return {
-          __typename: 'LobbyStartGameResultError',
-          type: result.error
-        };
-      }
-
-      dispatchDomainEvents(result.events);
-      return {
-        __typename: 'LobbyStartGameResultSuccess',
-        gameId: result.value
-      };
+      const handleUseCaseResult = makeHandleUseCaseResult({
+        dispatchDomainEvents,
+        result
+      });
+      return handleUseCaseResult('gameId');
     }
 
   },
   LobbyGame: {
     players: _game.getAllPlayers
+  },
+  LobbyJoinGameResult: {
+    __resolveType(result) {
+      return result.type ? 'LobbyJoinGameResultError' : 'LobbyJoinGameResultSuccess';
+    }
+
+  },
+  LobbyStartGameResult: {
+    __resolveType(result) {
+      return result.type ? 'LobbyStartGameResultError' : 'LobbyStartGameResultSuccess';
+    }
+
   }
 };
 exports.resolvers = resolvers;
