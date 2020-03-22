@@ -12,7 +12,7 @@ describe('LobbyRepository', () => {
     });
   });
   afterEach(() => {
-    firebase.apps().map(app => app.delete());
+    return Promise.all(firebase.apps().map(app => app.delete()));
   });
   it('gets the next game id string', () => {
     // arrange

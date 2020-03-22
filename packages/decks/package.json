@@ -1,0 +1,15 @@
+{
+  "name": "@dixit/decks",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "scripts": {
+    "build": "babel --root-mode upward -d ./build ./src --ignore 'src/**/*.test.js' --copy-files --no-copy-ignored",
+    "prebuild": "rm -rf ./build/*",
+    "hoist-build": "rm -rf ../../functions/builds/decks && cp -R build ../../functions/builds/decks"
+  },
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "@firebase/testing": "^0.17.1"
+  }
+}
