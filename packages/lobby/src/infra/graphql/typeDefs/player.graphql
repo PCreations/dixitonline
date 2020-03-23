@@ -1,4 +1,0 @@
-type LobbyPlayer {
-  id: ID!
-  name: String!
-}

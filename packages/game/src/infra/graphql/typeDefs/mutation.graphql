@@ -1,0 +1,47 @@
+extend type Mutation {
+  gameCreateGame: GameCreateGameResult!
+  gameJoinGame(gameJoinGameInput: GameJoinGameInput!): GameJoinGameResult!
+  gameStartGame(gameStartGameInput: GameStartGameInput!): GameStartGameResult!
+}
+
+type GameCreateGameResult {
+  game: Game!
+}
+
+input GameJoinGameInput {
+  gameId: ID!
+}
+
+type GameJoinGameResultSuccess {
+  game: Game!
+}
+
+type GameJoinGameResultError {
+  type: GameJoinGameErrorType!
+}
+
+enum GameJoinGameErrorType {
+  GAME_ALREADY_JOINED
+  MAXIMUM_NUMBER_OF_PLAYERS_REACHED
+}
+
+union GameJoinGameResult = GameJoinGameResultSuccess | GameJoinGameResultError
+
+input GameStartGameInput {
+  gameId: ID!
+}
+
+type GameStartGameResultSuccess {
+  gameId: ID!
+}
+
+type GameStartGameResultError {
+  type: GameStartGameErrorType!
+}
+
+enum GameStartGameErrorType {
+  ONLY_HOST_CAN_START_GAME
+  NOT_ENOUGH_PLAYERS
+}
+
+union GameStartGameResult = GameStartGameResultSuccess | GameStartGameResultError

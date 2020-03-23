@@ -1,0 +1,24 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`create new game creates a new game 1`] = `
+Object {
+  "data": Object {
+    "gameCreateGame": Object {
+      "game": Object {
+        "host": Object {
+          "id": "p1",
+          "name": "player1",
+        },
+        "id": "g1",
+      },
+    },
+  },
+  "errors": undefined,
+  "extensions": undefined,
+  "http": Object {
+    "headers": Headers {
+      Symbol(map): Object {},
+    },
+  },
+}
+`;

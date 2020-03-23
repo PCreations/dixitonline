@@ -15,16 +15,23 @@ Object.defineProperty(exports, "typeDefs", {
     return _typeDefs.typeDefs;
   }
 });
-exports.makeGetContext = exports.makeGetDataSources = void 0;
+Object.defineProperty(exports, "makeGetDataSources", {
+  enumerable: true,
+  get: function () {
+    return _getDataSources.makeGetDataSources;
+  }
+});
+Object.defineProperty(exports, "makeGetContext", {
+  enumerable: true,
+  get: function () {
+    return _getContext.makeGetContext;
+  }
+});
 
-var _resolvers = require("./resolvers");
+var _resolvers = require("./infra/graphql/resolvers");
 
-var _typeDefs = require("./typeDefs");
+var _typeDefs = require("./infra/graphql/typeDefs");
 
-const makeGetDataSources = () => () => ({});
+var _getDataSources = require("./infra/graphql/get-data-sources");
 
-exports.makeGetDataSources = makeGetDataSources;
-
-const makeGetContext = () => () => ({});
-
-exports.makeGetContext = makeGetContext;
+var _getContext = require("./infra/graphql/get-context");
