@@ -3,18 +3,6 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-Object.defineProperty(exports, "resolvers", {
-  enumerable: true,
-  get: function () {
-    return _resolvers.resolvers;
-  }
-});
-Object.defineProperty(exports, "typeDefs", {
-  enumerable: true,
-  get: function () {
-    return _typeDefs.typeDefs;
-  }
-});
 Object.defineProperty(exports, "makeGetDataSources", {
   enumerable: true,
   get: function () {
@@ -27,11 +15,16 @@ Object.defineProperty(exports, "makeGetContext", {
     return _getContext.makeGetContext;
   }
 });
+exports.GameTypes = void 0;
 
-var _resolvers = require("./infra/graphql/resolvers");
+var GameTypes = _interopRequireWildcard(require("./infra/graphql/schema"));
 
-var _typeDefs = require("./infra/graphql/typeDefs");
+exports.GameTypes = GameTypes;
 
 var _getDataSources = require("./infra/graphql/get-data-sources");
 
 var _getContext = require("./infra/graphql/get-context");
+
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }

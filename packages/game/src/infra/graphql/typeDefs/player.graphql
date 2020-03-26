@@ -1,4 +1,0 @@
-type GamePlayer {
-  id: ID!
-  name: String!
-}
