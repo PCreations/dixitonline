@@ -43,8 +43,8 @@ describe('start game', () => {
     // arrange
     const { game, gameRepository, dispatchDomainEvents, server } = getStartGameTestServer();
     const GAME_START_GAME = gql`
-      mutation GameStartGame($gameStartGameInput: GameStartGameInput!) {
-        gameStartGame(gameStartGameInput: $gameStartGameInput) {
+      mutation GameStartGame($startGameInput: GameStartGameInput!) {
+        gameStartGame(startGameInput: $startGameInput) {
           ... on GameStartGameResultSuccess {
             gameId
           }
@@ -56,7 +56,7 @@ describe('start game', () => {
     const { mutate } = createTestClient(server);
     const response = await mutate({
       mutation: GAME_START_GAME,
-      variables: { gameStartGameInput: { gameId: 'g42' } },
+      variables: { startGameInput: { gameId: 'g42' } },
       operationName: 'GameStartGame',
     });
 
@@ -76,8 +76,8 @@ describe('start game', () => {
       currentUserUsername: randomPlayer.name,
     });
     const GAME_START_GAME = gql`
-      mutation GameStartGame($gameStartGameInput: GameStartGameInput!) {
-        gameStartGame(gameStartGameInput: $gameStartGameInput) {
+      mutation GameStartGame($startGameInput: GameStartGameInput!) {
+        gameStartGame(startGameInput: $startGameInput) {
           ... on GameStartGameResultError {
             type
           }
@@ -89,7 +89,7 @@ describe('start game', () => {
     const { mutate } = createTestClient(server);
     const response = await mutate({
       mutation: GAME_START_GAME,
-      variables: { gameStartGameInput: { gameId: 'g42' } },
+      variables: { startGameInput: { gameId: 'g42' } },
       operationName: 'GameStartGame',
     });
 
@@ -105,8 +105,8 @@ describe('start game', () => {
       numberOfPlayers: 1,
     });
     const GAME_START_GAME = gql`
-      mutation GameStartGame($gameStartGameInput: GameStartGameInput!) {
-        gameStartGame(gameStartGameInput: $gameStartGameInput) {
+      mutation GameStartGame($startGameInput: GameStartGameInput!) {
+        gameStartGame(startGameInput: $startGameInput) {
           ... on GameStartGameResultError {
             type
           }
@@ -119,7 +119,7 @@ describe('start game', () => {
     const response = await mutate({
       mutation: GAME_START_GAME,
       variables: {
-        gameStartGameInput: {
+        startGameInput: {
           gameId: 'g42',
         },
       },

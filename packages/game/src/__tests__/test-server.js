@@ -1,17 +1,25 @@
+import path from 'path';
 import { ApolloServer } from 'apollo-server';
-import { mergeTypes } from 'merge-graphql-schemas';
+import { makeSchema, queryType, mutationType } from 'nexus';
 import { makeNullGraphqlExpressAuthorizationService } from '@dixit/users';
-import { typeDefs, resolvers } from '..';
+import * as types from '../infra/graphql/schema';
 import { makeGetDataSources } from '../infra/graphql/get-data-sources';
 import { makeGetContext } from '../infra/graphql/get-context';
 
-const Query = `
-  type Query
-`;
+const Query = queryType({
+  definition() {},
+});
 
-const Mutation = `
-  type Mutation
-`;
+const Mutation = mutationType({
+  definition() {},
+});
+
+const schema = makeSchema({
+  types: { Query, Mutation, ...types },
+  outputs: {
+    schema: path.join(__dirname, './game-schema.gen.graphql'),
+  },
+});
 
 export const makeTestServer = ({
   getDataSources = makeGetDataSources(),
@@ -20,8 +28,7 @@ export const makeTestServer = ({
   currentUserUsername = '',
 } = {}) =>
   new ApolloServer({
-    typeDefs: mergeTypes([Query, Mutation, ...typeDefs]),
-    resolvers,
+    schema,
     dataSources: getDataSources,
     context: makeGetContext({
       dispatchDomainEvents,
