@@ -42,6 +42,9 @@
     "firebase-admin": "^8.10.0"
   },
   "jest": {
+    "testPathIgnorePatterns": [
+      "<rootDir>/packages/*/index.js"
+    ],
     "testMatch": [
       "**/__tests__/**/*.test.js"
     ]

@@ -1,5 +1,0 @@
-type Game {
-  id: ID!
-  host: GamePlayer!
-  players: [GamePlayer!]!
-}

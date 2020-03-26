@@ -1,46 +1,34 @@
 const admin = require('firebase-admin');
-const { merge, flatten } = require('lodash');
-const { makeExecutableSchema } = require('graphql-tools');
-const { mergeTypes } = require('merge-graphql-schemas');
+const path = require('path');
+const { makeSchema, queryType, mutationType } = require('nexus');
 const express = require('express');
 const cors = require('cors');
 const { ApolloServer } = require('apollo-server-express');
 const functions = require('firebase-functions');
 
 const {
-  typeDefs: Lobby,
-  resolvers: lobbyResolvers,
-  makeGetDataSources: makeGetLobbyDataSources,
-  makeGetContext: makeGetLobbyContext,
-} = require('./builds/lobby');
-const { makeLobbyRepository } = require('./builds/lobby/repos');
-const {
-  typeDefs: Game,
-  resolvers: gameResolvers,
+  GameTypes,
   makeGetDataSources: makeGetGameDataSources,
   makeGetContext: makeGetGameContext,
 } = require('./builds/game');
+const { makeGameRepository } = require('./builds/game/repos');
 const { makeNullGraphqlExpressAuthorizationService } = require('./builds/users');
 
 const firebaseApp = admin.initializeApp();
 
-const Query = `
-  type Query
-`;
-
-const Mutation = `
-  type Mutation
-`;
-
-const resolvers = {};
-
-const mergedTypeDefs = mergeTypes(flatten([Lobby, Game]), { all: true });
-
-const getLobbyDataSources = makeGetLobbyDataSources({
-  lobbyRepository: makeLobbyRepository({ firestore: firebaseApp.firestore() }),
+const Query = queryType({
+  definition() {},
 });
-const getLobbyContext = ({ req }) => {
-  return makeGetLobbyContext({
+
+const Mutation = mutationType({
+  definition() {},
+});
+
+const getGameDataSources = makeGetGameDataSources({
+  lobbyRepository: makeGameRepository({ firestore: firebaseApp.firestore() }),
+});
+const getGameContext = ({ req }) => {
+  return makeGetGameContext({
     dispatchDomainEvents: () => {},
     authorizationService: makeNullGraphqlExpressAuthorizationService({
       token: 'token',
@@ -49,22 +37,20 @@ const getLobbyContext = ({ req }) => {
     }),
   })({ req });
 };
-const getGameDataSources = makeGetGameDataSources();
-const getGameContext = makeGetGameContext();
 
-const schema = makeExecutableSchema({
-  typeDefs: [Query, Mutation, mergedTypeDefs],
-  resolvers: merge(resolvers, lobbyResolvers, gameResolvers),
+const schema = makeSchema({
+  types: { Query, Mutation, ...GameTypes },
+  outputs: {
+    schema: path.join(__dirname, './schema.gen.graphql'),
+  },
 });
 
 const server = new ApolloServer({
   schema,
   dataSources: () => ({
-    ...getLobbyDataSources(),
     ...getGameDataSources(),
   }),
   context: async (...args) => ({
-    ...(await getLobbyContext(...args)),
     ...(await getGameContext(...args)),
   }),
 });

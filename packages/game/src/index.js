@@ -1,4 +1,5 @@
-export { resolvers } from './infra/graphql/resolvers';
-export { typeDefs } from './infra/graphql/typeDefs';
+import * as GameTypes from './infra/graphql/schema';
+
 export { makeGetDataSources } from './infra/graphql/get-data-sources';
 export { makeGetContext } from './infra/graphql/get-context';
+export { GameTypes };

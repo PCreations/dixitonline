@@ -61,8 +61,8 @@ describe('join game', () => {
       ])
       .build();
     const GAME_JOIN_GAME = gql`
-      mutation GameJoinGame($gameJoinGameInput: GameJoinGameInput!) {
-        gameJoinGame(gameJoinGameInput: $gameJoinGameInput) {
+      mutation GameJoinGame($joinGameInput: GameJoinGameInput!) {
+        gameJoinGame(joinGameInput: $joinGameInput) {
           ... on GameJoinGameResultSuccess {
             game {
               id
@@ -84,7 +84,7 @@ describe('join game', () => {
     const { mutate } = createTestClient(server);
     const response = await mutate({
       mutation: GAME_JOIN_GAME,
-      variables: { gameJoinGameInput: { gameId: 'g1' } },
+      variables: { joinGameInput: { gameId: 'g1' } },
       operationName: 'GameJoinGame',
     });
     const updatedGame = await gameRepository.getGameById('g1');
@@ -102,8 +102,8 @@ describe('join game', () => {
       currentUserId: 'p1',
     });
     const GAME_JOIN_GAME = gql`
-      mutation GameCreateGame($gameJoinGameInput: GameJoinGameInput!) {
-        gameJoinGame(gameJoinGameInput: $gameJoinGameInput) {
+      mutation GameCreateGame($joinGameInput: GameJoinGameInput!) {
+        gameJoinGame(joinGameInput: $joinGameInput) {
           ... on GameJoinGameResultError {
             type
           }
@@ -116,7 +116,7 @@ describe('join game', () => {
     const response = await mutate({
       mutation: GAME_JOIN_GAME,
       variables: {
-        gameJoinGameInput: { gameId: 'g1' },
+        joinGameInput: { gameId: 'g1' },
       },
       operationName: 'GameCreateGame',
     });
@@ -134,8 +134,8 @@ describe('join game', () => {
     // arrange
     const { game, dispatchDomainEvents, gameRepository, server } = getJoinGameTestServer({ maxOutPlayers: true });
     const GAME_JOIN_GAME = gql`
-      mutation GameCreateGame($gameJoinGameInput: GameJoinGameInput!) {
-        gameJoinGame(gameJoinGameInput: $gameJoinGameInput) {
+      mutation GameCreateGame($joinGameInput: GameJoinGameInput!) {
+        gameJoinGame(joinGameInput: $joinGameInput) {
           ... on GameJoinGameResultError {
             type
           }
@@ -148,7 +148,7 @@ describe('join game', () => {
     const response = await mutate({
       mutation: GAME_JOIN_GAME,
       variables: {
-        gameJoinGameInput: { gameId: 'g1' },
+        joinGameInput: { gameId: 'g1' },
       },
       operationName: 'GameCreateGame',
     });

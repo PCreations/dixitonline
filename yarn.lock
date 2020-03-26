@@ -7321,6 +7321,14 @@ next-tick@~1.0.0:
   resolved "https://registry.yarnpkg.com/next-tick/-/next-tick-1.0.0.tgz#ca86d1fe8828169b0120208e3dc8424b9db8342c"
   integrity sha1-yobR/ogoFpsBICCOPchCS524NCw=
 
+nexus@^0.12.0-rc.14:
+  version "0.12.0-rc.14"
+  resolved "https://registry.yarnpkg.com/nexus/-/nexus-0.12.0-rc.14.tgz#f5b24ac6d1e26798b3432f512f526fe084461d55"
+  integrity sha512-cXJh+ZS0xq2ra+EidpUrKxRd1oc1Wipv3n8HlIUJF8nbN3ojzmyDylJ4VxjizhGjH+Wu0AGsCUuNukUNGkPr3Q==
+  dependencies:
+    iterall "^1.2.2"
+    tslib "^1.9.3"
+
 nice-try@^1.0.4:
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/nice-try/-/nice-try-1.0.5.tgz#a3378a7696ce7d223e88fc9b764bd7ef1089e366"
