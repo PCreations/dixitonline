@@ -21,13 +21,13 @@ export const makeTurnRepository = ({ uuid = uuidv1, firestore }) => {
   };
 };
 
-export const makeNullTurnRepository = ({ nextTurnId } = {}) =>
-  makeTurnRepository({ uuid: nullUuid(nextTurnId), firestore: makeNullFirestore() });
+export const makeNullTurnRepository = ({ nextTurnId, initialData = {} } = {}) =>
+  makeTurnRepository({ uuid: nullUuid(nextTurnId), firestore: makeNullFirestore({ initialData }) });
 
 const nullUuid = expectedUuid => () => expectedUuid;
 
-const makeNullFirestore = () => {
-  const data = {};
+const makeNullFirestore = ({ initialData }) => {
+  const data = { ...initialData };
   return {
     collection() {
       return {

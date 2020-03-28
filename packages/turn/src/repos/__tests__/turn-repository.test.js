@@ -62,4 +62,17 @@ describe('Null turnRepository', () => {
     // assert
     expect(nextTurnId).toBe('t1');
   });
+  it('can be filled with initial data', async () => {
+    // arrange
+    const expectedTurn = buildTestTurn().build();
+    const turnRepository = makeNullTurnRepository({
+      initialData: { [expectedTurn.id]: expectedTurn },
+    });
+
+    // act
+    const turn = await turnRepository.getTurnById(expectedTurn.id);
+
+    // assert
+    expect(turn).toEqual(expectedTurn);
+  });
 });
