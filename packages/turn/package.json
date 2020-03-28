@@ -1,0 +1,27 @@
+{
+  "name": "@dixit/turn",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "jest",
+    "watch": "nodemon --exec babel-node ./src/index.js",
+    "build": "babel --root-mode upward -d ./build ./src --ignore 'src/**/*.test.js' --copy-files --no-copy-ignored",
+    "prebuild": "rm -rf ./build/*",
+    "hoist-build": "rm -rf ../../functions/builds/turn && cp -R build ../../functions/builds/game"
+  },
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "@dixit/shared": "1.0.0",
+    "@dixit/users": "1.0.0",
+    "@firebase/testing": "^0.17.0",
+    "apollo-server": "^2.11.0",
+    "apollo-server-testing": "^2.11.0",
+    "faker": "^4.1.0",
+    "graphql": "^14.6.0",
+    "graphql-tag": "^2.10.3",
+    "merge-graphql-schemas": "^1.7.6",
+    "nexus": "^0.12.0-rc.14",
+    "uuid": "^7.0.2"
+  }
+}
