@@ -1,8 +1,8 @@
 import { createTestClient } from 'apollo-server-testing';
 import gql from 'graphql-tag';
+import { makeTestServer } from '../../__tests__/test-server';
 import { buildTestGame } from '../../__tests__/dataBuilders/game';
 import { buildTestPlayer } from '../../__tests__/dataBuilders/player';
-import { makeTestServer } from '../../__tests__/test-server';
 import { makeNullGameRepository } from '../../repos/game-repository';
 import { makeGetDataSources } from '../../infra/graphql/get-data-sources';
 import { newGameCreatedEvent } from '../../domain/events';
