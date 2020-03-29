@@ -19,7 +19,6 @@ describe('getGames', () => {
           .build(),
       ])
       .build();
-
     const server = makeTestServer({
       getDataSources: makeGetDataSources({
         gameRepository: makeNullGameRepository({

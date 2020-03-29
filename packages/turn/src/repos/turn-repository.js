@@ -1,22 +1,36 @@
 import { v1 as uuidv1 } from 'uuid';
 
+export class TurnNotFoundError extends Error {
+  constructor(turnId) {
+    super();
+    this.message = `Turn ${turnId} not found`;
+  }
+}
+
 export const makeTurnRepository = ({ uuid = uuidv1, firestore }) => {
   return {
     getNextTurnId() {
       return uuid();
     },
     saveTurn(turn) {
+      const { phase, ...turnData } = turn;
       return firestore
         .collection('turns')
         .doc(turn.id)
-        .set(turn);
+        .set({
+          ...turnData,
+          phase: phase.state,
+        });
     },
-    getTurnById(turnId) {
-      return firestore
+    async getTurnById(turnId) {
+      const doc = await firestore
         .collection('turns')
         .doc(turnId)
-        .get()
-        .then(doc => doc.data());
+        .get();
+      if (!doc.exists) {
+        throw new TurnNotFoundError(turnId);
+      }
+      return doc.data();
     },
   };
 };
@@ -38,6 +52,7 @@ const makeNullFirestore = ({ initialData }) => {
                 data() {
                   return data[turnId];
                 },
+                exists: typeof data[turnId] !== 'undefined',
               };
             },
             set(turn) {

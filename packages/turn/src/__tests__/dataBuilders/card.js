@@ -1,5 +1,4 @@
 import faker from 'faker';
-import { makeCard } from '../../domain/card';
 
 export const buildTestCard = () => {
   const defaultProperties = {
@@ -9,10 +8,10 @@ export const buildTestCard = () => {
   const overrides = {};
   return {
     build() {
-      return makeCard({
+      return {
         ...defaultProperties,
         ...overrides,
-      });
+      };
     },
   };
 };

@@ -39,6 +39,7 @@
     "regenerator-runtime": "^0.13.5"
   },
   "dependencies": {
+    "faker": "^4.1.0",
     "firebase-admin": "^8.10.0"
   },
   "jest": {

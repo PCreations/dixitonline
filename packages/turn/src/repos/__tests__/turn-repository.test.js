@@ -1,5 +1,5 @@
 import * as firebase from '@firebase/testing';
-import { makeTurnRepository, makeNullTurnRepository } from '../turn-repository';
+import { makeTurnRepository, makeNullTurnRepository, TurnNotFoundError } from '../turn-repository';
 import { buildTestTurn } from '../../__tests__/dataBuilders/turn';
 
 let firebaseApp;
@@ -34,6 +34,14 @@ describe('turnRepository', () => {
 
     // assert
     expect(typeof nextTurnId === 'string').toBe(true);
+  });
+  it('throws a TurnNotFoundError if game was not found', async () => {
+    // arrange
+    const turnRepository = makeTurnRepository({ firestore: firebaseApp.firestore() });
+
+    // act & assert
+    expect.assertions(1);
+    await expect(turnRepository.getTurnById('nonExistingId')).rejects.toEqual(new TurnNotFoundError('nonExistingId'));
   });
 });
 

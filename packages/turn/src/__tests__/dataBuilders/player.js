@@ -1,6 +1,5 @@
 import faker from 'faker';
 import { buildTestHand } from './hand';
-import { makePlayer } from '../../domain/player';
 
 export const buildTestPlayer = () => {
   const defaultProperties = {
@@ -14,11 +13,15 @@ export const buildTestPlayer = () => {
       overrides.hand = hand;
       return this;
     },
+    withId(id = defaultProperties.id) {
+      overrides.id = id;
+      return this;
+    },
     build() {
-      return makePlayer({
+      return {
         ...defaultProperties,
         ...overrides,
-      });
+      };
     },
   };
 };
