@@ -7,7 +7,7 @@
     "watch": "nodemon --exec babel-node ./src/index.js",
     "build": "babel --root-mode upward -d ./build ./src --ignore 'src/**/*.test.js' --copy-files --no-copy-ignored",
     "prebuild": "rm -rf ./build/*",
-    "hoist-build": "rm -rf ../../functions/builds/turn && cp -R build ../../functions/builds/game"
+    "hoist-build": "rm -rf ../../functions/builds/turn && cp -R build ../../functions/builds/turn"
   },
   "license": "MIT",
   "private": true,
@@ -18,6 +18,7 @@
     "apollo-server": "^2.11.0",
     "apollo-server-testing": "^2.11.0",
     "faker": "^4.1.0",
+    "firebase-admin": "^8.10.0",
     "graphql": "^14.6.0",
     "graphql-tag": "^2.10.3",
     "immer": "^6.0.2",

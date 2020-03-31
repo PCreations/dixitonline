@@ -2,7 +2,7 @@ import { buildTestTurn } from '../../__tests__/dataBuilders/turn';
 import { makeStartNewTurn } from '../start-new-turn';
 import { makeNullTurnRepository } from '../../repos/turn-repository';
 
-describe('start new turn', () => {
+describe.only('start new turn', () => {
   it('starts a new turn', async () => {
     // arrange
     const expectedTurn = buildTestTurn().build();

@@ -21,7 +21,7 @@ const getTestPlayers = () => [
   },
 ];
 
-describe.only('view phase as', () => {
+describe('view phase as', () => {
   describe('storyteller phase', () => {
     test('view as storyteller', () => {
       // arrange

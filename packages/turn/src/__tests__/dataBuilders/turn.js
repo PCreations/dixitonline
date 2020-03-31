@@ -5,12 +5,16 @@ import { buildTestPlayer } from './player';
 
 export const buildTestTurn = () => {
   let defaultPlayers = [buildTestPlayer().build(), buildTestPlayer().build(), buildTestPlayer().build()];
-  const id = faker.random.uuid();
+  let id = faker.random.uuid();
   let history = [];
 
   const getStoryteller = () => defaultPlayers[0];
 
   return {
+    withId(idOverride = id) {
+      id = idOverride;
+      return this;
+    },
     withPlayers(players = defaultPlayers) {
       defaultPlayers = players;
       return this;

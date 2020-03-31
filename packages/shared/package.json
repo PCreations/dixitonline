@@ -2,6 +2,11 @@
   "name": "@dixit/shared",
   "version": "1.0.0",
   "main": "index.js",
+  "scripts": {
+    "build": "babel --root-mode upward -d ./build ./src --ignore 'src/**/*.test.js' --copy-files --no-copy-ignored",
+    "prebuild": "rm -rf ./build/*",
+    "hoist-build": "rm -rf ../../functions/builds/shared && cp -R build ../../functions/builds/shared"
+  },
   "license": "MIT",
   "private": true,
   "dependencies": {

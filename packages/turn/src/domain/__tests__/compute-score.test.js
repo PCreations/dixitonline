@@ -1,7 +1,7 @@
 import { computeScore } from '../compute-score';
 import { buildTestCard } from '../../__tests__/dataBuilders/card';
 
-describe.only('compute score', () => {
+describe('compute score', () => {
   test('every player has found the storyteller card', () => {
     // arrange
     const storytellerId = 'p1';
