@@ -2,10 +2,13 @@
 import { produce } from 'immer';
 import { combineReducers } from 'redux';
 import { events } from './events';
+import { computeScore } from './compute-score';
 
 export const TurnPhase = {
   STORYTELLER: 'STORYTELLER',
   PLAYERS_CARD_CHOICE: 'PLAYERS_CARD_CHOICE',
+  PLAYERS_VOTING: 'PLAYERS_VOTING',
+  SCORING: 'SCORING',
 };
 const defaultHandByPlayerId = {};
 const defaultTurnState = {
@@ -20,6 +23,10 @@ const defaultTurnState = {
   handByPlayerId: defaultHandByPlayerId,
 };
 const defaultPlayerByIdState = {};
+export const defaultState = {
+  turn: defaultTurnState,
+  playerById: defaultPlayerByIdState,
+};
 
 const handByPlayerId = (state = defaultHandByPlayerId, event) =>
   produce(state, draft => {
@@ -74,6 +81,19 @@ const turnPlayersCardChoicePhaseReducer = (state = defaultTurnState, event) =>
           draft.board.push({
             ...chosenCard,
             playerId,
+            votes: [],
+          });
+        }
+        if (draft.board.length === Object.values(draft.handByPlayerId).length - 1) {
+          const storytellerCardIndex = draft.handByPlayerId[draft.storytellerId].findIndex(
+            card => card.id === draft.clue.cardId
+          );
+          const [storytellerCard] = draft.handByPlayerId[draft.storytellerId].splice(storytellerCardIndex, 1);
+          draft.phase = TurnPhase.PLAYERS_VOTING;
+          draft.board.push({
+            ...storytellerCard,
+            playerId: draft.storytellerId,
+            votes: [],
           });
         }
         return draft;
@@ -83,12 +103,51 @@ const turnPlayersCardChoicePhaseReducer = (state = defaultTurnState, event) =>
     }
   });
 
+const turnPlayersVotingPhaseReducer = (state = defaultTurnState, event) => {
+  if (!event) return state;
+  const newState = produce(state, draft => {
+    if (!event) return draft;
+    switch (event.type) {
+      case events.types.PLAYER_VOTED: {
+        const { cardId, playerId } = event.payload;
+        if (playerId !== draft.storytellerId) {
+          draft.board.forEach(card => {
+            if (card.id === cardId && playerId !== card.playerId) {
+              card.votes.push(playerId);
+            }
+          });
+        }
+        return draft;
+      }
+      default:
+        return draft;
+    }
+  });
+  if (event.type === events.types.PLAYER_VOTED) {
+    const votesNumber = newState.board.reduce((total, card) => total + card.votes.length, 0);
+    if (votesNumber === Object.values(newState.handByPlayerId).length - 1) {
+      const score = computeScore({
+        storytellerId: newState.storytellerId,
+        board: newState.board,
+      });
+      return {
+        ...newState,
+        phase: TurnPhase.SCORING,
+        score,
+      };
+    }
+  }
+  return newState;
+};
+
 const turn = (state = defaultTurnState, event) => {
   switch (state.phase) {
     case TurnPhase.STORYTELLER:
       return turnStorytellerPhaseReducer(state, event);
     case TurnPhase.PLAYERS_CARD_CHOICE:
       return turnPlayersCardChoicePhaseReducer(state, event);
+    case TurnPhase.PLAYERS_VOTING:
+      return turnPlayersVotingPhaseReducer(state, event);
     default:
       return state;
   }

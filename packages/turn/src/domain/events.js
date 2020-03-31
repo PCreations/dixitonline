@@ -3,6 +3,7 @@ export const events = {
     TURN_STARTED: '[turn] - a new turn has started',
     CLUE_DEFINED: '[turn] - the clue has been defined',
     PLAYER_CARD_CHOSEN: '[turn] - a player has chosen a card',
+    PLAYER_VOTED: '[turn] - a player has voted on a card',
   },
   turnStarted({ id, storytellerId, players }) {
     return {
@@ -26,6 +27,15 @@ export const events = {
   playerCardChosen({ playerId, cardId }) {
     return {
       type: events.types.PLAYER_CARD_CHOSEN,
+      payload: {
+        playerId,
+        cardId,
+      },
+    };
+  },
+  playerVoted({ playerId, cardId }) {
+    return {
+      type: events.types.PLAYER_VOTED,
       payload: {
         playerId,
         cardId,
