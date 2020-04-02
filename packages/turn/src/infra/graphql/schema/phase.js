@@ -4,7 +4,11 @@ import { Card } from './card';
 
 export const mapPhaseStateToGraphQL = phase => ({
   name: phase.type,
-  board: (phase.board || []).map(({ playerId, ...card }) => ({ card, playerId })),
+  board: (phase.board || []).map(({ playerId, votes, ...card }) => ({
+    card,
+    playerId: playerId ?? null,
+    votes: votes ?? [],
+  })),
   clue: phase.clue || '',
   hand: phase.hand,
   players: phase.players.map(player => ({
@@ -24,7 +28,7 @@ export const BoardCard = objectType({
     t.field('card', {
       type: Card,
     });
-    t.id('playerId');
+    t.id('playerId', { nullable: true });
     t.list.string('votes');
   },
 });

@@ -71,8 +71,11 @@ export const buildTestTurn = () => {
       return this;
     },
     build() {
+      return this.getHistory().reduce(turnReducer, {});
+    },
+    getHistory() {
       const turnStarted = events.turnStarted({ id, storytellerId: getStoryteller().id, players: defaultPlayers });
-      return [turnStarted, ...history].reduce(turnReducer, {});
+      return [turnStarted, ...history];
     },
   };
 };
