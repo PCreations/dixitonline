@@ -1,5 +1,5 @@
 import { v1 as uuidv1 } from 'uuid';
-import { turnReducer } from '../domain/reducers';
+import { turnReducer } from '../domain/reducer';
 
 export class TurnNotFoundError extends Error {
   constructor(turnId) {

@@ -1,22 +1,42 @@
 import { buildTestTurn } from '../../__tests__/dataBuilders/turn';
+import { buildTestHand } from '../../__tests__/dataBuilders/hand';
 import { makeStartNewTurn } from '../start-new-turn';
 import { makeNullTurnRepository } from '../../repos/turn-repository';
 
-describe.only('start new turn', () => {
+describe('start new turn', () => {
   it('starts a new turn', async () => {
     // arrange
-    const expectedTurn = buildTestTurn().build();
-    const turnRepository = makeNullTurnRepository({ nextTurnId: expectedTurn.id });
+    const players = [
+      {
+        id: 'p1',
+        name: 'player1',
+        hand: buildTestHand().build(),
+      },
+      {
+        id: 'p2',
+        name: 'player2',
+        hand: buildTestHand().build(),
+      },
+      {
+        id: 'p3',
+        name: 'player3',
+        hand: buildTestHand().build(),
+      },
+    ];
+    const expectedTurn = buildTestTurn()
+      .withPlayers(players)
+      .build();
+    const turnRepository = makeNullTurnRepository({ nextTurnId: expectedTurn.turn.id });
     const startNewTurn = makeStartNewTurn({ turnRepository });
 
     // act
     await startNewTurn({
-      players: expectedTurn.players,
-      storytellerId: expectedTurn.players[0].id,
+      players,
+      storytellerId: expectedTurn.turn.storytellerId,
     });
 
     // assert
-    const turn = await turnRepository.getTurnById(expectedTurn.id);
+    const turn = await turnRepository.getTurnById(expectedTurn.turn.id);
     expect(turn).toEqual(expectedTurn);
   });
 });

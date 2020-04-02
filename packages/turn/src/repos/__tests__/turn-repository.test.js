@@ -76,7 +76,7 @@ describe('turnRepository', () => {
   });
 });
 
-describe.only('Null turnRepository', () => {
+describe('Null turnRepository', () => {
   it('creates a turn', async () => {
     // arrange
     const players = [

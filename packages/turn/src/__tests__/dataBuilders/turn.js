@@ -1,6 +1,6 @@
 import faker from 'faker';
 import { events } from '../../domain/events';
-import { turnReducer } from '../../domain/reducers';
+import { turnReducer } from '../../domain/reducer';
 import { buildTestPlayer } from './player';
 
 export const buildTestTurn = () => {

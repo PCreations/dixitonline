@@ -1,6 +1,6 @@
 import { buildTestHand } from '../../__tests__/dataBuilders/hand';
 import { buildTestTurn } from '../../__tests__/dataBuilders/turn';
-import { TurnPhase } from '../reducers';
+import { TurnPhase } from '../reducer';
 import { viewPhaseAs } from '../view-phase-as';
 
 const getTestPlayers = () => [

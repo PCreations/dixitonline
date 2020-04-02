@@ -1,4 +1,4 @@
-import { defaultState, TurnPhase } from './reducers';
+import { defaultState, TurnPhase } from './reducer';
 
 const buildPhaseView = (state = defaultState) => {
   const properties = {};

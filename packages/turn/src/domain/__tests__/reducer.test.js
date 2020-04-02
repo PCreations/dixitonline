@@ -1,5 +1,5 @@
 import { buildTestHand } from '../../__tests__/dataBuilders/hand';
-import { turnReducer, TurnPhase } from '../reducers';
+import { turnReducer, TurnPhase } from '../reducer';
 import { events } from '../events';
 import { buildTestTurn } from '../../__tests__/dataBuilders/turn';
 import { computeScore } from '../compute-score';
@@ -111,7 +111,7 @@ describe('turnReducer (root)', () => {
       });
       expect(state.turn.phase).toEqual(TurnPhase.PLAYERS_CARD_CHOICE);
     });
-    test("clueDefined event should not be handled if the card is not one of the storytelle's ones", () => {
+    test("clueDefined event should not be handled if the card is not one of the storyteller's ones", () => {
       // arrange
       const players = getTestPlayers();
       const initialTurnState = buildTestTurn()

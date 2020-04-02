@@ -1,5 +1,9 @@
 import { mutationField, unionType, objectType, enumType, inputObjectType } from 'nexus';
-import { TurnPhase } from '../../../../domain/turn';
+import { TurnPhase, mapPhaseStateToGraphQL } from '../phase';
+import { TurnError } from '../../../../domain/errors';
+import { makeDefineClue } from '../../../../useCases/define-clue';
+import { handleUseCaseResult } from '../../handle-use-case-result';
+import { viewPhaseAs } from '../../../../domain/view-phase-as';
 
 export const DefineClueInput = inputObjectType({
   name: 'TurnDefineClueInput',
@@ -13,13 +17,18 @@ export const DefineClueInput = inputObjectType({
 export const DefineClueResultSuccess = objectType({
   name: 'TurnDefineClueResultSuccess',
   definition(t) {
-    t.string('clue');
+    t.field('phase', {
+      type: TurnPhase,
+      resolve(turnState, _, { currentUser }) {
+        return mapPhaseStateToGraphQL(viewPhaseAs(turnState, currentUser.id)); //?
+      },
+    });
   },
 });
 
 export const DefineClueErrorType = enumType({
   name: 'TurnDefineClueErrorType',
-  members: ['TO_BE_DEFINED'],
+  members: [TurnError.NOT_AUTHORIZED],
 });
 
 export const DefineClueResultError = objectType({
@@ -46,15 +55,10 @@ export const DefineClue = mutationField('turnDefineClue', {
   args: {
     defineClueInput: DefineClueInput,
   },
-  async resolve(_, { defineClueInput }, { dataSources }) {
-    const turn = await dataSources.turnRepository.getTurnById(defineClueInput.turnId);
-    const editedTurn = {
-      ...turn,
-      phase: TurnPhase.PLAYERS_CARD_CHOICE,
-    };
-    await dataSources.turnRepository.saveTurn(editedTurn);
-    return {
-      clue: defineClueInput.clue,
-    };
+  async resolve(_, { defineClueInput }, { dataSources, currentUser, dispatchDomainEvents }) {
+    const defineClue = makeDefineClue({ turnRepository: dataSources.turnRepository });
+    const { turnId, clue: text, cardId } = defineClueInput;
+    const result = await defineClue({ playerId: currentUser.id, turnId, text, cardId });
+    return handleUseCaseResult({ result, dispatchDomainEvents });
   },
 });
