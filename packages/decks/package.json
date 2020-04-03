@@ -10,6 +10,7 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
+    "@dixit/game": "1.0.0",
     "@firebase/testing": "^0.17.1",
     "shuffle-seed": "^1.1.6"
   }
