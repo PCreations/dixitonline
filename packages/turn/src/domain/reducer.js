@@ -13,8 +13,10 @@ export const TurnPhase = {
 const defaultHandByPlayerId = {};
 const defaultTurnState = {
   id: null,
+  gameId: null,
   storytellerId: null,
   phase: TurnPhase.STORYTELLER,
+  score: {},
   clue: {
     text: '',
     cardId: null,
@@ -48,6 +50,7 @@ const turnStorytellerPhaseReducer = (state = defaultTurnState, event) =>
     switch (event.type) {
       case events.types.TURN_STARTED:
         draft.id = event.payload.id;
+        draft.gameId = event.payload.gameId;
         draft.storytellerId = event.payload.storytellerId;
         draft.handByPlayerId = handByPlayerId(draft.handByPlayerId, event);
         return draft;

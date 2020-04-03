@@ -37,6 +37,7 @@ describe('turnRepository', () => {
     ];
     const turnStarted = events.turnStarted({
       id: 't1',
+      gameId: 'g1',
       storytellerId: players[0].id,
       players,
     });
@@ -46,6 +47,7 @@ describe('turnRepository', () => {
     });
     const expectedTurn = buildTestTurn()
       .withId('t1')
+      .withGameId('g1')
       .withPlayers(players)
       .build();
 
@@ -98,12 +100,14 @@ describe('Null turnRepository', () => {
     ];
     const turnStarted = events.turnStarted({
       id: 't1',
+      gameId: 'g1',
       storytellerId: players[0].id,
       players,
     });
     const turnRepository = makeNullTurnRepository();
     const expectedTurn = buildTestTurn()
       .withId('t1')
+      .withGameId('g1')
       .withPlayers(players)
       .build();
 
@@ -147,11 +151,13 @@ describe('Null turnRepository', () => {
     ];
     const turnStarted = events.turnStarted({
       id: 't1',
+      gameId: 'g1',
       storytellerId: players[0].id,
       players,
     });
     const expectedTurn = buildTestTurn()
       .withId('t1')
+      .withGameId('g1')
       .withPlayers(players)
       .build();
     const turnRepository = makeNullTurnRepository({

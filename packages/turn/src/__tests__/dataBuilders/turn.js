@@ -6,6 +6,7 @@ import { buildTestPlayer } from './player';
 export const buildTestTurn = () => {
   let defaultPlayers = [buildTestPlayer().build(), buildTestPlayer().build(), buildTestPlayer().build()];
   let id = faker.random.uuid();
+  let gameId = faker.random.uuid();
   let history = [];
 
   const getStoryteller = () => defaultPlayers[0];
@@ -13,6 +14,10 @@ export const buildTestTurn = () => {
   return {
     withId(idOverride = id) {
       id = idOverride;
+      return this;
+    },
+    withGameId(gameIdOverride = gameId) {
+      gameId = gameIdOverride;
       return this;
     },
     withPlayers(players = defaultPlayers) {
@@ -74,7 +79,12 @@ export const buildTestTurn = () => {
       return this.getHistory().reduce(turnReducer, {});
     },
     getHistory() {
-      const turnStarted = events.turnStarted({ id, storytellerId: getStoryteller().id, players: defaultPlayers });
+      const turnStarted = events.turnStarted({
+        id,
+        gameId,
+        storytellerId: getStoryteller().id,
+        players: defaultPlayers,
+      });
       return [turnStarted, ...history];
     },
   };

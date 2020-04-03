@@ -24,6 +24,7 @@ describe('start new turn', () => {
       },
     ];
     const expectedTurn = buildTestTurn()
+      .withGameId('g1')
       .withPlayers(players)
       .build();
     const turnRepository = makeNullTurnRepository({ nextTurnId: expectedTurn.turn.id });
@@ -33,6 +34,7 @@ describe('start new turn', () => {
     await startNewTurn({
       players,
       storytellerId: expectedTurn.turn.storytellerId,
+      gameId: 'g1',
     });
 
     // assert

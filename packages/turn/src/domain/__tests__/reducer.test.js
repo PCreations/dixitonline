@@ -33,6 +33,7 @@ describe('turnReducer (root)', () => {
     expect(state).toEqual({
       turn: {
         id: null,
+        gameId: null,
         storytellerId: null,
         phase: TurnPhase.STORYTELLER,
         clue: {
@@ -41,6 +42,7 @@ describe('turnReducer (root)', () => {
         },
         board: [],
         handByPlayerId: {},
+        score: {},
       },
       playerById: {},
     });
@@ -51,6 +53,7 @@ describe('turnReducer (root)', () => {
     const players = getTestPlayers();
     const turnStarted = events.turnStarted({
       id: 't1',
+      gameId: 'g1',
       storytellerId: players[0].id,
       players,
     });
@@ -62,6 +65,7 @@ describe('turnReducer (root)', () => {
     expect(state).toEqual({
       turn: {
         id: 't1',
+        gameId: 'g1',
         storytellerId: 'p1',
         phase: TurnPhase.STORYTELLER,
         clue: {
@@ -69,6 +73,7 @@ describe('turnReducer (root)', () => {
           cardId: null,
         },
         board: [],
+        score: {},
         handByPlayerId: {
           p1: players[0].hand,
           p2: players[1].hand,

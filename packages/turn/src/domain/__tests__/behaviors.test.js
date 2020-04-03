@@ -103,6 +103,40 @@ describe('behaviors', () => {
       expect(result.events).toEqual([expectedPlayerVotedEvent]);
       expect(turnReducer).toHaveBeenCalledWith(turnState, expectedPlayerVotedEvent);
     });
+    test('when the last player has voted, it should return a turnEnded event', () => {
+      // arrange
+      const players = getTestPlayers();
+      const turnState = buildTestTurn()
+        .withId('t1')
+        .withGameId('g1')
+        .withPlayers(players)
+        .inPlayersVotingPhase()
+        .withPlayerThatHavePlayed({ playerId: players[1].id, voteOnCardOwnedByPlayerId: players[0].id })
+        .build();
+      const activePlayer = players[2];
+      const storytellerCardOnBoard = turnState.turn.board.find(
+        ({ playerId }) => playerId === turnState.turn.storytellerId
+      );
+      const expectedTurnEndedEvent = events.turnEnded({
+        id: 't1',
+        storytellerId: players[0].id,
+        playersWithHandAndScore: players.map(p => ({
+          playerId: p.id,
+          hand: p.hand.slice(1),
+          score: 2,
+        })),
+        gameId: 'g1',
+      });
+
+      // act
+      const result = vote(turnState, {
+        playerId: activePlayer.id,
+        cardId: storytellerCardOnBoard.id,
+      });
+
+      // assert
+      expect(result.events).toContainEqual(expectedTurnEndedEvent);
+    });
     test("can't vote for her own card", () => {
       // arrange
       const players = getTestPlayers();
