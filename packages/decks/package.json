@@ -10,6 +10,7 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
-    "@firebase/testing": "^0.17.1"
+    "@firebase/testing": "^0.17.1",
+    "shuffle-seed": "^1.1.6"
   }
 }

@@ -4,7 +4,9 @@ exports[`start game a game with more than 2 players can be started by the host 1
 Object {
   "data": Object {
     "gameStartGame": Object {
-      "gameId": "g42",
+      "game": Object {
+        "id": "g42",
+      },
     },
   },
   "errors": undefined,

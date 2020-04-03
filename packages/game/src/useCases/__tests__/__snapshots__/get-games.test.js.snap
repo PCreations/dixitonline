@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`getGames gets all the lobby games 1`] = `
+exports[`getGames gets all the games waiting for players 1`] = `
 Object {
   "data": Object {
     "games": Array [
@@ -8,7 +8,7 @@ Object {
         "id": "g1",
       },
       Object {
-        "id": "g2",
+        "id": "g4",
       },
     ],
   },

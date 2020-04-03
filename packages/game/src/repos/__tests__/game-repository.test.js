@@ -38,7 +38,7 @@ describe('gameRepository', () => {
     const game = await gameRepository.getGameById('g1');
     expect(game).toEqual(expectedGame);
   });
-  it('can retrieves all games', async () => {
+  it('can retrieves all games that are waiting for players', async () => {
     // arrange
     const gameRepository = makeGameRepository({ firestore: firebaseApp.firestore() });
     const game1 = buildTestGame()
@@ -46,15 +46,20 @@ describe('gameRepository', () => {
       .build();
     const game2 = buildTestGame()
       .withId('g2')
+      .withStartedStatus()
+      .build();
+    const game3 = buildTestGame()
+      .withId('g3')
       .build();
     await gameRepository.saveGame(game1);
     await gameRepository.saveGame(game2);
+    await gameRepository.saveGame(game3);
 
     // act
     const games = await gameRepository.getAllGames();
 
     // assert
-    expect(games).toEqual([game1, game2]);
+    expect(games).toEqual([game1, game3]);
   });
   it('can delete a game', async () => {
     // arrange
@@ -143,9 +148,13 @@ describe('Null gameRepository', () => {
       .build();
     const game2 = buildTestGame()
       .withId('g2')
+      .withStartedStatus()
+      .build();
+    const game3 = buildTestGame()
+      .withId('g3')
       .build();
     const initialGames = buildgameRepositoryInitialGames()
-      .withGames([game1, game2])
+      .withGames([game1, game2, game3])
       .build();
     const gameRepository = makeNullGameRepository({
       nextGameId: 'g3',
@@ -156,7 +165,7 @@ describe('Null gameRepository', () => {
     const games = await gameRepository.getAllGames();
 
     // assert
-    expect(games).toEqual([game1, game2]);
+    expect(games).toEqual([game1, game3]);
   });
   it('can delete a game', async () => {
     // arrange

@@ -5,6 +5,7 @@ import { makeResult, makeErrorResult } from './result';
 
 export const GameStatus = {
   WAITING_FOR_PLAYERS: 'WAITING_FOR_PLAYERS',
+  STARTED: 'STARTED',
 };
 
 export const GameError = {
@@ -17,7 +18,7 @@ export const GameError = {
 export const MAXIMUM_NUMBER_OF_PLAYERS = 6;
 export const MINIMUM_NUMBER_OF_PLAYERS = 3;
 
-export const makeGame = ({ id, host, players = [] } = {}) => {
+export const makeGame = ({ id, host, players = [], status = GameStatus.WAITING_FOR_PLAYERS } = {}) => {
   if (!id) throw new Error('Game must contain an id');
   if (!host) throw new Error('Game must have an host');
 
@@ -25,7 +26,7 @@ export const makeGame = ({ id, host, players = [] } = {}) => {
     id,
     host,
     players,
-    status: GameStatus.WAITING_FOR_PLAYERS,
+    status,
   });
 };
 
@@ -49,9 +50,13 @@ export const startGame = (game, player) => {
     return makeErrorResult(GameError.NOT_ENOUGH_PLAYERS);
   }
   if (playerEquals(game.host, player)) {
-    return makeResult(game.id, [
-      newGameStartedEvent({ gameId: game.id, playerIds: getAllPlayers(game).map(({ id }) => id) }),
-    ]);
+    return makeResult(
+      {
+        ...game,
+        status: GameStatus.STARTED,
+      },
+      [newGameStartedEvent({ gameId: game.id, playerIds: getAllPlayers(game).map(({ id }) => id) })]
+    );
   }
   return makeErrorResult(GameError.ONLY_HOST_CAN_START_GAME);
 };

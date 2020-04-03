@@ -2,6 +2,7 @@ import { mutationField, inputObjectType, objectType, enumType, unionType } from 
 import { GameError } from '../../../../domain/game';
 import { makeStartGame } from '../../../../useCases/start-game';
 import { makeHandleUseCaseResult } from '../../handle-use-case-result';
+import { Game } from '../game';
 
 export const StartGameInput = inputObjectType({
   name: 'GameStartGameInput',
@@ -13,7 +14,7 @@ export const StartGameInput = inputObjectType({
 export const StartGameResultSuccess = objectType({
   name: 'GameStartGameResultSuccess',
   definition(t) {
-    t.id('gameId');
+    t.field('game', { type: Game });
   },
 });
 
@@ -50,6 +51,6 @@ export const StartGame = mutationField('gameStartGame', {
     const startGame = makeStartGame({ gameRepository, currentUser });
     const result = await startGame({ gameId });
     const handleUseCaseResult = makeHandleUseCaseResult({ dispatchDomainEvents, result });
-    return handleUseCaseResult('gameId');
+    return handleUseCaseResult('game');
   },
 });

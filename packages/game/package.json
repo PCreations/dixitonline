@@ -12,6 +12,8 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
+    "@dixit/decks": "1.0.0",
+    "@dixit/turn": "1.0.0",
     "@dixit/shared": "1.0.0",
     "@dixit/users": "1.0.0",
     "@firebase/testing": "^0.17.0",

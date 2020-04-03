@@ -7,7 +7,7 @@ import { buildTestGame } from '../../__tests__/dataBuilders/game';
 import { buildgameRepositoryInitialGames } from '../../__tests__/dataBuilders/game-repository-initial-games';
 
 describe('getGames', () => {
-  test('gets all the lobby games', async () => {
+  test('gets all the games waiting for players', async () => {
     // arrange
     const initialGames = buildgameRepositoryInitialGames()
       .withGames([
@@ -16,13 +16,21 @@ describe('getGames', () => {
           .build(),
         buildTestGame()
           .withId('g2')
+          .withStartedStatus()
+          .build(),
+        buildTestGame()
+          .withId('g3')
+          .withStartedStatus()
+          .build(),
+        buildTestGame()
+          .withId('g4')
           .build(),
       ])
       .build();
     const server = makeTestServer({
       getDataSources: makeGetDataSources({
         gameRepository: makeNullGameRepository({
-          nextGameId: 'g3',
+          nextGameId: 'g5',
           gamesData: initialGames,
         }),
       }),

@@ -1,5 +1,5 @@
 import { v1 as uuidv1 } from 'uuid';
-import { makeGame } from '../domain/game';
+import { makeGame, GameStatus } from '../domain/game';
 
 export class GameNotFoundError extends Error {
   constructor(gameId) {
@@ -25,11 +25,14 @@ export const makeGameRepository = ({ uuid = uuidv1, firestore = makeNullFirestor
       return makeGame(doc.data());
     },
     getAllGames() {
-      return lobbyGames.get().then(snapshot => {
-        const games = [];
-        snapshot.forEach(doc => games.push(makeGame(doc.data())));
-        return games;
-      });
+      return lobbyGames
+        .where('status', '==', GameStatus.WAITING_FOR_PLAYERS)
+        .get()
+        .then(snapshot => {
+          const games = [];
+          snapshot.forEach(doc => games.push(makeGame(doc.data())));
+          return games;
+        });
     },
     deleteGameById(gameId) {
       return lobbyGames.doc(gameId).delete();
@@ -47,6 +50,23 @@ const makeNullFirestore = (gamesInitialData = {}) => {
   return {
     collection() {
       return {
+        where(field, _, value) {
+          return {
+            async get() {
+              const docs = Object.values(gamesData)
+                .filter(Boolean)
+                .filter(game => game[field] === value)
+                .map(game => ({
+                  data() {
+                    return game;
+                  },
+                }));
+              return {
+                forEach: docs.forEach.bind(docs),
+              };
+            },
+          };
+        },
         doc(gameId) {
           return {
             get() {
@@ -63,18 +83,6 @@ const makeNullFirestore = (gamesInitialData = {}) => {
             delete() {
               gamesData[gameId] = undefined;
             },
-          };
-        },
-        async get() {
-          const docs = Object.values(gamesData)
-            .filter(Boolean)
-            .map(game => ({
-              data() {
-                return game;
-              },
-            }));
-          return {
-            forEach: docs.forEach.bind(docs),
           };
         },
       };

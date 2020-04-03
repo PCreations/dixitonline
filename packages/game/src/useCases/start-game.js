@@ -6,7 +6,7 @@ export const makeStartGame = ({ gameRepository, currentUser }) => async ({ gameI
   const game = await gameRepository.getGameById(gameId);
   const result = startGame(game, playerTryingToStartGame);
   if (!result.error) {
-    await gameRepository.deleteGameById(gameId);
+    await gameRepository.saveGame(result.value);
   }
   return result;
 };

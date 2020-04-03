@@ -58,7 +58,6 @@ export const Vote = mutationField('turnVote', {
     const vote = makeVote({ turnRepository: dataSources.turnRepository });
     const { turnId, cardId } = voteInput;
     const result = await vote({ playerId: currentUser.id, turnId, cardId });
-    console.log(result.value.turn.board);
     return handleUseCaseResult({ result, dispatchDomainEvents });
   },
 });

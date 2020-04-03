@@ -8,7 +8,6 @@ import { makeTestServer } from '../../__tests__/test-server';
 import { buildTestHand } from '../../__tests__/dataBuilders/hand';
 import { buildTestTurn } from '../../__tests__/dataBuilders/turn';
 import { mapPhaseStateToGraphQL } from '../../infra/graphql/schema/phase';
-import { TurnError } from '../../domain/errors';
 
 describe('vote card', () => {
   test('a player can vote on one of the card in the board', async () => {
@@ -34,7 +33,7 @@ describe('vote card', () => {
       .withId('t1')
       .withPlayers(players)
       .inPlayersVotingPhase()
-      .getHistory(); //?
+      .getHistory();
     const turnRepository = makeNullTurnRepository({
       initialHistory: {
         t1: turnHistory,

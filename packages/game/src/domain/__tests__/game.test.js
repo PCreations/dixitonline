@@ -7,6 +7,12 @@ describe('Game', () => {
   it('can be correctly created', () => {
     const host = buildTestPlayer().build();
     const players = [buildTestPlayer().build(), buildTestPlayer().build()];
+    const game = makeGame({ id: '1', host, players, status: GameStatus.STARTED });
+    expect(game).toEqual({ id: '1', host, players, status: GameStatus.STARTED });
+  });
+  it('must be created with a status WAITING_FOR_PLAYERS by default', () => {
+    const host = buildTestPlayer().build();
+    const players = [buildTestPlayer().build(), buildTestPlayer().build()];
     const game = makeGame({ id: '1', host, players });
     expect(game).toEqual({ id: '1', host, players, status: GameStatus.WAITING_FOR_PLAYERS });
   });
@@ -114,7 +120,10 @@ describe('Game', () => {
       const { value, events, error } = startGame(game, game.host);
 
       // assert
-      expect(value).toEqual(game.id);
+      expect(value).toEqual({
+        ...game,
+        status: GameStatus.STARTED,
+      });
       expect(events).toEqual([
         newGameStartedEvent({ gameId: game.id, playerIds: getAllPlayers(game).map(({ id }) => id) }),
       ]);

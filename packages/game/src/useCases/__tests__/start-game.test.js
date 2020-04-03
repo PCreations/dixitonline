@@ -4,10 +4,10 @@ import { makeTestServer } from '../../__tests__/test-server';
 import { makeGetDataSources } from '../../infra/graphql/get-data-sources';
 import { buildTestGame } from '../../__tests__/dataBuilders/game';
 import { buildgameRepositoryInitialGames } from '../../__tests__/dataBuilders/game-repository-initial-games';
-import { makeNullGameRepository, GameNotFoundError } from '../../repos';
+import { makeNullGameRepository } from '../../repos';
 import { buildTestPlayer } from '../../__tests__/dataBuilders/player';
 import { newGameStartedEvent } from '../../domain/events';
-import { getAllPlayers } from '../../domain/game';
+import { getAllPlayers, GameStatus } from '../../domain/game';
 
 const getStartGameTestServer = ({ currentUserId, currentUserUsername, numberOfPlayers = 3 } = {}) => {
   const game = buildTestGame()
@@ -46,7 +46,9 @@ describe('start game', () => {
       mutation GameStartGame($startGameInput: GameStartGameInput!) {
         gameStartGame(startGameInput: $startGameInput) {
           ... on GameStartGameResultSuccess {
-            gameId
+            game {
+              id
+            }
           }
         }
       }
@@ -63,7 +65,8 @@ describe('start game', () => {
     // assert
     expect.assertions(3);
     expect(response).toMatchSnapshot();
-    await expect(gameRepository.getGameById('g42')).rejects.toEqual(new GameNotFoundError('g42'));
+    const editedGame = await gameRepository.getGameById('g42');
+    expect(editedGame.status).toEqual(GameStatus.STARTED);
     expect(dispatchDomainEvents).toHaveBeenCalledWith([
       newGameStartedEvent({ gameId: 'g42', playerIds: getAllPlayers(game).map(({ id }) => id) }),
     ]);
