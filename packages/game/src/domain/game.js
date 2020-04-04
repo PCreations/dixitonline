@@ -1,11 +1,18 @@
 /* eslint-disable max-classes-per-file */
-import { newGameCreatedEvent, playerJoinedGame, newGameStartedEvent } from './events';
+import {
+  newGameCreatedEvent,
+  playerJoinedGame,
+  newGameStartedEvent,
+  handsCompletedEvent,
+  gameEndedEvent,
+} from './events';
 import { equals as playerEquals } from './player';
 import { makeResult, makeErrorResult } from './result';
 
 export const GameStatus = {
   WAITING_FOR_PLAYERS: 'WAITING_FOR_PLAYERS',
   STARTED: 'STARTED',
+  ENDED: 'ENDED',
 };
 
 export const GameError = {
@@ -18,7 +25,14 @@ export const GameError = {
 export const MAXIMUM_NUMBER_OF_PLAYERS = 6;
 export const MINIMUM_NUMBER_OF_PLAYERS = 3;
 
-export const makeGame = ({ id, host, players = [], status = GameStatus.WAITING_FOR_PLAYERS } = {}) => {
+export const makeGame = ({
+  id,
+  host,
+  cards = [],
+  score = {},
+  players = [],
+  status = GameStatus.WAITING_FOR_PLAYERS,
+} = {}) => {
   if (!id) throw new Error('Game must contain an id');
   if (!host) throw new Error('Game must have an host');
 
@@ -26,6 +40,8 @@ export const makeGame = ({ id, host, players = [], status = GameStatus.WAITING_F
     id,
     host,
     players,
+    cards,
+    score,
     status,
   });
 };
@@ -51,12 +67,56 @@ export const startGame = (game, player) => {
   }
   if (playerEquals(game.host, player)) {
     return makeResult(
-      {
+      makeGame({
         ...game,
         status: GameStatus.STARTED,
-      },
+      }),
       [newGameStartedEvent({ gameId: game.id, playerIds: getAllPlayers(game).map(({ id }) => id) })]
     );
   }
   return makeErrorResult(GameError.ONLY_HOST_CAN_START_GAME);
+};
+
+export const completeHands = (game, actualHandsByPlayerId) => {
+  const allPlayers = getAllPlayers(game);
+  if (!actualHandsByPlayerId) {
+    const handsByPlayerId = allPlayers.reduce(
+      (hands, player, playerIndex) => ({
+        ...hands,
+        [player.id]: game.cards.slice(playerIndex * 6, playerIndex * 6 + 6),
+      }),
+      {}
+    );
+    const remainingCards = game.cards.slice(allPlayers.length * 6);
+    return makeResult(
+      makeGame({
+        ...game,
+        cards: remainingCards,
+      }),
+      [handsCompletedEvent({ gameId: game.id, handsByPlayerId })]
+    );
+  }
+  if (game.cards.length < allPlayers.length * 6) {
+    return makeResult(
+      makeGame({
+        ...game,
+        status: GameStatus.ENDED,
+      }),
+      [gameEndedEvent({ gameId: game.id })]
+    );
+  }
+  const handsByPlayerId = Object.entries(actualHandsByPlayerId).reduce(
+    (completedHands, [playerId, hand], playerIndex) => ({
+      ...completedHands,
+      [playerId]: hand.concat(game.cards[playerIndex]),
+    }),
+    {}
+  );
+  return makeResult(
+    makeGame({
+      ...game,
+      cards: game.cards.slice(allPlayers.length),
+    }),
+    [handsCompletedEvent({ gameId: game.id, handsByPlayerId })]
+  );
 };

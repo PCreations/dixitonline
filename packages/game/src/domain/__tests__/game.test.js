@@ -1,20 +1,45 @@
-import { makeGame, createGame, joinPlayer, startGame, GameError, getAllPlayers, GameStatus } from '../game';
+import {
+  makeGame,
+  createGame,
+  joinPlayer,
+  startGame,
+  completeHands,
+  GameError,
+  getAllPlayers,
+  GameStatus,
+} from '../game';
 import { buildTestPlayer } from '../../__tests__/dataBuilders/player';
-import { playerJoinedGame, newGameStartedEvent, newGameCreatedEvent } from '../events';
+import {
+  playerJoinedGame,
+  newGameStartedEvent,
+  newGameCreatedEvent,
+  handsCompletedEvent,
+  gameEndedEvent,
+} from '../events';
 import { buildTestGame } from '../../__tests__/dataBuilders/game';
+import { buildTestCard } from '../../__tests__/dataBuilders/card';
 
 describe('Game', () => {
   it('can be correctly created', () => {
     const host = buildTestPlayer().build();
-    const players = [buildTestPlayer().build(), buildTestPlayer().build()];
-    const game = makeGame({ id: '1', host, players, status: GameStatus.STARTED });
-    expect(game).toEqual({ id: '1', host, players, status: GameStatus.STARTED });
+    const players = [buildTestPlayer().build(), buildTestPlayer().build(), buildTestPlayer().build()];
+    const cards = [buildTestCard().build(), buildTestCard().build(), buildTestCard().build()];
+    const score = { [players[0].id]: 1, [players[1].id]: 3, [players[2].id]: 5 };
+    const game = makeGame({
+      id: '1',
+      host,
+      players,
+      cards,
+      score,
+      status: GameStatus.STARTED,
+    });
+    expect(game).toEqual({ id: '1', host, players, cards, score, status: GameStatus.STARTED });
   });
-  it('must be created with a status WAITING_FOR_PLAYERS by default', () => {
+  it('must be created with a status WAITING_FOR_PLAYERS by default, an empty cards array and an empty score map', () => {
     const host = buildTestPlayer().build();
     const players = [buildTestPlayer().build(), buildTestPlayer().build()];
     const game = makeGame({ id: '1', host, players });
-    expect(game).toEqual({ id: '1', host, players, status: GameStatus.WAITING_FOR_PLAYERS });
+    expect(game).toEqual({ id: '1', host, players, status: GameStatus.WAITING_FOR_PLAYERS, cards: [], score: {} });
   });
   it('must have an id', () => {
     expect(() => makeGame({ id: undefined })).toThrow('Game must contain an id');
@@ -155,5 +180,94 @@ describe('Game', () => {
       expect(events).toEqual([]);
       expect(error).toEqual(GameError.NOT_ENOUGH_PLAYERS);
     });
+  });
+
+  describe('complete hand', () => {
+    it('returns the hands for the player by removing cards from the deck when when no hands have been dealt yet', () => {
+      // arrange
+      const shuffledDeck = new Array(50).fill().map(() => buildTestCard().build());
+      const game = buildTestGame()
+        .withXPlayers(2)
+        .withStartedStatus()
+        .withShuffledDeck(shuffledDeck)
+        .build();
+      const totalNumberOfPlayers = 3;
+      const expectedHostHand = shuffledDeck.slice(0, 6);
+      const expectedPlayer1Hand = shuffledDeck.slice(6, 12);
+      const expectedPlayer2Hand = shuffledDeck.slice(12, 18);
+
+      // act
+      const { events, value } = completeHands(game);
+
+      // assert
+      expect(value.cards).toEqual(shuffledDeck.slice(6 * totalNumberOfPlayers));
+      expect(events).toContainEqual(
+        handsCompletedEvent({
+          gameId: game.id,
+          handsByPlayerId: {
+            [game.host.id]: expectedHostHand,
+            [game.players[0].id]: expectedPlayer1Hand,
+            [game.players[1].id]: expectedPlayer2Hand,
+          },
+        })
+      );
+    });
+  });
+  it("completes with one card each player's hand when given previous hands and return the full new hand", () => {
+    // arrange
+    const shuffledDeck = new Array(50).fill().map(() => buildTestCard().build());
+    const game = buildTestGame()
+      .withXPlayers(2)
+      .withStartedStatus()
+      .withShuffledDeck(shuffledDeck)
+      .build();
+    const totalNumberOfPlayers = 3;
+    const actualHands = {
+      [game.host.id]: new Array(6).fill().map(() => buildTestCard().build()),
+      [game.players[0].id]: new Array(6).fill().map(() => buildTestCard().build()),
+      [game.players[1].id]: new Array(6).fill().map(() => buildTestCard().build()),
+    };
+    const expectedHands = {
+      [game.host.id]: actualHands[game.host.id].concat(shuffledDeck[0]),
+      [game.players[0].id]: actualHands[game.players[0].id].concat(shuffledDeck[1]),
+      [game.players[1].id]: actualHands[game.players[1].id].concat(shuffledDeck[2]),
+    };
+
+    // act
+    const { events, value } = completeHands(game, actualHands);
+
+    // assert
+    expect(value.cards).toEqual(shuffledDeck.slice(totalNumberOfPlayers));
+    expect(events).toContainEqual(
+      handsCompletedEvent({
+        gameId: game.id,
+        handsByPlayerId: expectedHands,
+      })
+    );
+  });
+  it('returns a game ended event if there is not enough cards to complete hands', () => {
+    // arrange
+    const shuffledDeck = new Array(15).fill().map(() => buildTestCard().build());
+    const game = buildTestGame()
+      .withXPlayers(2)
+      .withStartedStatus()
+      .withShuffledDeck(shuffledDeck)
+      .build();
+    const actualHands = {
+      [game.host.id]: new Array(6).fill().map(() => buildTestCard().build()),
+      [game.players[0].id]: new Array(6).fill().map(() => buildTestCard().build()),
+      [game.players[1].id]: new Array(6).fill().map(() => buildTestCard().build()),
+    };
+
+    // act
+    const { events, value } = completeHands(game, actualHands);
+
+    // assert
+    expect(value.status).toEqual(GameStatus.ENDED);
+    expect(events).toContainEqual(
+      gameEndedEvent({
+        gameId: game.id,
+      })
+    );
   });
 });

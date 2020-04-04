@@ -9,6 +9,7 @@ export const buildTestGame = (baseGame = {}) => {
     id: faker.random.uuid(),
     host: buildTestPlayer().build(),
     players: [],
+    cards: [],
     status: GameStatus.WAITING_FOR_PLAYERS,
   };
   const overrides = {};
@@ -19,6 +20,10 @@ export const buildTestGame = (baseGame = {}) => {
     },
     withStartedStatus() {
       overrides.status = GameStatus.STARTED;
+      return this;
+    },
+    withShuffledDeck(cards) {
+      overrides.cards = [...cards];
       return this;
     },
     withHost(host = defaultProperties.host) {
