@@ -8,17 +8,17 @@ export const buildTestTurn = () => {
   let id = faker.random.uuid();
   let gameId = faker.random.uuid();
   let history = [];
-  let defaultStoryteller = defaultPlayers[0];
+  let storyteller;
 
-  const getStoryteller = () => defaultStoryteller;
+  const getStoryteller = () => storyteller || defaultPlayers[0];
 
   return {
     withId(idOverride = id) {
       id = idOverride;
       return this;
     },
-    withStoryteller(storyteller) {
-      defaultStoryteller = storyteller;
+    withStoryteller(storytellerOverride) {
+      storyteller = storytellerOverride;
       return this;
     },
     withGameId(gameIdOverride = gameId) {
