@@ -5,6 +5,7 @@ import {
   startGame,
   completeHands,
   updateScore,
+  setCurrentTurnId,
   GameError,
   getAllPlayers,
   GameStatus,
@@ -33,14 +34,23 @@ describe('Game', () => {
       cards,
       score,
       status: GameStatus.STARTED,
+      currentTurnId: 't1',
     });
-    expect(game).toEqual({ id: '1', host, players, cards, score, status: GameStatus.STARTED });
+    expect(game).toEqual({ id: '1', host, players, cards, score, status: GameStatus.STARTED, currentTurnId: 't1' });
   });
-  it('must be created with a status WAITING_FOR_PLAYERS by default, an empty cards array and an empty score map', () => {
+  it('must be created with a status WAITING_FOR_PLAYERS by default, an empty cards array, an empty score map and currentTurnId null', () => {
     const host = buildTestPlayer().build();
     const players = [buildTestPlayer().build(), buildTestPlayer().build()];
     const game = makeGame({ id: '1', host, players });
-    expect(game).toEqual({ id: '1', host, players, status: GameStatus.WAITING_FOR_PLAYERS, cards: [], score: {} });
+    expect(game).toEqual({
+      id: '1',
+      host,
+      players,
+      status: GameStatus.WAITING_FOR_PLAYERS,
+      cards: [],
+      score: {},
+      currentTurnId: null,
+    });
   });
   it('must have an id', () => {
     expect(() => makeGame({ id: undefined })).toThrow('Game must contain an id');
@@ -293,5 +303,17 @@ describe('Game', () => {
       [game.players[0].id]: game.score[game.players[0].id] + 1,
       [game.players[1].id]: game.score[game.players[1].id] + 5,
     });
+  });
+
+  describe('set current turn id', () => {
+    // arrange
+    const game = buildTestGame().build();
+    const currentTurnId = 't1';
+
+    // act
+    const { value: editedGame } = setCurrentTurnId(game, currentTurnId);
+
+    // assert
+    expect(editedGame.currentTurnId).toEqual('t1');
   });
 });

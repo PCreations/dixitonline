@@ -1,4 +1,6 @@
+import * as subscribers from './subscribers';
+
 export * from './repos';
 export * from './useCases';
-export * from './subscribers';
 export * from './events';
+export { subscribers };
