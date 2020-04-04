@@ -2,7 +2,7 @@ import { EventEmitter } from 'events';
 import { events as turnEvents } from '@dixit/turn';
 import { buildTestCard } from '../../__tests__/dataBuilders/card';
 import { buildTestGame } from '../../__tests__/dataBuilders/game';
-import { makeAfterTurnEndedSubscriber } from '../after-turn-ended-complete-hands';
+import { makeAfterTurnEndedCompleteHandsSubscriber } from '../after-turn-ended-complete-hands';
 import { makeNullGameRepository } from '../../repos';
 import { makeCompleteHands } from '../../useCases/complete-hands';
 
@@ -45,7 +45,7 @@ describe('after turn ended subscriber', () => {
     const dispatchDomainEvents = events => events.map(event => eventEmitter.emit(event.type, event));
     const subscribeToDomainEvent = eventEmitter.on.bind(eventEmitter);
     const completeHands = jest.fn(makeCompleteHands({ gameRepository, dispatchDomainEvents }));
-    makeAfterTurnEndedSubscriber({
+    makeAfterTurnEndedCompleteHandsSubscriber({
       subscribeToDomainEvent,
       completeHands,
     });

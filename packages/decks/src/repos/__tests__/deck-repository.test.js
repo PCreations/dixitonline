@@ -3,7 +3,7 @@ import { makeDeckRepository, makeNullDeckRepository } from '../deck-repository';
 
 let firebaseApp;
 
-describe('deck repository', () => {
+describe.skip('deck repository', () => {
   beforeEach(() => {
     firebaseApp = firebase.initializeTestApp({
       projectId: `${Math.floor(Math.random() * new Date())}`,

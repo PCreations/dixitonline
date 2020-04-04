@@ -32,7 +32,7 @@ export const makeGame = ({
   score = {},
   players = [],
   status = GameStatus.WAITING_FOR_PLAYERS,
-  currentTurnId = null,
+  currentTurn = { id: null, storytellerId: null },
 } = {}) => {
   if (!id) throw new Error('Game must contain an id');
   if (!host) throw new Error('Game must have an host');
@@ -44,7 +44,7 @@ export const makeGame = ({
     cards,
     score,
     status,
-    currentTurnId,
+    currentTurn,
   });
 };
 
@@ -140,4 +140,4 @@ export const updateScore = (game, turnScore) => {
   );
 };
 
-export const setCurrentTurnId = (game, currentTurnId) => makeResult(makeGame({ ...game, currentTurnId }));
+export const setCurrentTurn = (game, currentTurn) => makeResult(makeGame({ ...game, currentTurn }));

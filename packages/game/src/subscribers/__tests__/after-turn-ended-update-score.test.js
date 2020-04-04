@@ -2,7 +2,7 @@ import { EventEmitter } from 'events';
 import { events as turnEvents } from '@dixit/turn';
 import { buildTestCard } from '../../__tests__/dataBuilders/card';
 import { buildTestGame } from '../../__tests__/dataBuilders/game';
-import { makeAfterTurnEndedSubscriber } from '../after-turn-ended-update-score';
+import { makeAfterTurnEndedUpdateScoreSubscriber } from '../after-turn-ended-update-score';
 import { makeNullGameRepository } from '../../repos';
 import { makeUpdateScore } from '../../useCases/update-score';
 
@@ -41,7 +41,7 @@ describe('after turn ended subscriber', () => {
     const dispatchDomainEvents = events => events.map(event => eventEmitter.emit(event.type, event));
     const subscribeToDomainEvent = eventEmitter.on.bind(eventEmitter);
     const updateScore = jest.fn(makeUpdateScore({ gameRepository, dispatchDomainEvents }));
-    makeAfterTurnEndedSubscriber({
+    makeAfterTurnEndedUpdateScoreSubscriber({
       subscribeToDomainEvent,
       updateScore,
     });

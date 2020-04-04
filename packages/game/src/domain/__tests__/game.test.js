@@ -5,7 +5,7 @@ import {
   startGame,
   completeHands,
   updateScore,
-  setCurrentTurnId,
+  setCurrentTurn,
   GameError,
   getAllPlayers,
   GameStatus,
@@ -34,9 +34,20 @@ describe('Game', () => {
       cards,
       score,
       status: GameStatus.STARTED,
-      currentTurnId: 't1',
+      currentTurn: {
+        id: 't1',
+        storytellerId: players[0].id,
+      },
     });
-    expect(game).toEqual({ id: '1', host, players, cards, score, status: GameStatus.STARTED, currentTurnId: 't1' });
+    expect(game).toEqual({
+      id: '1',
+      host,
+      players,
+      cards,
+      score,
+      status: GameStatus.STARTED,
+      currentTurn: { id: 't1', storytellerId: players[0].id },
+    });
   });
   it('must be created with a status WAITING_FOR_PLAYERS by default, an empty cards array, an empty score map and currentTurnId null', () => {
     const host = buildTestPlayer().build();
@@ -49,7 +60,10 @@ describe('Game', () => {
       status: GameStatus.WAITING_FOR_PLAYERS,
       cards: [],
       score: {},
-      currentTurnId: null,
+      currentTurn: {
+        id: null,
+        storytellerId: null,
+      },
     });
   });
   it('must have an id', () => {
@@ -305,15 +319,18 @@ describe('Game', () => {
     });
   });
 
-  describe('set current turn id', () => {
+  describe('set current turn', () => {
     // arrange
     const game = buildTestGame().build();
-    const currentTurnId = 't1';
+    const currentTurn = {
+      id: 't1',
+      storytellerId: 'p1',
+    };
 
     // act
-    const { value: editedGame } = setCurrentTurnId(game, currentTurnId);
+    const { value: editedGame } = setCurrentTurn(game, currentTurn);
 
     // assert
-    expect(editedGame.currentTurnId).toEqual('t1');
+    expect(editedGame.currentTurn).toEqual(currentTurn);
   });
 });

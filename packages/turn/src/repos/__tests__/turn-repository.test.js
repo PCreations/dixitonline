@@ -7,7 +7,7 @@ import { buildTestHand } from '../../__tests__/dataBuilders/hand';
 
 let firebaseApp;
 
-describe('turnRepository', () => {
+describe.skip('turnRepository', () => {
   beforeEach(() => {
     firebaseApp = firebase.initializeTestApp({
       projectId: `${Math.floor(Math.random() * new Date())}`,

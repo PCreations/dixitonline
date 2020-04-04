@@ -5,7 +5,7 @@ import { buildgameRepositoryInitialGames } from '../../__tests__/dataBuilders/ga
 
 let firebaseApp;
 
-describe('gameRepository', () => {
+describe.skip('gameRepository', () => {
   beforeEach(() => {
     firebaseApp = firebase.initializeTestApp({
       projectId: `${Math.floor(Math.random() * new Date())}`,
