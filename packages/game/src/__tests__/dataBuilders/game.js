@@ -19,6 +19,13 @@ export const buildTestGame = (baseGame = {}) => {
       overrides.id = id;
       return this;
     },
+    withCurrentTurnId(turnId) {
+      overrides.currentTurn = {
+        ...(overrides.currentTurn || {}),
+        id: turnId,
+      };
+      return this;
+    },
     withStartedStatus() {
       overrides.status = GameStatus.STARTED;
       return this;

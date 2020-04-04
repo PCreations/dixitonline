@@ -39,7 +39,7 @@ export const handsCompletedEvent = ({ gameId, handsByPlayerId }) => ({
 
 export const gameEndedEvent = ({ gameId }) => ({
   type: types.GAME_ENDED,
-  paylaod: {
+  payload: {
     gameId,
   },
 });

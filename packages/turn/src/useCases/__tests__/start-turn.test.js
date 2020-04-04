@@ -4,7 +4,7 @@ import { makeStartNewTurn } from '../start-new-turn';
 import { makeNullTurnRepository } from '../../repos/turn-repository';
 
 describe('start new turn', () => {
-  it('starts a new turn', async () => {
+  it('starts a new turn by setting the first player as storyteller if there was no previous turn', async () => {
     // arrange
     const players = [
       {
@@ -25,6 +25,7 @@ describe('start new turn', () => {
     ];
     const expectedTurn = buildTestTurn()
       .withGameId('g1')
+      .withStoryteller(players[0])
       .withPlayers(players)
       .build();
     const turnRepository = makeNullTurnRepository({ nextTurnId: expectedTurn.turn.id });
@@ -33,8 +34,101 @@ describe('start new turn', () => {
     // act
     await startNewTurn({
       players,
-      storytellerId: expectedTurn.turn.storytellerId,
       gameId: 'g1',
+    });
+
+    // assert
+    const turn = await turnRepository.getTurnById(expectedTurn.turn.id);
+    expect(turn).toEqual(expectedTurn);
+  });
+  it('starts a new turn by setting the next player as the storyteller if there was a previous turn', async () => {
+    // arrange
+    const players = [
+      {
+        id: 'p1',
+        name: 'player1',
+        hand: buildTestHand().build(),
+      },
+      {
+        id: 'p2',
+        name: 'player2',
+        hand: buildTestHand().build(),
+      },
+      {
+        id: 'p3',
+        name: 'player3',
+        hand: buildTestHand().build(),
+      },
+    ];
+    const previousTurn = buildTestTurn()
+      .withGameId('g1')
+      .withStoryteller(players[0])
+      .withPlayers(players);
+    const previousTurnHistory = previousTurn.getHistory();
+    const previousTurnId = previousTurn.build().turn.id;
+    const expectedTurn = buildTestTurn()
+      .withGameId('g1')
+      .withStoryteller(players[1])
+      .withPlayers(players)
+      .build();
+    const turnRepository = makeNullTurnRepository({
+      nextTurnId: expectedTurn.turn.id,
+      initialHistory: { [previousTurnId]: previousTurnHistory },
+    });
+    const startNewTurn = makeStartNewTurn({ turnRepository });
+
+    // act
+    await startNewTurn({
+      players,
+      gameId: 'g1',
+      previousTurnId,
+    });
+
+    // assert
+    const turn = await turnRepository.getTurnById(expectedTurn.turn.id);
+    expect(turn).toEqual(expectedTurn);
+  });
+  it('starts a new turn by setting the first player as the storyteller if last player was the storyteller the last turn', async () => {
+    // arrange
+    const players = [
+      {
+        id: 'p1',
+        name: 'player1',
+        hand: buildTestHand().build(),
+      },
+      {
+        id: 'p2',
+        name: 'player2',
+        hand: buildTestHand().build(),
+      },
+      {
+        id: 'p3',
+        name: 'player3',
+        hand: buildTestHand().build(),
+      },
+    ];
+    const previousTurn = buildTestTurn()
+      .withGameId('g1')
+      .withStoryteller(players[2])
+      .withPlayers(players);
+    const previousTurnHistory = previousTurn.getHistory();
+    const previousTurnId = previousTurn.build().turn.id;
+    const expectedTurn = buildTestTurn()
+      .withGameId('g1')
+      .withStoryteller(players[0])
+      .withPlayers(players)
+      .build();
+    const turnRepository = makeNullTurnRepository({
+      nextTurnId: expectedTurn.turn.id,
+      initialHistory: { [previousTurnId]: previousTurnHistory },
+    });
+    const startNewTurn = makeStartNewTurn({ turnRepository });
+
+    // act
+    await startNewTurn({
+      players,
+      gameId: 'g1',
+      previousTurnId,
     });
 
     // assert
