@@ -28,13 +28,18 @@ describe('complete hands', () => {
     const completeHandsSpy = jest.spyOn(Game, 'completeHands');
     const dispatchDomainEvents = jest.fn();
     const completeHands = makeCompleteHands({ gameRepository, dispatchDomainEvents });
+    const fooCards = [];
 
     // act
-    const { events, value: editedGame } = await completeHands({ gameId: game.id, actualHandsByPlayerId });
+    const { events, value: editedGame } = await completeHands({
+      gameId: game.id,
+      cards: fooCards,
+      actualHandsByPlayerId,
+    });
 
     // assert
     expect(dispatchDomainEvents).toHaveBeenCalledWith(events);
     expect(saveGameSpy).toHaveBeenCalledWith(editedGame);
-    expect(completeHandsSpy).toHaveBeenCalledWith(game, { actualHandsByPlayerId });
+    expect(completeHandsSpy).toHaveBeenCalledWith(game, { cards: fooCards, actualHandsByPlayerId });
   });
 });

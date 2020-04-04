@@ -10,6 +10,7 @@ export const buildTestGame = (baseGame = {}) => {
     host: buildTestPlayer().build(),
     players: [],
     cards: [],
+    score: {},
     status: GameStatus.WAITING_FOR_PLAYERS,
   };
   const overrides = {};
@@ -36,6 +37,21 @@ export const buildTestGame = (baseGame = {}) => {
     },
     withXPlayers(numberOfPlayers) {
       overrides.players = generatePlayers(numberOfPlayers);
+      return this;
+    },
+    withScore() {
+      const props = {
+        ...defaultProperties,
+        ...baseGame,
+        ...overrides,
+      };
+      overrides.score = [props.host.id, ...props.players.map(p => p.id)].reduce(
+        (score, playerId) => ({
+          ...score,
+          [playerId]: faker.random.number(10),
+        }),
+        {}
+      );
       return this;
     },
     asFullGame() {
