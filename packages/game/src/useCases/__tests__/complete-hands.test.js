@@ -16,7 +16,7 @@ describe('complete hands', () => {
     const initialGames = buildgameRepositoryInitialGames()
       .withGames([game])
       .build();
-    const actualHands = {
+    const actualHandsByPlayerId = {
       [game.host.id]: new Array(6).fill().map(() => buildTestCard().build()),
       [game.players[0].id]: new Array(6).fill().map(() => buildTestCard().build()),
       [game.players[1].id]: new Array(6).fill().map(() => buildTestCard().build()),
@@ -30,11 +30,11 @@ describe('complete hands', () => {
     const completeHands = makeCompleteHands({ gameRepository, dispatchDomainEvents });
 
     // act
-    const { events, value: editedGame } = await completeHands({ gameId: game.id, actualHandsByPlayerId: actualHands });
+    const { events, value: editedGame } = await completeHands({ gameId: game.id, actualHandsByPlayerId });
 
     // assert
     expect(dispatchDomainEvents).toHaveBeenCalledWith(events);
     expect(saveGameSpy).toHaveBeenCalledWith(editedGame);
-    expect(completeHandsSpy).toHaveBeenCalledWith(game, actualHands);
+    expect(completeHandsSpy).toHaveBeenCalledWith(game, { actualHandsByPlayerId });
   });
 });

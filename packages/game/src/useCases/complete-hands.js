@@ -5,7 +5,7 @@ export const makeCompleteHands = ({ gameRepository, dispatchDomainEvents }) => a
   actualHandsByPlayerId,
 }) => {
   const game = await gameRepository.getGameById(gameId);
-  const result = completeHands(game, actualHandsByPlayerId);
+  const result = completeHands(game, { actualHandsByPlayerId });
   if (!result.error) {
     await gameRepository.saveGame(result.value);
     dispatchDomainEvents(result.events);

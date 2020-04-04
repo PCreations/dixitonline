@@ -77,17 +77,18 @@ export const startGame = (game, player) => {
   return makeErrorResult(GameError.ONLY_HOST_CAN_START_GAME);
 };
 
-export const completeHands = (game, actualHandsByPlayerId) => {
+export const completeHands = (game, { cards, actualHandsByPlayerId }) => {
   const allPlayers = getAllPlayers(game);
+  const actualCards = cards || game.cards;
   if (!actualHandsByPlayerId) {
     const handsByPlayerId = allPlayers.reduce(
       (hands, player, playerIndex) => ({
         ...hands,
-        [player.id]: game.cards.slice(playerIndex * 6, playerIndex * 6 + 6),
+        [player.id]: actualCards.slice(playerIndex * 6, playerIndex * 6 + 6),
       }),
       {}
     );
-    const remainingCards = game.cards.slice(allPlayers.length * 6);
+    const remainingCards = actualCards.slice(allPlayers.length * 6);
     return makeResult(
       makeGame({
         ...game,
@@ -96,7 +97,7 @@ export const completeHands = (game, actualHandsByPlayerId) => {
       [handsCompletedEvent({ gameId: game.id, handsByPlayerId })]
     );
   }
-  if (game.cards.length < allPlayers.length * 6) {
+  if (actualCards.length < allPlayers.length * 6) {
     return makeResult(
       makeGame({
         ...game,
@@ -108,14 +109,14 @@ export const completeHands = (game, actualHandsByPlayerId) => {
   const handsByPlayerId = Object.entries(actualHandsByPlayerId).reduce(
     (completedHands, [playerId, hand], playerIndex) => ({
       ...completedHands,
-      [playerId]: hand.concat(game.cards[playerIndex]),
+      [playerId]: hand.concat(actualCards[playerIndex]),
     }),
     {}
   );
   return makeResult(
     makeGame({
       ...game,
-      cards: game.cards.slice(allPlayers.length),
+      cards: actualCards.slice(allPlayers.length),
     }),
     [handsCompletedEvent({ gameId: game.id, handsByPlayerId })]
   );

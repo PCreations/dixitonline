@@ -189,7 +189,6 @@ describe('Game', () => {
       const game = buildTestGame()
         .withXPlayers(2)
         .withStartedStatus()
-        .withShuffledDeck(shuffledDeck)
         .build();
       const totalNumberOfPlayers = 3;
       const expectedHostHand = shuffledDeck.slice(0, 6);
@@ -197,7 +196,7 @@ describe('Game', () => {
       const expectedPlayer2Hand = shuffledDeck.slice(12, 18);
 
       // act
-      const { events, value } = completeHands(game);
+      const { events, value } = completeHands(game, { cards: shuffledDeck });
 
       // assert
       expect(value.cards).toEqual(shuffledDeck.slice(6 * totalNumberOfPlayers));
@@ -222,19 +221,19 @@ describe('Game', () => {
       .withShuffledDeck(shuffledDeck)
       .build();
     const totalNumberOfPlayers = 3;
-    const actualHands = {
+    const actualHandsByPlayerId = {
       [game.host.id]: new Array(6).fill().map(() => buildTestCard().build()),
       [game.players[0].id]: new Array(6).fill().map(() => buildTestCard().build()),
       [game.players[1].id]: new Array(6).fill().map(() => buildTestCard().build()),
     };
     const expectedHands = {
-      [game.host.id]: actualHands[game.host.id].concat(shuffledDeck[0]),
-      [game.players[0].id]: actualHands[game.players[0].id].concat(shuffledDeck[1]),
-      [game.players[1].id]: actualHands[game.players[1].id].concat(shuffledDeck[2]),
+      [game.host.id]: actualHandsByPlayerId[game.host.id].concat(shuffledDeck[0]),
+      [game.players[0].id]: actualHandsByPlayerId[game.players[0].id].concat(shuffledDeck[1]),
+      [game.players[1].id]: actualHandsByPlayerId[game.players[1].id].concat(shuffledDeck[2]),
     };
 
     // act
-    const { events, value } = completeHands(game, actualHands);
+    const { events, value } = completeHands(game, { actualHandsByPlayerId });
 
     // assert
     expect(value.cards).toEqual(shuffledDeck.slice(totalNumberOfPlayers));
@@ -253,14 +252,14 @@ describe('Game', () => {
       .withStartedStatus()
       .withShuffledDeck(shuffledDeck)
       .build();
-    const actualHands = {
+    const actualHandsByPlayerId = {
       [game.host.id]: new Array(6).fill().map(() => buildTestCard().build()),
       [game.players[0].id]: new Array(6).fill().map(() => buildTestCard().build()),
       [game.players[1].id]: new Array(6).fill().map(() => buildTestCard().build()),
     };
 
     // act
-    const { events, value } = completeHands(game, actualHands);
+    const { events, value } = completeHands(game, { actualHandsByPlayerId });
 
     // assert
     expect(value.status).toEqual(GameStatus.ENDED);
