@@ -2,19 +2,17 @@ import { EventEmitter } from 'events';
 import { events as turnEvents } from '@dixit/turn';
 import { buildTestCard } from '../../__tests__/dataBuilders/card';
 import { buildTestGame } from '../../__tests__/dataBuilders/game';
-import { makeAfterTurnEndedSubscriber } from '../after-turn-ended';
+import { makeAfterTurnEndedSubscriber } from '../after-turn-ended-update-score';
 import { makeNullGameRepository } from '../../repos';
-import { makeCompleteHands } from '../../useCases/complete-hands';
+import { makeUpdateScore } from '../../useCases/update-score';
 
-describe('after turn started subscriber', () => {
-  test('it should call the completeHands use case with the actual hands of the ended turn', async () => {
+describe('after turn ended subscriber', () => {
+  test('it should call the updateScore use case with the turn score', async () => {
     // arrange
     expect.assertions(1);
-    const shuffledDeck = new Array(50).fill().map(() => buildTestCard().build());
     const game = buildTestGame()
       .withXPlayers(2)
-      .withStartedStatus()
-      .withShuffledDeck(shuffledDeck)
+      .withScore()
       .build();
     const playersWithHandAndScore = [
       {
@@ -33,21 +31,19 @@ describe('after turn started subscriber', () => {
         score: 6,
       },
     ];
-    const actualHandsByPlayerId = playersWithHandAndScore.reduce(
-      (hands, { playerId, hand }) => ({
-        ...hands,
-        [playerId]: hand,
-      }),
-      {}
-    );
+    const expectedTurnScore = {
+      [game.host.id]: 2,
+      [game.players[0].id]: 4,
+      [game.players[1].id]: 6,
+    };
     const gameRepository = makeNullGameRepository({});
     const eventEmitter = new EventEmitter();
     const dispatchDomainEvents = events => events.map(event => eventEmitter.emit(event.type, event));
     const subscribeToDomainEvent = eventEmitter.on.bind(eventEmitter);
-    const completeHands = jest.fn(makeCompleteHands({ gameRepository, dispatchDomainEvents }));
+    const updateScore = jest.fn(makeUpdateScore({ gameRepository, dispatchDomainEvents }));
     makeAfterTurnEndedSubscriber({
       subscribeToDomainEvent,
-      completeHands,
+      updateScore,
     });
 
     // act
@@ -61,6 +57,6 @@ describe('after turn started subscriber', () => {
     ]);
 
     // assert
-    expect(completeHands).toHaveBeenCalledWith({ gameId: 'g1', actualHandsByPlayerId });
+    expect(updateScore).toHaveBeenCalledWith({ gameId: 'g1', turnScore: expectedTurnScore });
   });
 });

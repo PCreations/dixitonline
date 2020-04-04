@@ -4,6 +4,7 @@ import {
   joinPlayer,
   startGame,
   completeHands,
+  updateScore,
   GameError,
   getAllPlayers,
   GameStatus,
@@ -211,62 +212,86 @@ describe('Game', () => {
         })
       );
     });
+
+    it("completes with one card each player's hand when given previous hands and return the full new hand", () => {
+      // arrange
+      const shuffledDeck = new Array(50).fill().map(() => buildTestCard().build());
+      const game = buildTestGame()
+        .withXPlayers(2)
+        .withStartedStatus()
+        .withShuffledDeck(shuffledDeck)
+        .build();
+      const totalNumberOfPlayers = 3;
+      const actualHandsByPlayerId = {
+        [game.host.id]: new Array(6).fill().map(() => buildTestCard().build()),
+        [game.players[0].id]: new Array(6).fill().map(() => buildTestCard().build()),
+        [game.players[1].id]: new Array(6).fill().map(() => buildTestCard().build()),
+      };
+      const expectedHands = {
+        [game.host.id]: actualHandsByPlayerId[game.host.id].concat(shuffledDeck[0]),
+        [game.players[0].id]: actualHandsByPlayerId[game.players[0].id].concat(shuffledDeck[1]),
+        [game.players[1].id]: actualHandsByPlayerId[game.players[1].id].concat(shuffledDeck[2]),
+      };
+
+      // act
+      const { events, value } = completeHands(game, { actualHandsByPlayerId });
+
+      // assert
+      expect(value.cards).toEqual(shuffledDeck.slice(totalNumberOfPlayers));
+      expect(events).toContainEqual(
+        handsCompletedEvent({
+          gameId: game.id,
+          handsByPlayerId: expectedHands,
+        })
+      );
+    });
+    it('returns a game ended event if there is not enough cards to complete hands', () => {
+      // arrange
+      const shuffledDeck = new Array(15).fill().map(() => buildTestCard().build());
+      const game = buildTestGame()
+        .withXPlayers(2)
+        .withStartedStatus()
+        .withShuffledDeck(shuffledDeck)
+        .build();
+      const actualHandsByPlayerId = {
+        [game.host.id]: new Array(6).fill().map(() => buildTestCard().build()),
+        [game.players[0].id]: new Array(6).fill().map(() => buildTestCard().build()),
+        [game.players[1].id]: new Array(6).fill().map(() => buildTestCard().build()),
+      };
+
+      // act
+      const { events, value } = completeHands(game, { actualHandsByPlayerId });
+
+      // assert
+      expect(value.status).toEqual(GameStatus.ENDED);
+      expect(events).toContainEqual(
+        gameEndedEvent({
+          gameId: game.id,
+        })
+      );
+    });
   });
-  it("completes with one card each player's hand when given previous hands and return the full new hand", () => {
+
+  describe('update score', () => {
     // arrange
-    const shuffledDeck = new Array(50).fill().map(() => buildTestCard().build());
     const game = buildTestGame()
       .withXPlayers(2)
-      .withStartedStatus()
-      .withShuffledDeck(shuffledDeck)
+      .withScore()
       .build();
-    const totalNumberOfPlayers = 3;
-    const actualHandsByPlayerId = {
-      [game.host.id]: new Array(6).fill().map(() => buildTestCard().build()),
-      [game.players[0].id]: new Array(6).fill().map(() => buildTestCard().build()),
-      [game.players[1].id]: new Array(6).fill().map(() => buildTestCard().build()),
-    };
-    const expectedHands = {
-      [game.host.id]: actualHandsByPlayerId[game.host.id].concat(shuffledDeck[0]),
-      [game.players[0].id]: actualHandsByPlayerId[game.players[0].id].concat(shuffledDeck[1]),
-      [game.players[1].id]: actualHandsByPlayerId[game.players[1].id].concat(shuffledDeck[2]),
+    const turnScore = {
+      [game.host.id]: 2,
+      [game.players[0].id]: 1,
+      [game.players[1].id]: 5,
     };
 
     // act
-    const { events, value } = completeHands(game, { actualHandsByPlayerId });
+    const { value: editedGame } = updateScore(game, turnScore);
 
     // assert
-    expect(value.cards).toEqual(shuffledDeck.slice(totalNumberOfPlayers));
-    expect(events).toContainEqual(
-      handsCompletedEvent({
-        gameId: game.id,
-        handsByPlayerId: expectedHands,
-      })
-    );
-  });
-  it('returns a game ended event if there is not enough cards to complete hands', () => {
-    // arrange
-    const shuffledDeck = new Array(15).fill().map(() => buildTestCard().build());
-    const game = buildTestGame()
-      .withXPlayers(2)
-      .withStartedStatus()
-      .withShuffledDeck(shuffledDeck)
-      .build();
-    const actualHandsByPlayerId = {
-      [game.host.id]: new Array(6).fill().map(() => buildTestCard().build()),
-      [game.players[0].id]: new Array(6).fill().map(() => buildTestCard().build()),
-      [game.players[1].id]: new Array(6).fill().map(() => buildTestCard().build()),
-    };
-
-    // act
-    const { events, value } = completeHands(game, { actualHandsByPlayerId });
-
-    // assert
-    expect(value.status).toEqual(GameStatus.ENDED);
-    expect(events).toContainEqual(
-      gameEndedEvent({
-        gameId: game.id,
-      })
-    );
+    expect(editedGame.score).toEqual({
+      [game.host.id]: game.score[game.host.id] + 2,
+      [game.players[0].id]: game.score[game.players[0].id] + 1,
+      [game.players[1].id]: game.score[game.players[1].id] + 5,
+    });
   });
 });

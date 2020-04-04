@@ -121,3 +121,19 @@ export const completeHands = (game, { cards, actualHandsByPlayerId }) => {
     [handsCompletedEvent({ gameId: game.id, handsByPlayerId })]
   );
 };
+
+export const updateScore = (game, turnScore) => {
+  const newScore = Object.entries(turnScore).reduce(
+    (scores, [playerId, playerTurnScore]) => ({
+      ...scores,
+      [playerId]: playerTurnScore + (game.score[playerId] || 0),
+    }),
+    {}
+  );
+  return makeResult(
+    makeGame({
+      ...game,
+      score: newScore,
+    })
+  );
+};
