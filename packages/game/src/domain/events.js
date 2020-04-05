@@ -29,11 +29,12 @@ export const newGameStartedEvent = ({ gameId, playerIds }) => ({
   },
 });
 
-export const handsCompletedEvent = ({ gameId, handsByPlayerId }) => ({
+export const handsCompletedEvent = ({ gameId, handsByPlayerId, previousTurnId }) => ({
   type: types.HANDS_COMPLETED,
   payload: {
     gameId,
     handsByPlayerId,
+    previousTurnId,
   },
 });
 

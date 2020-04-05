@@ -1,6 +1,11 @@
-import { events } from '../domain/events';
+import { events as turnEvents } from '../domain/events';
 
-export const makeStartNewTurn = ({ turnRepository }) => async ({ gameId, players, previousTurnId }) => {
+export const makeStartNewTurn = ({ turnRepository, dispatchDomainEvents }) => async ({
+  gameId,
+  players,
+  previousTurnId,
+}) => {
+  // TODO: this logic should be in domain
   let storytellerId = players[0].id;
   if (previousTurnId) {
     const previousTurn = await turnRepository.getTurnById(previousTurnId);
@@ -11,5 +16,8 @@ export const makeStartNewTurn = ({ turnRepository }) => async ({ gameId, players
     }
   }
   const turnId = turnRepository.getNextTurnId();
-  return turnRepository.saveTurn(turnId, [events.turnStarted({ id: turnId, gameId, players, storytellerId })]);
+  const events = [turnEvents.turnStarted({ id: turnId, gameId, players, storytellerId })];
+  const turn = await turnRepository.saveTurn(turnId, events);
+  dispatchDomainEvents(events);
+  return turn;
 };

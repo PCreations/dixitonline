@@ -10,7 +10,7 @@
     "create-graphql-package": "node ./scripts/create-graphql-package.js",
     "build": "yarn workspaces run build && yarn workspaces run hoist-build",
     "deploy": "yarn workspaces run test && yarn build && cd functions && npm run deploy",
-    "serve": "yarn build && cd functions && npm run serve"
+    "serve": "cd functions && npm run serve"
   },
   "workspaces": [
     "packages/*"
@@ -22,9 +22,12 @@
     "@babel/plugin-proposal-nullish-coalescing-operator": "^7.8.3",
     "@babel/plugin-proposal-optional-chaining": "^7.9.0",
     "@babel/preset-env": "^7.9.0",
+    "@babel/register": "^7.9.0",
+    "@rollup/plugin-node-resolve": "^7.1.1",
     "babel-core": "^6.26.3",
     "babel-eslint": "^10.1.0",
     "babel-jest": "^25.1.0",
+    "babel-loader": "^8.1.0",
     "eslint": "^6.8.0",
     "eslint-config-airbnb": "^18.1.0",
     "eslint-config-airbnb-base": "^14.1.0",
@@ -35,12 +38,23 @@
     "jest": "25.2.4",
     "json": "^9.0.6",
     "nodemon": "^2.0.2",
+    "parcel-bundler": "^1.12.4",
     "prettier": "^1.19.1",
-    "regenerator-runtime": "^0.13.5"
+    "regenerator-runtime": "^0.13.5",
+    "webpack": "^4.42.1",
+    "webpack-cli": "^3.3.11"
   },
   "dependencies": {
+    "@dixit/decks": "1.0.0",
+    "@dixit/game": "1.0.0",
+    "@dixit/turn": "1.0.0",
+    "@dixit/users": "1.0.0",
+    "apollo-server-express": "^2.11.0",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
     "faker": "^4.1.0",
-    "firebase-admin": "^8.10.0"
+    "firebase-admin": "^8.10.0",
+    "nexus": "^0.12.0"
   },
   "jest": {
     "testPathIgnorePatterns": [

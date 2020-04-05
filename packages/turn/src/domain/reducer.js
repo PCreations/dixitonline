@@ -56,6 +56,7 @@ const turnStorytellerPhaseReducer = (state = defaultTurnState, event) =>
         return draft;
       case events.types.CLUE_DEFINED: {
         const { text, cardId } = event.payload;
+
         const storytellerHand = draft.handByPlayerId[draft.storytellerId];
         if (storytellerHand.some(card => card.id === cardId)) {
           draft.phase = TurnPhase.PLAYERS_CARD_CHOICE;
