@@ -1,0 +1,19 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`getGame gets a game by its id 1`] = `
+Object {
+  "data": Object {
+    "game": Object {
+      "currentTurnId": "t1",
+      "id": "g1",
+    },
+  },
+  "errors": undefined,
+  "extensions": undefined,
+  "http": Object {
+    "headers": Headers {
+      Symbol(map): Object {},
+    },
+  },
+}
+`;

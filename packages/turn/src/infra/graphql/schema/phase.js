@@ -22,6 +22,14 @@ export const TurnPhaseName = enumType({
   members: TurnPhaseNameEnum,
 });
 
+export const PlayerVote = objectType({
+  name: 'TurnPlayerVote',
+  definition(t) {
+    t.id('id');
+    t.string('name');
+  },
+});
+
 export const BoardCard = objectType({
   name: 'TurnBoardCard',
   definition(t) {
@@ -29,7 +37,7 @@ export const BoardCard = objectType({
       type: Card,
     });
     t.id('playerId', { nullable: true });
-    t.list.string('votes');
+    t.list.field('votes', { type: PlayerVote });
   },
 });
 

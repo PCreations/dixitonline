@@ -1,12 +1,35 @@
+const { EventEmitter } = require('events');
 const admin = require('firebase-admin');
 const functions = require('firebase-functions');
+const serviceAccount = require('./secrets/dixit-firebase-admin.json');
 const { default: dixit } = require('./build/dixit');
 
-console.log(dixit);
+const firebaseApp = admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: 'https://dixit-af060.firebaseio.com',
+});
 
-const firebaseApp = admin.initializeApp();
+const eventEmitter = new EventEmitter();
 
-const app = dixit({ firestore: firebaseApp.firestore(), firebaseAuth: firebaseApp.auth() });
+const dispatchDomainEvents = events =>
+  events.map(event => {
+    console.log('dispatching event', event);
+    eventEmitter.emit(event.type, event);
+  });
+
+const subscribeToDomainEvent = (type, callback) => {
+  eventEmitter.on(type, event => {
+    console.log('received event', type);
+    return callback(event);
+  });
+};
+
+const app = dixit({
+  firestore: firebaseApp.firestore(),
+  firebaseAuth: firebaseApp.auth(),
+  dispatchDomainEvents,
+  subscribeToDomainEvent,
+});
 
 // Create and Deploy Your First Cloud Functions
 // https://firebase.google.com/docs/functions/write-firebase-functions

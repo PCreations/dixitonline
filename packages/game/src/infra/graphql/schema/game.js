@@ -7,6 +7,11 @@ export const Game = objectType({
   definition(t) {
     t.id('id');
     t.field('host', { type: Player });
+    t.id('currentTurnId', {
+      resolve({ currentTurn }) {
+        return currentTurn.id;
+      },
+    });
     t.list.field('players', {
       type: Player,
       resolve(game) {

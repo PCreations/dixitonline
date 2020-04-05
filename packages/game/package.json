@@ -13,8 +13,8 @@
   "private": true,
   "dependencies": {
     "@dixit/decks": "1.0.0",
-    "@dixit/turn": "1.0.0",
     "@dixit/shared": "1.0.0",
+    "@dixit/turn": "1.0.0",
     "@dixit/users": "1.0.0",
     "@firebase/testing": "^0.17.0",
     "apollo-server": "^2.11.0",
@@ -24,6 +24,6 @@
     "graphql-tag": "^2.10.3",
     "merge-graphql-schemas": "^1.7.6",
     "nexus": "^0.12.0-rc.14",
-    "uuid": "^7.0.2"
+    "uuid": "^7.0.3"
   }
 }

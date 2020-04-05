@@ -7,7 +7,10 @@ export const phaseFragment = `
       url
     }
     playerId
-    votes
+    votes {
+      id
+      name
+    }
   }
   hand {
     id

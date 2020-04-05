@@ -2,6 +2,7 @@ import { events as gameEvents } from '@dixit/game';
 
 export const makeAfterHandsCompletedSubscriber = async ({ subscribeToDomainEvent, userRepository, startTurn }) => {
   subscribeToDomainEvent(gameEvents.types.HANDS_COMPLETED, async handsCompletedEvent => {
+    console.log(`[HANDS_COMPLETED] received in turn after hands completed`);
     const { gameId, handsByPlayerId, previousTurnId } = handsCompletedEvent.payload;
     const players = await Promise.all(
       Object.keys(handsByPlayerId).map(async playerId => {

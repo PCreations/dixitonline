@@ -20,7 +20,7 @@ export const StartGameResultSuccess = objectType({
 
 export const StartGameErrorType = enumType({
   name: 'GameStartGameErrorType',
-  members: [GameError.ONLY_HOST_CAN_START_GAME, GameError.NOT_ENOUGH_PLAYERS],
+  members: [GameError.ONLY_HOST_CAN_START_GAME, GameError.NOT_ENOUGH_PLAYERS, GameError.GAME_ALREADY_STARTED],
 });
 
 export const StartGameResultError = objectType({

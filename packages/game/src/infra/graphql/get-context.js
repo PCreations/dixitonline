@@ -1,4 +1,4 @@
-export const makeGetContext = ({ dispatchDomainEvents, authorizationService } = {}) => async () => ({
+export const makeGetContext = ({ dispatchDomainEvents, authorizationService } = {}) => async context => ({
   dispatchDomainEvents,
-  currentUser: await authorizationService.getCurrentUser(),
+  currentUser: await authorizationService.getCurrentUser(context),
 });

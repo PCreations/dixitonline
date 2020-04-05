@@ -254,7 +254,13 @@ describe('view phase as', () => {
       expect(phase).toEqual({
         type: TurnPhase.SCORING,
         clue: initialState.turn.clue.text,
-        board: initialState.turn.board,
+        board: initialState.turn.board.map(({ votes, ...boardRest }) => ({
+          ...boardRest,
+          votes: votes.map(playerId => ({
+            id: playerId,
+            name: initialState.playerById[playerId].name,
+          })),
+        })),
         hand: initialState.turn.handByPlayerId[players[1].id],
         players: [
           {

@@ -1,17 +1,11 @@
-import path from 'path';
-import { EventEmitter } from 'events';
 import { makeSchema, queryType, mutationType } from 'nexus';
 import express from 'express';
 import cors from 'cors';
-import { ApolloServer } from 'apollo-server-express';
+import { ApolloServer, AuthenticationError } from 'apollo-server-express';
 import { initialize as initializeDecks } from '@dixit/decks';
 import { GameTypes, initialize as initializeGame } from '@dixit/game';
 import { TurnTypes, initialize as initializeTurn } from '@dixit/turn';
 import { makeGraphqlExpressAuthorizationService } from '@dixit/users';
-
-const eventEmitter = new EventEmitter();
-const dispatchDomainEvents = events => events.map(event => eventEmitter.emit(event.type, event));
-const subscribeToDomainEvent = eventEmitter.on.bind(eventEmitter);
 
 const Query = queryType({
   definition() {},
@@ -21,7 +15,7 @@ const Mutation = mutationType({
   definition() {},
 });
 
-export default ({ firestore, firebaseAuth }) => {
+export default ({ firestore, firebaseAuth, dispatchDomainEvents, subscribeToDomainEvent }) => {
   const authorizationService = makeGraphqlExpressAuthorizationService({ firebaseAuth });
   initializeDecks({ firestore, dispatchDomainEvents, subscribeToDomainEvent });
   const { getContext: getGameContext, getDataSources: getGameDataSources } = initializeGame({
@@ -40,9 +34,6 @@ export default ({ firestore, firebaseAuth }) => {
 
   const schema = makeSchema({
     types: { Query, Mutation, ...GameTypes, ...TurnTypes },
-    outputs: {
-      schema: path.join(__dirname, './schema.gen.graphql'),
-    },
   });
 
   const server = new ApolloServer({
@@ -51,10 +42,21 @@ export default ({ firestore, firebaseAuth }) => {
       ...getGameDataSources(),
       ...getTurnDataSources(),
     }),
-    context: async (...args) => ({
-      ...(await getGameContext(...args)),
-      ...(await getTurnContext(...args)),
-    }),
+    context: async (...args) => {
+      const [context] = args;
+      if (context.req?.body.operationName !== 'IntrospectionQuery') {
+        try {
+          return {
+            ...(await getGameContext(...args)),
+            ...(await getTurnContext(...args)),
+          };
+        } catch (e) {
+          if (e.message === 'unauthorized') {
+            throw new AuthenticationError();
+          }
+        }
+      }
+    },
   });
 
   const app = express();

@@ -32,6 +32,7 @@ export const makeTurnRepository = ({ uuid = uuidv1, firestore }) => {
         .collection('turns')
         .doc(turnId)
         .collection('events')
+        .orderBy('timestamp', 'asc')
         .get()
         .then(snapshot => {
           if (snapshot.empty) {
@@ -69,19 +70,23 @@ const makeNullFirestore = ({ initialHistory = {} } = {}) => {
           return {
             collection() {
               return {
-                async get() {
+                orderBy() {
                   return {
-                    empty: typeof history[turnId] === 'undefined',
-                    forEach(callback) {
-                      return history[turnId].forEach(event => {
-                        callback({
-                          data() {
-                            return {
-                              eventData: event,
-                            };
-                          },
-                        });
-                      });
+                    async get() {
+                      return {
+                        empty: typeof history[turnId] === 'undefined',
+                        forEach(callback) {
+                          return history[turnId].forEach(event => {
+                            callback({
+                              data() {
+                                return {
+                                  eventData: event,
+                                };
+                              },
+                            });
+                          });
+                        },
+                      };
                     },
                   };
                 },

@@ -205,6 +205,20 @@ describe('Game', () => {
       expect(events).toEqual([]);
       expect(error).toEqual(GameError.NOT_ENOUGH_PLAYERS);
     });
+    it("can't be started if the game is already started", () => {
+      // arrange
+      const game = buildTestGame()
+        .withStartedStatus()
+        .build();
+      const player = buildTestPlayer().build();
+
+      // act
+      const { events, error } = startGame(game, player);
+
+      // assert
+      expect(events).toEqual([]);
+      expect(error).toEqual(GameError.GAME_ALREADY_STARTED);
+    });
   });
 
   describe('complete hand', () => {

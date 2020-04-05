@@ -21,7 +21,19 @@ const buildPhaseView = (state = defaultState) => {
       return this;
     },
     withBoardAndVotes() {
-      properties.board = state.turn.board;
+      properties.board = state.turn.board.map(({ votes, ...boardRest }) => ({
+        ...boardRest,
+        votes: votes.map(playerId => {
+          if (!state.playerById[playerId]) {
+            console.log(`player ${playerId} not found`, state.playerById);
+            return {};
+          }
+          return {
+            id: playerId,
+            name: state.playerById[playerId].name,
+          };
+        }),
+      }));
       return this;
     },
     withPlayersAsEveryoneReadyExceptStoryteller() {

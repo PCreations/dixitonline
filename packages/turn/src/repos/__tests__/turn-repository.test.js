@@ -1,3 +1,4 @@
+/* eslint-disable no-await-in-loop */
 import * as firebase from '@firebase/testing';
 import admin from 'firebase-admin';
 import { events } from '../../domain/events';
@@ -7,7 +8,7 @@ import { buildTestHand } from '../../__tests__/dataBuilders/hand';
 
 let firebaseApp;
 
-describe.skip('turnRepository', () => {
+describe('turnRepository', () => {
   beforeEach(() => {
     firebaseApp = firebase.initializeTestApp({
       projectId: `${Math.floor(Math.random() * new Date())}`,
@@ -35,12 +36,6 @@ describe.skip('turnRepository', () => {
         hand: buildTestHand().build(),
       },
     ];
-    const turnStarted = events.turnStarted({
-      id: 't1',
-      gameId: 'g1',
-      storytellerId: players[0].id,
-      players,
-    });
     const turnRepository = makeTurnRepository({
       firestore: firebaseApp.firestore(),
       serverTimestamp: admin.firestore.FieldValue.serverTimestamp,
@@ -49,14 +44,20 @@ describe.skip('turnRepository', () => {
       .withId('t1')
       .withGameId('g1')
       .withPlayers(players)
-      .build();
+      .inScoringPhase();
+    const expectedTurnState = expectedTurn.build();
+    const history = expectedTurn.getHistory(); //?
 
     // act
-    await turnRepository.saveTurn('t1', [turnStarted]);
+    // simulates multiple save spaced in time
+    for (let i = 0; i < history.length; i += 1) {
+      await turnRepository.saveTurn('t1', [history[i]]);
+      await new Promise(resolve => setTimeout(resolve, 1));
+    }
 
     // assert
     const turn = await turnRepository.getTurnById('t1');
-    expect(turn).toEqual(expectedTurn);
+    expect(turn).toEqual(expectedTurnState);
   });
   it('can get the next turn id', async () => {
     // arrange

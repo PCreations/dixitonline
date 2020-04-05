@@ -17,6 +17,7 @@ export const GameStatus = {
 
 export const GameError = {
   GAME_ALREADY_JOINED: 'GAME_ALREADY_JOINED',
+  GAME_ALREADY_STARTED: 'GAME_ALREADY_STARTED',
   MAXIMUM_NUMBER_OF_PLAYERS_REACHED: 'MAXIMUM_NUMBER_OF_PLAYERS_REACHED',
   ONLY_HOST_CAN_START_GAME: 'ONLY_HOST_CAN_START_GAME',
   NOT_ENOUGH_PLAYERS: 'NOT_ENOUGH_PLAYERS',
@@ -64,6 +65,9 @@ export const joinPlayer = (game, player) => {
 };
 
 export const startGame = (game, player) => {
+  if (game.status === GameStatus.STARTED) {
+    return makeErrorResult(GameError.GAME_ALREADY_STARTED);
+  }
   if (getAllPlayers(game).length < MINIMUM_NUMBER_OF_PLAYERS) {
     return makeErrorResult(GameError.NOT_ENOUGH_PLAYERS);
   }

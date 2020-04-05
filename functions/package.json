@@ -2,7 +2,7 @@
   "name": "functions",
   "description": "Cloud Functions for Firebase",
   "scripts": {
-    "serve": "firebase emulators:start --only functions,firestore",
+    "serve": "firebase emulators:start --only functions",
     "shell": "firebase functions:shell",
     "start": "npm run shell",
     "deploy": "firebase deploy --only functions",
@@ -12,6 +12,7 @@
     "node": "10"
   },
   "dependencies": {
+    "@google-cloud/pubsub": "^1.7.0",
     "apollo-server-express": "^2.11.0",
     "cors": "^2.8.5",
     "express": "^4.17.1",
