@@ -222,7 +222,7 @@ describe('Game', () => {
   });
 
   describe('complete hand', () => {
-    it('returns the hands for the player by removing cards from the deck when when no hands have been dealt yet', () => {
+    it('returns the hands for the player by removing cards from the deck when no hands have been dealt yet', () => {
       // arrange
       const shuffledDeck = new Array(50).fill().map(() => buildTestCard().build());
       const game = buildTestGame()
@@ -272,7 +272,7 @@ describe('Game', () => {
       };
 
       // act
-      const { events, value } = completeHands(game, { actualHandsByPlayerId });
+      const { events, value } = completeHands(game, { actualHandsByPlayerId, previousTurnId: 't1' });
 
       // assert
       expect(value.cards).toEqual(shuffledDeck.slice(totalNumberOfPlayers));
@@ -280,6 +280,7 @@ describe('Game', () => {
         handsCompletedEvent({
           gameId: game.id,
           handsByPlayerId: expectedHands,
+          previousTurnId: 't1',
         })
       );
     });

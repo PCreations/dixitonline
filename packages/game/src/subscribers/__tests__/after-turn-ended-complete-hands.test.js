@@ -7,7 +7,7 @@ import { makeNullGameRepository } from '../../repos';
 import { makeCompleteHands } from '../../useCases/complete-hands';
 
 describe('after turn ended subscriber', () => {
-  test('it should call the completeHands use case with the actual hands of the ended turn', async () => {
+  test('it should call the completeHands use case with the actual hands of the ended turn and its id', async () => {
     // arrange
     expect.assertions(1);
     const shuffledDeck = new Array(50).fill().map(() => buildTestCard().build());
@@ -61,6 +61,6 @@ describe('after turn ended subscriber', () => {
     ]);
 
     // assert
-    expect(completeHands).toHaveBeenCalledWith({ gameId: 'g1', actualHandsByPlayerId });
+    expect(completeHands).toHaveBeenCalledWith({ gameId: 'g1', actualHandsByPlayerId, previousTurnId: 't1' });
   });
 });

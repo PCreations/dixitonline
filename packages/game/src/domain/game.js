@@ -83,7 +83,7 @@ export const startGame = (game, player) => {
   return makeErrorResult(GameError.ONLY_HOST_CAN_START_GAME);
 };
 
-export const completeHands = (game, { cards, actualHandsByPlayerId }) => {
+export const completeHands = (game, { cards, actualHandsByPlayerId, previousTurnId }) => {
   const allPlayers = getAllPlayers(game);
   const actualCards = cards || game.cards;
   if (!actualHandsByPlayerId) {
@@ -124,7 +124,7 @@ export const completeHands = (game, { cards, actualHandsByPlayerId }) => {
       ...game,
       cards: actualCards.slice(allPlayers.length),
     }),
-    [handsCompletedEvent({ gameId: game.id, handsByPlayerId })]
+    [handsCompletedEvent({ gameId: game.id, handsByPlayerId, previousTurnId })]
   );
 };
 
