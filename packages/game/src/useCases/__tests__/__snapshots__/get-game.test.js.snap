@@ -8,7 +8,19 @@ Object {
       "id": "g1",
       "players": Array [
         Object {
-          "score": 0,
+          "score": 2,
+        },
+        Object {
+          "score": 4,
+        },
+        Object {
+          "score": 6,
+        },
+        Object {
+          "score": 9,
+        },
+        Object {
+          "score": 3,
         },
       ],
       "status": "WAITING_FOR_PLAYERS",
