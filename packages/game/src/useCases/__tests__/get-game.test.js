@@ -8,7 +8,7 @@ import { buildgameRepositoryInitialGames } from '../../__tests__/dataBuilders/ga
 import { buildTestPlayer } from '../../__tests__/dataBuilders/player';
 
 describe('getGame', () => {
-  test.only('gets a game by its id', async () => {
+  test('gets a game by its id', async () => {
     // arrange
     const host = buildTestPlayer()
       .withId('p1')
@@ -31,6 +31,7 @@ describe('getGame', () => {
       .withGames([
         buildTestGame()
           .withId('g1')
+          .withCards(54)
           .withHost(host)
           .withCurrentTurnId('t1')
           .withPlayers(players)
@@ -53,6 +54,7 @@ describe('getGame', () => {
         game(gameId: $gameId) {
           id
           currentTurnId
+          remainingTurns
           status
           players {
             score

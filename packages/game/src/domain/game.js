@@ -25,6 +25,7 @@ export const GameError = {
 
 export const MAXIMUM_NUMBER_OF_PLAYERS = 6;
 export const MINIMUM_NUMBER_OF_PLAYERS = 3;
+export const NUMBER_OF_CARDS_IN_A_DECK = 84;
 
 export const makeGame = ({
   id,
@@ -38,11 +39,14 @@ export const makeGame = ({
   if (!id) throw new Error('Game must contain an id');
   if (!host) throw new Error('Game must have an host');
 
+  const playersLength = players.length + 1;
+
   return Object.freeze({
     id,
     host,
     players,
     cards,
+    remainingTurns: Math.floor(cards.length / playersLength),
     score,
     status,
     currentTurn,
@@ -136,6 +140,7 @@ export const updateScore = (game, turnScore) => {
     }),
     {}
   );
+  console.log('updated score', newScore);
   return makeResult(
     makeGame({
       ...game,

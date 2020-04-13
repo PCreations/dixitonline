@@ -9,6 +9,7 @@ import {
   GameError,
   getAllPlayers,
   GameStatus,
+  NUMBER_OF_CARDS_IN_A_DECK,
 } from '../game';
 import { buildTestPlayer } from '../../__tests__/dataBuilders/player';
 import {
@@ -24,8 +25,14 @@ import { buildTestCard } from '../../__tests__/dataBuilders/card';
 describe('Game', () => {
   it('can be correctly created', () => {
     const host = buildTestPlayer().build();
-    const players = [buildTestPlayer().build(), buildTestPlayer().build(), buildTestPlayer().build()];
-    const cards = [buildTestCard().build(), buildTestCard().build(), buildTestCard().build()];
+    const players = [
+      buildTestPlayer().build(),
+      buildTestPlayer().build(),
+      buildTestPlayer().build(),
+      buildTestPlayer().build(),
+      buildTestPlayer().build(),
+    ];
+    const cards = new Array(48).fill().map(() => buildTestCard().build());
     const score = { [players[0].id]: 1, [players[1].id]: 3, [players[2].id]: 5 };
     const game = makeGame({
       id: '1',
@@ -44,10 +51,28 @@ describe('Game', () => {
       host,
       players,
       cards,
+      remainingTurns: 8,
       score,
       status: GameStatus.STARTED,
       currentTurn: { id: 't1', storytellerId: players[0].id },
     });
+  });
+  it('remainingTurns gets floored', () => {
+    const host = buildTestPlayer().build();
+    const players = [
+      buildTestPlayer().build(),
+      buildTestPlayer().build(),
+      buildTestPlayer().build(),
+      buildTestPlayer().build(),
+    ];
+    const cards = new Array(54).fill().map(() => buildTestCard().build());
+    const game = makeGame({
+      id: '1',
+      host,
+      players,
+      cards,
+    });
+    expect(game.remainingTurns).toEqual(10);
   });
   it('must be created with a status WAITING_FOR_PLAYERS by default, an empty cards array, an empty score map and currentTurnId null', () => {
     const host = buildTestPlayer().build();
@@ -59,6 +84,7 @@ describe('Game', () => {
       players,
       status: GameStatus.WAITING_FOR_PLAYERS,
       cards: [],
+      remainingTurns: 0,
       score: {},
       currentTurn: {
         id: null,
@@ -222,17 +248,20 @@ describe('Game', () => {
   });
 
   describe('complete hand', () => {
-    it('returns the hands for the player by removing cards from the deck when no hands have been dealt yet', () => {
+    it('returns the hands for the player by removing cards from the deck when no hands have been dealt yet and correctly computes the remaining turns number', () => {
       // arrange
-      const shuffledDeck = new Array(50).fill().map(() => buildTestCard().build());
+      const shuffledDeck = new Array(NUMBER_OF_CARDS_IN_A_DECK).fill().map(() => buildTestCard().build());
       const game = buildTestGame()
-        .withXPlayers(2)
+        .asFullGame()
         .withStartedStatus()
         .build();
-      const totalNumberOfPlayers = 3;
+      const totalNumberOfPlayers = 6;
       const expectedHostHand = shuffledDeck.slice(0, 6);
       const expectedPlayer1Hand = shuffledDeck.slice(6, 12);
       const expectedPlayer2Hand = shuffledDeck.slice(12, 18);
+      const expectedPlayer3Hand = shuffledDeck.slice(18, 24);
+      const expectedPlayer4Hand = shuffledDeck.slice(24, 30);
+      const expectedPlayer5Hand = shuffledDeck.slice(30, 36);
 
       // act
       const { events, value } = completeHands(game, { cards: shuffledDeck });
@@ -246,6 +275,9 @@ describe('Game', () => {
             [game.host.id]: expectedHostHand,
             [game.players[0].id]: expectedPlayer1Hand,
             [game.players[1].id]: expectedPlayer2Hand,
+            [game.players[2].id]: expectedPlayer3Hand,
+            [game.players[3].id]: expectedPlayer4Hand,
+            [game.players[4].id]: expectedPlayer5Hand,
           },
         })
       );

@@ -23,6 +23,7 @@ Object {
           "score": 3,
         },
       ],
+      "remainingTurns": 10,
       "status": "WAITING_FOR_PLAYERS",
     },
   },

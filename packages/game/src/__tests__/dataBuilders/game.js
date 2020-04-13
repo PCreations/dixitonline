@@ -1,6 +1,6 @@
 import faker from 'faker';
 import { buildTestPlayer } from './player';
-import { makeGame, MAXIMUM_NUMBER_OF_PLAYERS, GameStatus } from '../../domain/game';
+import { makeGame, MAXIMUM_NUMBER_OF_PLAYERS, GameStatus, NUMBER_OF_CARDS_IN_A_DECK } from '../../domain/game';
 
 const generatePlayers = numberOfPlayers => new Array(numberOfPlayers).fill().map(() => buildTestPlayer().build());
 
@@ -17,6 +17,13 @@ export const buildTestGame = (baseGame = {}) => {
   return {
     withId(id = defaultProperties.id) {
       overrides.id = id;
+      return this;
+    },
+    withCards(length = NUMBER_OF_CARDS_IN_A_DECK) {
+      overrides.cards = new Array(length).fill().map((_, index) => ({
+        id: `c${index}`,
+        url: `/cards/${index}.jpg`,
+      }));
       return this;
     },
     withCurrentTurnId(turnId) {
@@ -46,16 +53,16 @@ export const buildTestGame = (baseGame = {}) => {
       overrides.players = generatePlayers(numberOfPlayers);
       return this;
     },
-    withScore() {
+    withScore(scores = []) {
       const props = {
         ...defaultProperties,
         ...baseGame,
         ...overrides,
       };
       overrides.score = [props.host.id, ...props.players.map(p => p.id)].reduce(
-        (score, playerId) => ({
+        (score, playerId, index) => ({
           ...score,
-          [playerId]: faker.random.number(10),
+          [playerId]: scores[index] || faker.random.number(10),
         }),
         {}
       );

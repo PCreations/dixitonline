@@ -19,14 +19,18 @@ export const Game = objectType({
         return currentTurn.id;
       },
     });
+    t.int('remainingTurns');
     t.list.field('players', {
       type: Player,
       resolve(game) {
-        const score = { game };
-        return getAllPlayers(game).map(player => ({
-          ...player,
-          score: score[player.id],
-        }));
+        const { score } = game;
+        const players = getAllPlayers(game).map(player => {
+          return {
+            ...player,
+            score: score[player.id],
+          };
+        });
+        return players;
       },
     });
   },
