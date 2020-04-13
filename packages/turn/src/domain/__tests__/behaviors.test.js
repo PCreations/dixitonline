@@ -103,7 +103,7 @@ describe('behaviors', () => {
       expect(result.events).toEqual([expectedPlayerVotedEvent]);
       expect(turnReducer).toHaveBeenCalledWith(turnState, expectedPlayerVotedEvent);
     });
-    test.only('when the last player has voted, it should return a turnEnded event', () => {
+    test('when the last player has voted, it should return a turnEnded event', () => {
       // arrange
       const players = getTestPlayers();
       const turnState = buildTestTurn()

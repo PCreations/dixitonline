@@ -110,7 +110,7 @@ export const completeHands = (game, { cards, actualHandsByPlayerId, previousTurn
       [handsCompletedEvent({ gameId: game.id, handsByPlayerId })]
     );
   }
-  if (actualCards.length < allPlayers.length * 6) {
+  if (actualCards.length < allPlayers.length) {
     return makeResult(
       makeGame({
         ...game,

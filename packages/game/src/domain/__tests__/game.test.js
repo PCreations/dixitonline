@@ -318,7 +318,7 @@ describe('Game', () => {
     });
     it('returns a game ended event if there is not enough cards to complete hands', () => {
       // arrange
-      const shuffledDeck = new Array(15).fill().map(() => buildTestCard().build());
+      const shuffledDeck = new Array(2).fill().map(() => buildTestCard().build());
       const game = buildTestGame()
         .withXPlayers(2)
         .withStartedStatus()
