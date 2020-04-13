@@ -32,6 +32,10 @@ describe('getGame', () => {
         game(gameId: $gameId) {
           id
           currentTurnId
+          status
+          players {
+            score
+          }
         }
       }
     `;

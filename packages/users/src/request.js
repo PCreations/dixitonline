@@ -1,5 +1,6 @@
 export const makeRequest = ({ headers } = {}) => ({
   getBearerToken() {
+    console.log('headers', headers);
     if (!headers.authorization) return null;
     return headers.authorization.split('Bearer ')[1];
   },

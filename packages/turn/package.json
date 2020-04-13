@@ -26,6 +26,7 @@
     "merge-graphql-schemas": "^1.7.6",
     "nexus": "^0.12.0-rc.14",
     "redux": "^4.0.5",
+    "shortid": "^2.2.15",
     "uuid": "^7.0.2"
   }
 }

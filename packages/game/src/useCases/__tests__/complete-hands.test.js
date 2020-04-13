@@ -35,11 +35,16 @@ describe('complete hands', () => {
       gameId: game.id,
       cards: fooCards,
       actualHandsByPlayerId,
+      previousTurnId: 't1',
     });
 
     // assert
     expect(dispatchDomainEvents).toHaveBeenCalledWith(events);
     expect(saveGameSpy).toHaveBeenCalledWith(editedGame);
-    expect(completeHandsSpy).toHaveBeenCalledWith(game, { cards: fooCards, actualHandsByPlayerId });
+    expect(completeHandsSpy).toHaveBeenCalledWith(game, {
+      cards: fooCards,
+      actualHandsByPlayerId,
+      previousTurnId: 't1',
+    });
   });
 });

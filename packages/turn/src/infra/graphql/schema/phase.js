@@ -3,7 +3,9 @@ import { TurnPhase as TurnPhaseNameEnum } from '../../../domain/reducer';
 import { Card } from './card';
 
 export const mapPhaseStateToGraphQL = phase => ({
+  id: phase.id,
   name: phase.type,
+  storytellerId: phase.storytellerId,
   board: (phase.board || []).map(({ playerId, votes, ...card }) => ({
     card,
     playerId: playerId ?? null,
@@ -54,9 +56,11 @@ export const TurnPlayer = objectType({
 export const TurnPhase = objectType({
   name: 'TurnPhase',
   definition(t) {
+    t.id('id');
     t.field('name', {
       type: TurnPhaseName,
     });
+    t.id('storytellerId');
     t.string('clue');
     t.list.field('board', { type: BoardCard });
     t.list.field('hand', { type: Card });

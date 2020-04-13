@@ -8,7 +8,7 @@ import { buildTestHand } from '../../__tests__/dataBuilders/hand';
 
 let firebaseApp;
 
-describe('turnRepository', () => {
+describe.skip('turnRepository', () => {
   beforeEach(() => {
     firebaseApp = firebase.initializeTestApp({
       projectId: `${Math.floor(Math.random() * new Date())}`,
@@ -19,6 +19,7 @@ describe('turnRepository', () => {
   });
   it('can save a turn from a list of events', async () => {
     // arrange
+    expect.assertions(1);
     const players = [
       {
         id: 'p1',

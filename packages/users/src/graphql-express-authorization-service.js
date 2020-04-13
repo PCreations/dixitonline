@@ -35,6 +35,7 @@ export const makeGraphqlExpressAuthorizationService = ({
       const { uid } = await firebaseAuth.verifyIdToken(idToken);
       const currentUser = await firebaseAuth.getUser(uid);
 
+      console.log({ currentUser: { id: uid, username: currentUser.displayName } });
       return {
         id: uid,
         username: currentUser.displayName,

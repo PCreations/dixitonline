@@ -6,6 +6,12 @@ Object {
     "game": Object {
       "currentTurnId": "t1",
       "id": "g1",
+      "players": Array [
+        Object {
+          "score": 0,
+        },
+      ],
+      "status": "WAITING_FOR_PLAYERS",
     },
   },
   "errors": undefined,

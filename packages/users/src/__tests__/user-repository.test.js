@@ -17,7 +17,7 @@ describe('user repository', () => {
     // assert
     expect(user).toEqual({
       id: 'PThWfbR8ZGP1DL5l0434QJScETz2',
-      name: 'pcriulan',
+      name: 'Pierre Criulanscy',
     });
   });
 });

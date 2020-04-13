@@ -10,7 +10,7 @@ import { buildTestTurn } from '../../__tests__/dataBuilders/turn';
 import { mapPhaseStateToGraphQL } from '../../infra/graphql/schema/phase';
 
 describe('chose card', () => {
-  test('a player can chose one of its clue card to add to the board', async () => {
+  test('a player can chose one of its card to add to the board', async () => {
     // arrange
     const players = [
       {

@@ -5,5 +5,10 @@ export const Player = objectType({
   definition(t) {
     t.id('id');
     t.string('name');
+    t.int('score', {
+      resolve(player) {
+        return player.score ?? 0;
+      },
+    });
   },
 });
