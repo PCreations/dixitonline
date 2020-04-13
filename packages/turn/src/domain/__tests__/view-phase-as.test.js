@@ -21,7 +21,7 @@ const getTestPlayers = () => [
   },
 ];
 
-describe('view phase as', () => {
+describe.only('view phase as', () => {
   describe('storyteller phase', () => {
     test('view as storyteller', () => {
       // arrange
@@ -35,7 +35,9 @@ describe('view phase as', () => {
 
       // assert
       expect(phase).toEqual({
+        id: initialState.turn.id,
         type: TurnPhase.STORYTELLER,
+        storytellerId: 'p1',
         hand: players[0].hand,
         players: [
           {
@@ -68,8 +70,10 @@ describe('view phase as', () => {
 
       // assert
       expect(phase).toEqual({
+        id: initialState.turn.id,
         type: TurnPhase.STORYTELLER,
         hand: players[1].hand,
+        storytellerId: 'p1',
         players: [
           {
             id: 'p1',
@@ -104,9 +108,11 @@ describe('view phase as', () => {
 
       // assert
       expect(phase).toEqual({
+        id: initialState.turn.id,
         type: TurnPhase.PLAYERS_CARD_CHOICE,
         clue: initialState.turn.clue.text,
         hand: players[0].hand,
+        storytellerId: 'p1',
         players: [
           {
             id: 'p1',
@@ -140,8 +146,10 @@ describe('view phase as', () => {
 
       // assert
       expect(phase).toEqual({
+        id: initialState.turn.id,
         type: TurnPhase.PLAYERS_CARD_CHOICE,
         clue: initialState.turn.clue.text,
+        storytellerId: 'p1',
         hand: initialState.turn.handByPlayerId[players[1].id],
         players: [
           {
@@ -177,8 +185,10 @@ describe('view phase as', () => {
 
       // assert
       expect(phase).toEqual({
+        id: initialState.turn.id,
         type: TurnPhase.PLAYERS_VOTING,
         clue: initialState.turn.clue.text,
+        storytellerId: 'p1',
         board: initialState.turn.board.map(({ id, url }) => ({ id, url })),
         hand: initialState.turn.handByPlayerId[players[0].id],
         players: [
@@ -214,8 +224,10 @@ describe('view phase as', () => {
 
       // assert
       expect(phase).toEqual({
+        id: initialState.turn.id,
         type: TurnPhase.PLAYERS_VOTING,
         clue: initialState.turn.clue.text,
+        storytellerId: 'p1',
         board: initialState.turn.board.map(({ id, url }) => ({ id, url })),
         hand: initialState.turn.handByPlayerId[players[1].id],
         players: [
@@ -252,8 +264,10 @@ describe('view phase as', () => {
 
       // assert
       expect(phase).toEqual({
+        id: initialState.turn.id,
         type: TurnPhase.SCORING,
         clue: initialState.turn.clue.text,
+        storytellerId: 'p1',
         board: initialState.turn.board.map(({ votes, ...boardRest }) => ({
           ...boardRest,
           votes: votes.map(playerId => ({
