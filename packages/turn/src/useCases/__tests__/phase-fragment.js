@@ -1,6 +1,8 @@
 export const phaseFragment = `
+  id
   name
   clue
+  storytellerId
   board {
     card {
       id
