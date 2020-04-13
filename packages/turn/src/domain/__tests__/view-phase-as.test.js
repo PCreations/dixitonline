@@ -228,7 +228,9 @@ describe.only('view phase as', () => {
         type: TurnPhase.PLAYERS_VOTING,
         clue: initialState.turn.clue.text,
         storytellerId: 'p1',
-        board: initialState.turn.board.map(({ id, url }) => ({ id, url })),
+        board: initialState.turn.board
+          .filter(({ playerId }) => playerId !== players[1].id)
+          .map(({ id, url }) => ({ id, url })),
         hand: initialState.turn.handByPlayerId[players[1].id],
         players: [
           {

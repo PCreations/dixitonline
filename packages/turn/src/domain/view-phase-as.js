@@ -5,6 +5,8 @@ const buildPhaseView = (state = defaultState) => {
   return {
     withTurnPhase() {
       properties.type = state.turn.phase;
+      properties.id = state.turn.id;
+      properties.storytellerId = state.turn.storytellerId;
       return this;
     },
     withClue() {
@@ -15,8 +17,13 @@ const buildPhaseView = (state = defaultState) => {
       properties.hand = state.turn.handByPlayerId[playerId];
       return this;
     },
-    withBoardForVoting() {
-      const boardWithoutVotes = state.turn.board.map(({ id, url }) => ({ id, url }));
+    withBoardForVoting(viewedByPlayerId) {
+      const boardWithoutVotes = state.turn.board
+        .filter(({ playerId }) => {
+          if (viewedByPlayerId === state.turn.storytellerId) return true;
+          return playerId !== viewedByPlayerId;
+        })
+        .map(({ id, url }) => ({ id, url }));
       properties.board = boardWithoutVotes;
       return this;
     },
@@ -96,7 +103,7 @@ export const viewPhaseAs = (state = defaultState, playerId) => {
       return buildPhaseView(state)
         .withTurnPhase()
         .withClue()
-        .withBoardForVoting()
+        .withBoardForVoting(playerId)
         .withPlayerHand(playerId)
         .withPlayersAsReadyIfTheyHaveVoted()
         .build();
