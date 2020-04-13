@@ -12,9 +12,9 @@ const firebaseApp = admin.initializeApp({
 const eventEmitter = new EventEmitter();
 
 const dispatchDomainEvents = events =>
-  events.map(event => {
+  events.map((event, index) => {
     console.log('dispatching event', event);
-    eventEmitter.emit(event.type, event);
+    setTimeout(() => eventEmitter.emit(event.type, event), 1 + index);
   });
 
 const subscribeToDomainEvent = (type, callback) => {
@@ -29,6 +29,29 @@ const app = dixit({
   firebaseAuth: firebaseApp.auth(),
   dispatchDomainEvents,
   subscribeToDomainEvent,
+});
+
+app.get('/replayLastTurnEvents', (req, res) => {
+  const { turnId } = req.query;
+  firebaseApp
+    .firestore()
+    .collection('turns')
+    .doc(turnId)
+    .collection('events')
+    .orderBy('timestamp', 'desc')
+    .get()
+    .then(snapshot => {
+      if (snapshot.empty) {
+        res.status(500).send('Turn not found');
+      }
+      const events = [];
+      snapshot.forEach(eventDoc => {
+        const event = JSON.parse(eventDoc.data().eventData);
+        events.push(event);
+      });
+      dispatchDomainEvents([events[0]]);
+      res.json(events[0]);
+    });
 });
 
 // Create and Deploy Your First Cloud Functions
