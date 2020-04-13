@@ -6,9 +6,9 @@ export const makeAfterDeckShuffledSubscriber = ({ subscribeToDomainEvent, comple
   subscribeToDomainEvent(deckEvents.types.DECK_SHUFFLED, async deckShuffledEvent => {
     console.log(`[DECK_SHUFFLED] received in game after deck shuffled`);
     const { gameId, cards: deckCards } = deckShuffledEvent.payload;
-    const cards = deckCards.map(cardUrl => ({
+    const cards = deckCards.map(cardNumber => ({
       id: uuid(),
-      url: cardUrl,
+      url: `/cards/card_${cardNumber}.jpg`,
     }));
     await completeHands({ gameId, cards });
   });

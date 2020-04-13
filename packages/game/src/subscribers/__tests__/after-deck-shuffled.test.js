@@ -8,7 +8,7 @@ describe('after deck shuffled subscriber', () => {
   test('it should call the completeHands use case when the deck for this game has been shuffled', async () => {
     // arrange
     expect.assertions(1);
-    const cardsFromDecks = ['01.png', '02.png', '03.png', '04.png', '05.png'];
+    const cardsFromDecks = [1, 2, 3, 4, 5];
     const gameRepository = makeNullGameRepository({});
     const eventEmitter = new EventEmitter();
     const dispatchDomainEvents = events => events.map(event => eventEmitter.emit(event.type, event));
@@ -34,23 +34,23 @@ describe('after deck shuffled subscriber', () => {
       cards: [
         {
           id: 'someCardId',
-          url: '01.png',
+          url: '/cards/card_1.jpg',
         },
         {
           id: 'someCardId',
-          url: '02.png',
+          url: '/cards/card_2.jpg',
         },
         {
           id: 'someCardId',
-          url: '03.png',
+          url: '/cards/card_3.jpg',
         },
         {
           id: 'someCardId',
-          url: '04.png',
+          url: '/cards/card_4.jpg',
         },
         {
           id: 'someCardId',
-          url: '05.png',
+          url: '/cards/card_5.jpg',
         },
       ],
     });
