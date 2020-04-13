@@ -19,10 +19,18 @@ export const makeTurnRepository = ({ uuid = uuidv1, firestore }) => {
         .doc(turnId)
         .collection('events');
       return Promise.all(
-        events.map(event => {
-          return turnEventsCollection.add({
-            eventData: JSON.stringify(event),
-            timestamp: +new Date(),
+        events.map((event, index) => {
+          return new Promise(resolve => {
+            setTimeout(
+              () =>
+                resolve(
+                  turnEventsCollection.add({
+                    eventData: JSON.stringify(event),
+                    timestamp: +new Date(),
+                  })
+                ),
+              index * 10
+            );
           });
         })
       );

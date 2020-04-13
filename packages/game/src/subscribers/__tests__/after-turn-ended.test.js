@@ -2,12 +2,12 @@ import { EventEmitter } from 'events';
 import { events as turnEvents } from '@dixit/turn';
 import { buildTestCard } from '../../__tests__/dataBuilders/card';
 import { buildTestGame } from '../../__tests__/dataBuilders/game';
-import { makeAfterTurnEndedCompleteHandsSubscriber } from '../after-turn-ended-complete-hands';
+import { makeAfterTurnEndedSubscriber } from '../after-turn-ended';
 import { makeNullGameRepository } from '../../repos';
-import { makeCompleteHands } from '../../useCases/complete-hands';
+import { makeHandleTurnEnded } from '../../useCases/handle-turn-ended';
 
 describe('after turn ended subscriber', () => {
-  test('it should call the completeHands use case with the actual hands of the ended turn and its id', async () => {
+  test('it should call the handleCompleteHands use case with the correct params', async () => {
     // arrange
     expect.assertions(1);
     const shuffledDeck = new Array(50).fill().map(() => buildTestCard().build());
@@ -33,6 +33,11 @@ describe('after turn ended subscriber', () => {
         score: 6,
       },
     ];
+    const turnScore = {
+      [game.host.id]: 2,
+      [game.players[0].id]: 4,
+      [game.players[1].id]: 6,
+    };
     const actualHandsByPlayerId = playersWithHandAndScore.reduce(
       (hands, { playerId, hand }) => ({
         ...hands,
@@ -44,10 +49,10 @@ describe('after turn ended subscriber', () => {
     const eventEmitter = new EventEmitter();
     const dispatchDomainEvents = events => events.map(event => eventEmitter.emit(event.type, event));
     const subscribeToDomainEvent = eventEmitter.on.bind(eventEmitter);
-    const completeHands = jest.fn(makeCompleteHands({ gameRepository, dispatchDomainEvents }));
-    makeAfterTurnEndedCompleteHandsSubscriber({
+    const handleTurnEnded = jest.fn(makeHandleTurnEnded({ gameRepository, dispatchDomainEvents }));
+    makeAfterTurnEndedSubscriber({
       subscribeToDomainEvent,
-      completeHands,
+      handleTurnEnded,
     });
 
     // act
@@ -61,6 +66,11 @@ describe('after turn ended subscriber', () => {
     ]);
 
     // assert
-    expect(completeHands).toHaveBeenCalledWith({ gameId: 'g1', actualHandsByPlayerId, previousTurnId: 't1' });
+    expect(handleTurnEnded).toHaveBeenCalledWith({
+      gameId: 'g1',
+      actualHandsByPlayerId,
+      previousTurnId: 't1',
+      turnScore,
+    });
   });
 });

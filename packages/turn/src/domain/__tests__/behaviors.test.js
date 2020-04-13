@@ -103,7 +103,7 @@ describe('behaviors', () => {
       expect(result.events).toEqual([expectedPlayerVotedEvent]);
       expect(turnReducer).toHaveBeenCalledWith(turnState, expectedPlayerVotedEvent);
     });
-    test('when the last player has voted, it should return a turnEnded event', () => {
+    test.only('when the last player has voted, it should return a turnEnded event', () => {
       // arrange
       const players = getTestPlayers();
       const turnState = buildTestTurn()
@@ -123,7 +123,7 @@ describe('behaviors', () => {
         playersWithHandAndScore: players.map(p => ({
           playerId: p.id,
           hand: p.hand.slice(1),
-          score: 2,
+          score: p.id === players[0].id ? 0 : 2,
         })),
         gameId: 'g1',
       });
@@ -133,6 +133,8 @@ describe('behaviors', () => {
         playerId: activePlayer.id,
         cardId: storytellerCardOnBoard.id,
       });
+
+      expect(result.events[1]).toEqual(expectedTurnEndedEvent);
 
       // assert
       expect(result.events).toContainEqual(expectedTurnEndedEvent);

@@ -7,12 +7,15 @@ export const computeScore = ({ storytellerId, board }) => {
   const playersCount = board.length - 1;
   const storytellerCardVotes = board.filter(card => card.playerId === storytellerId).flatMap(card => card.votes);
   if (storytellerCardVotes.length === playersCount || storytellerCardVotes.length === 0) {
-    return board
-      .map(({ playerId, votes }) => ({
-        playerId,
-        score: playerId === storytellerId ? 0 : 2 + votes.length,
-      }))
+    const score = board
+      .map(({ playerId, votes }) => {
+        return {
+          playerId,
+          score: playerId === storytellerId ? 0 : 2 + votes.length,
+        };
+      })
       .reduce(toScore, {});
+    return score;
   }
   return board
     .map(({ playerId, votes }) => {

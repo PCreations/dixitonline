@@ -134,11 +134,12 @@ const turnPlayersVotingPhaseReducer = (state = defaultTurnState, event) => {
         storytellerId: newState.storytellerId,
         board: newState.board,
       });
-      return {
+      const newScoreState = {
         ...newState,
         phase: TurnPhase.SCORING,
         score,
       };
+      return newScoreState;
     }
   }
   return newState;

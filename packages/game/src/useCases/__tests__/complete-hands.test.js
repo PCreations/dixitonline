@@ -8,7 +8,7 @@ import { makeNullGameRepository } from '../../repos/game-repository';
 describe('complete hands', () => {
   it('correctly delegates to game object the behavior and dispatch the events', async () => {
     // arrange
-    const shuffledDeck = new Array(15).fill().map(() => buildTestCard().build());
+    const shuffledDeck = new Array(25).fill().map(() => buildTestCard().build());
     const game = buildTestGame()
       .withXPlayers(2)
       .withShuffledDeck(shuffledDeck)
@@ -28,12 +28,10 @@ describe('complete hands', () => {
     const completeHandsSpy = jest.spyOn(Game, 'completeHands');
     const dispatchDomainEvents = jest.fn();
     const completeHands = makeCompleteHands({ gameRepository, dispatchDomainEvents });
-    const fooCards = [];
 
     // act
     const { events, value: editedGame } = await completeHands({
       gameId: game.id,
-      cards: fooCards,
       actualHandsByPlayerId,
       previousTurnId: 't1',
     });
@@ -42,9 +40,9 @@ describe('complete hands', () => {
     expect(dispatchDomainEvents).toHaveBeenCalledWith(events);
     expect(saveGameSpy).toHaveBeenCalledWith(editedGame);
     expect(completeHandsSpy).toHaveBeenCalledWith(game, {
-      cards: fooCards,
       actualHandsByPlayerId,
       previousTurnId: 't1',
     });
+    expect(editedGame.cards.length).toEqual(22);
   });
 });

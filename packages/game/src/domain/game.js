@@ -41,6 +41,8 @@ export const makeGame = ({
 
   const playersLength = players.length + 1;
 
+  console.log(`building a game with ${cards.length} cards`);
+
   return Object.freeze({
     id,
     host,
@@ -89,7 +91,8 @@ export const startGame = (game, player) => {
 
 export const completeHands = (game, { cards, actualHandsByPlayerId, previousTurnId }) => {
   const allPlayers = getAllPlayers(game);
-  const actualCards = cards || game.cards;
+  const actualCards = cards ?? game.cards;
+  console.log('actualCards length', actualCards.length);
   if (!actualHandsByPlayerId) {
     const handsByPlayerId = allPlayers.reduce(
       (hands, player, playerIndex) => ({
@@ -123,6 +126,7 @@ export const completeHands = (game, { cards, actualHandsByPlayerId, previousTurn
     }),
     {}
   );
+  console.log('new actual cards length', actualCards.slice(allPlayers.length).length);
   return makeResult(
     makeGame({
       ...game,

@@ -30,7 +30,7 @@ export const vote = (turnState, { playerId, cardId }) => {
     const playersWithHandAndScore = Object.entries(newTurnState.turn.handByPlayerId).map(([handPlayerId, hand]) => ({
       playerId: handPlayerId,
       hand,
-      score: newTurnState.turn.score[playerId],
+      score: newTurnState.turn.score[handPlayerId],
     }));
     resultEvents.push(
       events.turnEnded({

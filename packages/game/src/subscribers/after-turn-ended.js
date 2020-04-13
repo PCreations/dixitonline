@@ -1,6 +1,6 @@
 import { events as turnEvents } from '@dixit/turn';
 
-export const makeAfterTurnEndedCompleteHandsSubscriber = ({ subscribeToDomainEvent, completeHands }) => {
+export const makeAfterTurnEndedSubscriber = ({ subscribeToDomainEvent, handleTurnEnded }) => {
   console.log('Subsribing to TURN_ENDED in game (complete hands');
   subscribeToDomainEvent(turnEvents.types.TURN_ENDED, async turnEndedEvent => {
     console.log(`[TURN_ENDED] received in game after turn ended complete hands`);
@@ -12,6 +12,13 @@ export const makeAfterTurnEndedCompleteHandsSubscriber = ({ subscribeToDomainEve
       }),
       {}
     );
-    await completeHands({ gameId, actualHandsByPlayerId, previousTurnId });
+    const turnScore = playersWithHandAndScore.reduce(
+      (scores, { playerId, score }) => ({
+        ...scores,
+        [playerId]: score,
+      }),
+      {}
+    );
+    await handleTurnEnded({ gameId, actualHandsByPlayerId, previousTurnId, turnScore });
   });
 };

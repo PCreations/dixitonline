@@ -12,9 +12,9 @@ const firebaseApp = admin.initializeApp({
 const eventEmitter = new EventEmitter();
 
 const dispatchDomainEvents = events =>
-  events.map((event, index) => {
+  events.map(event => {
     console.log('dispatching event', event);
-    setTimeout(() => eventEmitter.emit(event.type, event), 1 + index);
+    eventEmitter.emit(event.type, event);
   });
 
 const subscribeToDomainEvent = (type, callback) => {

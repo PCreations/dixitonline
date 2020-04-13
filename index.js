@@ -6,6 +6,7 @@ import { initialize as initializeDecks } from '@dixit/decks';
 import { GameTypes, initialize as initializeGame } from '@dixit/game';
 import { TurnTypes, initialize as initializeTurn } from '@dixit/turn';
 import { makeGraphqlExpressAuthorizationService } from '@dixit/users';
+import { SentryPlugin } from './sentry-plugin';
 
 const Query = queryType({
   definition() {},
@@ -38,6 +39,7 @@ export default ({ firestore, firebaseAuth, dispatchDomainEvents, subscribeToDoma
 
   const server = new ApolloServer({
     schema,
+    plugins: [SentryPlugin],
     dataSources: () => ({
       ...getGameDataSources(),
       ...getTurnDataSources(),
