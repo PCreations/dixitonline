@@ -1,5 +1,6 @@
 /* eslint-disable import/no-extraneous-dependencies */
 const path = require('path');
+const SentryWebpackPlugin = require('@sentry/webpack-plugin');
 require('@babel/register');
 
 // Webpack Configuration
@@ -26,7 +27,14 @@ const config = {
     ],
   },
   // Plugins
-  plugins: [],
+  plugins: [
+    new SentryWebpackPlugin({
+      include: '.',
+      ignoreFile: '.sentrycliignore',
+      ignore: ['node_modules', 'webpack.config.js'],
+      configFile: 'sentry.properties',
+    }),
+  ],
 };
 // Exports
 module.exports = config;
