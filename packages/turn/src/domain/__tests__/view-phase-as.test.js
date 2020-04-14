@@ -1,3 +1,4 @@
+import { shuffle as shuffleWithSeed } from 'shuffle-seed';
 import { buildTestHand } from '../../__tests__/dataBuilders/hand';
 import { buildTestTurn } from '../../__tests__/dataBuilders/turn';
 import { TurnPhase } from '../reducer';
@@ -174,6 +175,7 @@ describe('view phase as', () => {
   describe('players voting phase', () => {
     test('view as storyteller', () => {
       // arrange
+      const shuffle = toShuffle => shuffleWithSeed(toShuffle, 'seed');
       const players = getTestPlayers();
       const initialState = buildTestTurn()
         .withPlayers(players)
@@ -181,7 +183,7 @@ describe('view phase as', () => {
         .build();
 
       // act
-      const phase = viewPhaseAs(initialState, players[0].id);
+      const phase = viewPhaseAs(initialState, players[0].id, shuffle);
 
       // assert
       expect(phase).toEqual({
@@ -189,7 +191,7 @@ describe('view phase as', () => {
         type: TurnPhase.PLAYERS_VOTING,
         clue: initialState.turn.clue.text,
         storytellerId: 'p1',
-        board: initialState.turn.board.map(({ id, url }) => ({ id, url })),
+        board: shuffle(initialState.turn.board.map(({ id, url }) => ({ id, url }))),
         hand: initialState.turn.handByPlayerId[players[0].id],
         players: [
           {
@@ -212,6 +214,7 @@ describe('view phase as', () => {
     });
     test('view as a player when someone has played', () => {
       // arrange
+      const shuffle = toShuffle => shuffleWithSeed(toShuffle, 'seed');
       const players = getTestPlayers();
       const initialState = buildTestTurn()
         .withPlayers(players)
@@ -220,7 +223,7 @@ describe('view phase as', () => {
         .build();
 
       // act
-      const phase = viewPhaseAs(initialState, players[1].id);
+      const phase = viewPhaseAs(initialState, players[1].id, shuffle);
 
       // assert
       expect(phase).toEqual({
@@ -228,9 +231,11 @@ describe('view phase as', () => {
         type: TurnPhase.PLAYERS_VOTING,
         clue: initialState.turn.clue.text,
         storytellerId: 'p1',
-        board: initialState.turn.board
-          .filter(({ playerId }) => playerId !== players[1].id)
-          .map(({ id, url }) => ({ id, url })),
+        board: shuffle(
+          initialState.turn.board
+            .filter(({ playerId }) => playerId !== players[1].id)
+            .map(({ id, url }) => ({ id, url }))
+        ),
         hand: initialState.turn.handByPlayerId[players[1].id],
         players: [
           {

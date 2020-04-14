@@ -9,9 +9,10 @@ import { buildTestHand } from '../../__tests__/dataBuilders/hand';
 import { buildTestTurn } from '../../__tests__/dataBuilders/turn';
 import { mapPhaseStateToGraphQL } from '../../infra/graphql/schema/phase';
 
-describe('vote card', () => {
+describe.only('vote card', () => {
   test('a player can vote on one of the card in the board', async () => {
     // arrange
+
     const players = [
       {
         id: 'p1',
@@ -73,7 +74,11 @@ describe('vote card', () => {
       },
     });
     const editedTurn = await turnRepository.getTurnById('t1');
-    const expectedPhaseViewedAsPlayer = viewPhaseAs(editedTurn, players[1].id);
-    expect(response.data.turnVote.phase).toEqual(mapPhaseStateToGraphQL(expectedPhaseViewedAsPlayer));
+    const { board: expectedMappedBoard, ...expectedMappedPhase } = mapPhaseStateToGraphQL(
+      viewPhaseAs(editedTurn, players[1].id)
+    );
+    const { board: actualMappedBoard, ...actualMappedPhase } = response.data.turnVote.phase;
+    expect(expectedMappedPhase).toEqual(actualMappedPhase);
+    actualMappedBoard.forEach(boardCard => expect(actualMappedBoard).toContainEqual(boardCard));
   });
 });

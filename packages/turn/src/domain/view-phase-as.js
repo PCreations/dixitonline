@@ -1,6 +1,9 @@
+import { shuffle as shuffleWithSeed } from 'shuffle-seed';
 import { defaultState, TurnPhase } from './reducer';
 
-const buildPhaseView = (state = defaultState) => {
+const defaultShuffle = toShuffle => shuffleWithSeed(toShuffle, +new Date());
+
+const buildPhaseView = (state = defaultState, shuffle) => {
   const properties = {};
   return {
     withTurnPhase() {
@@ -18,12 +21,14 @@ const buildPhaseView = (state = defaultState) => {
       return this;
     },
     withBoardForVoting(viewedByPlayerId) {
-      const boardWithoutVotes = state.turn.board
-        .filter(({ playerId }) => {
-          if (viewedByPlayerId === state.turn.storytellerId) return true;
-          return playerId !== viewedByPlayerId;
-        })
-        .map(({ id, url }) => ({ id, url }));
+      const boardWithoutVotes = shuffle(
+        state.turn.board
+          .filter(({ playerId }) => {
+            if (viewedByPlayerId === state.turn.storytellerId) return true;
+            return playerId !== viewedByPlayerId;
+          })
+          .map(({ id, url }) => ({ id, url }))
+      );
       properties.board = boardWithoutVotes;
       return this;
     },
@@ -84,7 +89,7 @@ const buildPhaseView = (state = defaultState) => {
   };
 };
 
-export const viewPhaseAs = (state = defaultState, playerId) => {
+export const viewPhaseAs = (state = defaultState, playerId, shuffle = defaultShuffle) => {
   switch (state.turn.phase) {
     case TurnPhase.STORYTELLER:
       return buildPhaseView(state)
@@ -100,7 +105,7 @@ export const viewPhaseAs = (state = defaultState, playerId) => {
         .withPlayersAsReadyIfTheyHaveChosenACard()
         .build();
     case TurnPhase.PLAYERS_VOTING:
-      return buildPhaseView(state)
+      return buildPhaseView(state, shuffle)
         .withTurnPhase()
         .withClue()
         .withBoardForVoting(playerId)
