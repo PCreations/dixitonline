@@ -1,7 +1,7 @@
 import { shuffle as shuffleWithSeed } from 'shuffle-seed';
 import { defaultState, TurnPhase } from './reducer';
 
-const defaultShuffle = toShuffle => shuffleWithSeed(toShuffle, +new Date());
+const getDefaultShuffle = (state = defaultState) => toShuffle => shuffleWithSeed(toShuffle, state.turn.id);
 
 const buildPhaseView = (state = defaultState, shuffle) => {
   const properties = {};
@@ -89,7 +89,8 @@ const buildPhaseView = (state = defaultState, shuffle) => {
   };
 };
 
-export const viewPhaseAs = (state = defaultState, playerId, shuffle = defaultShuffle) => {
+export const viewPhaseAs = (state = defaultState, playerId, shuffle) => {
+  const shuffleFunction = shuffle || getDefaultShuffle(state);
   switch (state.turn.phase) {
     case TurnPhase.STORYTELLER:
       return buildPhaseView(state)
@@ -105,7 +106,7 @@ export const viewPhaseAs = (state = defaultState, playerId, shuffle = defaultShu
         .withPlayersAsReadyIfTheyHaveChosenACard()
         .build();
     case TurnPhase.PLAYERS_VOTING:
-      return buildPhaseView(state, shuffle)
+      return buildPhaseView(state, shuffleFunction)
         .withTurnPhase()
         .withClue()
         .withBoardForVoting(playerId)
