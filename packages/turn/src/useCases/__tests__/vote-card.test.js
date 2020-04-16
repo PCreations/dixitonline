@@ -9,7 +9,7 @@ import { buildTestHand } from '../../__tests__/dataBuilders/hand';
 import { buildTestTurn } from '../../__tests__/dataBuilders/turn';
 import { mapPhaseStateToGraphQL } from '../../infra/graphql/schema/phase';
 
-describe.only('vote card', () => {
+describe('vote card', () => {
   test('a player can vote on one of the card in the board', async () => {
     // arrange
 

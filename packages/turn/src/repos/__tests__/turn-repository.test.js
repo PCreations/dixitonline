@@ -132,6 +132,49 @@ describe('Null turnRepository', () => {
     // assert
     expect(nextTurnId).toBe('t1');
   });
+  it('can run in transaction', async () => {
+    // arrange
+    const players = [
+      {
+        id: 'p1',
+        name: 'player1',
+        hand: buildTestHand().build(),
+      },
+      {
+        id: 'p2',
+        name: 'player2',
+        hand: buildTestHand().build(),
+      },
+      {
+        id: 'p3',
+        name: 'player3',
+        hand: buildTestHand().build(),
+      },
+    ];
+    const turnStarted = events.turnStarted({
+      id: 't1',
+      gameId: 'g1',
+      storytellerId: players[0].id,
+      players,
+    });
+    const turnRepository = makeNullTurnRepository();
+    const expectedTurn = buildTestTurn()
+      .withId('t1')
+      .withGameId('g1')
+      .withPlayers(players)
+      .build();
+    await turnRepository.saveTurn('t1', [turnStarted]);
+
+    // act
+    const turn = await turnRepository.inTransaction(async ({ getTurnById, saveTurn }) => {
+      const t = await getTurnById('t1');
+      await saveTurn(t, []);
+      return t;
+    });
+
+    // assert
+    expect(turn).toEqual(expectedTurn);
+  });
   it('can be filled with turn history data', async () => {
     // arrange
     const players = [
