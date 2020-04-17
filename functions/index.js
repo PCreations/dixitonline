@@ -56,4 +56,9 @@ app.get('/replayLastTurnEvents', (req, res) => {
 
 // Create and Deploy Your First Cloud Functions
 // https://firebase.google.com/docs/functions/write-firebase-functions
-exports.api = functions.https.onRequest(app);
+exports.api = functions
+  .runWith({
+    timeoutSeconds: 60,
+    memory: '1GB',
+  })
+  .https.onRequest(app);
