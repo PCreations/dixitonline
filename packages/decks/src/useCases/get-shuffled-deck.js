@@ -1,6 +1,6 @@
 import { events } from '../events';
 
-const CARDS_IN_DECK = 152;
+const CARDS_IN_DECK = 193;
 const NUMBER_OF_CARDS_FOR_GAME_DECK = 84;
 
 export const makeGetShuffledDeck = ({ shuffle, dispatchDomainEvents }) => async ({ gameId }) => {
