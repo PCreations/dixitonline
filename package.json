@@ -7,7 +7,6 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "create-graphql-package": "node ./scripts/create-graphql-package.js",
     "build": "yarn workspaces run build && yarn workspaces run hoist-build",
     "deploy": "yarn jest && webpack --config webpack.config.js --mode production --progress && cd functions && npm run deploy",
     "serve": "yarn webpack --config webpack.config.js --mode development --progress && cd functions && npm run serve"

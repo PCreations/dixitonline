@@ -33,6 +33,13 @@ export const buildTestGame = (baseGame = {}) => {
       };
       return this;
     },
+    withCurrentTurnNumber(turnNumber) {
+      overrides.currentTurn = {
+        ...(overrides.currentTurn || {}),
+        number: turnNumber,
+      };
+      return this;
+    },
     withStartedStatus() {
       overrides.status = GameStatus.STARTED;
       return this;
@@ -70,6 +77,18 @@ export const buildTestGame = (baseGame = {}) => {
     },
     asFullGame() {
       overrides.players = generatePlayers(MAXIMUM_NUMBER_OF_PLAYERS - 1);
+      return this;
+    },
+    withXtimesStorytellerLimit(xTimesStorytellerLimit) {
+      overrides.endCondition = {
+        xTimesStorytellerLimit,
+      };
+      return this;
+    },
+    withScoreLimit(limit) {
+      overrides.endCondition = {
+        scoreLimit: limit,
+      };
       return this;
     },
     build() {

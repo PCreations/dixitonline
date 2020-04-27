@@ -29,6 +29,11 @@ describe('create new game', () => {
               id
               name
             }
+            endCondition {
+              ... on GameRemainingTurnsEndCondition {
+                remainingTurns
+              }
+            }
           }
         }
       }
@@ -47,8 +52,64 @@ describe('create new game', () => {
     const response = await mutate({ mutation: GAME_CREATE_GAME });
 
     // assert
-    const createdGame = await gameRepository.getGameById('g1');
     expect(response).toMatchSnapshot();
+    const createdGame = await gameRepository.getGameById('g1');
+    expect(createdGame).toEqual(expectedGame);
+    expect(dispatchDomainEvents).toHaveBeenCalledWith([newGameCreatedEvent({ gameId: 'g1' })]);
+  });
+  it('creates a new game with x times being storyteller as end condition', async () => {
+    // arrange
+    const dispatchDomainEvents = jest.fn();
+    const gameRepository = makeNullGameRepository({ nextGameId: 'g1' });
+    const server = makeTestServer({
+      getDataSources: makeGetDataSources({
+        gameRepository,
+      }),
+      dispatchDomainEvents,
+      currentUserId: 'p1',
+      currentUserUsername: 'player1',
+    });
+    const GAME_CREATE_GAME = gql`
+      mutation GameCreateGame($createGameWithEndingConditionInput: GameCreateGameWithEndingConditionInput!) {
+        gameCreateGameWithEndingCondition(createGameWithEndingConditionInput: $createGameWithEndingConditionInput) {
+          game {
+            id
+            host {
+              id
+              name
+            }
+            endCondition {
+              ... on GameRemainingTurnsEndCondition {
+                remainingTurns
+              }
+            }
+          }
+        }
+      }
+    `;
+    const host = buildTestPlayer()
+      .withId('p1')
+      .withName('player1')
+      .build();
+    const expectedGame = buildTestGame()
+      .withId('g1')
+      .withHost(host)
+      .build();
+
+    // act
+    const { mutate } = createTestClient(server);
+    const response = await mutate({
+      mutation: GAME_CREATE_GAME,
+      variables: {
+        createGameWithEndingConditionInput: {
+          timesBeingStoryteller: 4,
+        },
+      },
+    });
+
+    // assert
+    expect(response).toMatchSnapshot();
+    const createdGame = await gameRepository.getGameById('g1');
     expect(createdGame).toEqual(expectedGame);
     expect(dispatchDomainEvents).toHaveBeenCalledWith([newGameCreatedEvent({ gameId: 'g1' })]);
   });

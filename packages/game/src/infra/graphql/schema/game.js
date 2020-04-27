@@ -1,10 +1,34 @@
-import { objectType, enumType } from 'nexus';
+import { objectType, enumType, unionType } from 'nexus';
 import { Player } from './player';
-import { getAllPlayers, GameStatus as DomainGameStatus } from '../../../domain/game';
+import { getAllPlayers, getEndCondition, GameStatus as DomainGameStatus } from '../../../domain/game';
 
 export const GameStatus = enumType({
   name: 'GameStatus',
   members: DomainGameStatus,
+});
+
+export const RemainingTurnsEndCondition = objectType({
+  name: 'GameRemainingTurnsEndCondition',
+  definition(t) {
+    t.int('remainingTurns');
+  },
+});
+
+export const ScoreLimitEndCondition = objectType({
+  name: 'GameScoreLimitEndCondition',
+  definition(t) {
+    t.int('scoreLimit');
+  },
+});
+
+export const GameEndCondition = unionType({
+  name: 'GameEndCondition',
+  definition(t) {
+    t.members(RemainingTurnsEndCondition, ScoreLimitEndCondition);
+    t.resolveType(obj =>
+      typeof obj.remainingTurns === 'undefined' ? 'GameScoreLimitEndCondition' : 'GameRemainingTurnsEndCondition'
+    );
+  },
 });
 
 export const Game = objectType({
@@ -19,7 +43,15 @@ export const Game = objectType({
         return currentTurn.id;
       },
     });
-    t.int('remainingTurns');
+    t.int('remainingTurns', {
+      deprecation: 'use endCondition instead',
+    });
+    t.field('endCondition', {
+      type: GameEndCondition,
+      resolve(game) {
+        return getEndCondition(game);
+      },
+    });
     t.list.field('players', {
       type: Player,
       resolve(game) {

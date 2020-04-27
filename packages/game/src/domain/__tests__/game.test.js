@@ -1,5 +1,6 @@
 import {
   makeGame,
+  getEndCondition,
   createGame,
   joinPlayer,
   startGame,
@@ -10,6 +11,7 @@ import {
   getAllPlayers,
   GameStatus,
   NUMBER_OF_CARDS_IN_A_DECK,
+  DEFAULT_END_CONDITION,
 } from '../game';
 import { buildTestPlayer } from '../../__tests__/dataBuilders/player';
 import {
@@ -45,36 +47,24 @@ describe('Game', () => {
         id: 't1',
         storytellerId: players[0].id,
       },
+      endCondition: {
+        xTimesStorytellerLimit: 2,
+      },
     });
     expect(game).toEqual({
       id: '1',
       host,
       players,
       cards,
-      remainingTurns: 8,
       score,
       status: GameStatus.STARTED,
       currentTurn: { id: 't1', storytellerId: players[0].id },
+      endCondition: {
+        xTimesStorytellerLimit: 2,
+      },
     });
   });
-  it('remainingTurns gets floored', () => {
-    const host = buildTestPlayer().build();
-    const players = [
-      buildTestPlayer().build(),
-      buildTestPlayer().build(),
-      buildTestPlayer().build(),
-      buildTestPlayer().build(),
-    ];
-    const cards = new Array(54).fill().map(() => buildTestCard().build());
-    const game = makeGame({
-      id: '1',
-      host,
-      players,
-      cards,
-    });
-    expect(game.remainingTurns).toEqual(10);
-  });
-  it('must be created with a status WAITING_FOR_PLAYERS by default, an empty cards array, an empty score map and currentTurnId null', () => {
+  it('must be created with a status WAITING_FOR_PLAYERS by default, an empty cards array, an empty score map and currentTurnId null and the default remaining turns strategy', () => {
     const host = buildTestPlayer().build();
     const players = [buildTestPlayer().build(), buildTestPlayer().build()];
     const game = makeGame({ id: '1', host, players });
@@ -84,13 +74,33 @@ describe('Game', () => {
       players,
       status: GameStatus.WAITING_FOR_PLAYERS,
       cards: [],
-      remainingTurns: 0,
       score: {},
       currentTurn: {
         id: null,
         storytellerId: null,
+        number: 0,
       },
+      endCondition: DEFAULT_END_CONDITION,
     });
+  });
+  it('must be created with a valid end condition', () => {
+    expect(() =>
+      makeGame(
+        buildTestGame()
+          .withXtimesStorytellerLimit(2)
+          .build()
+      )
+    ).not.toThrow();
+    expect(() =>
+      makeGame(
+        buildTestGame()
+          .withScoreLimit(30)
+          .build()
+      )
+    ).not.toThrow();
+    expect(() => makeGame(buildTestGame({ endCondition: 'not valid' }).build())).toThrow(
+      'Invalid end condition, received "not valid"'
+    );
   });
   it('must have an id', () => {
     expect(() => makeGame({ id: undefined })).toThrow('Game must contain an id');
@@ -105,19 +115,94 @@ describe('Game', () => {
     expect(game.players).toEqual([]);
   });
 
+  describe('getEndCondition', () => {
+    describe('default end condition', () => {
+      it('returns the remaining turns until the deck is empty', () => {
+        // arrange
+        const game = buildTestGame()
+          .withXPlayers(5)
+          .withCards(48)
+          .withStartedStatus()
+          .build();
+
+        // act
+        const endCondition = getEndCondition(game);
+
+        // assert
+        expect(endCondition).toEqual({
+          remainingTurns: 8,
+        });
+      });
+      it('floors the remaining turns', () => {
+        // arrange
+        const game = buildTestGame()
+          .withXPlayers(4)
+          .withCards(54)
+          .withStartedStatus()
+          .build();
+
+        // act
+        const endCondition = getEndCondition(game);
+
+        // assert
+        expect(endCondition).toEqual({
+          remainingTurns: 10,
+        });
+      });
+    });
+    describe('x times storyteller condition', () => {
+      it.each`
+        xTimesStorytellerLimit | currentTurnNumber | playersCount | expectedRemainingTurns
+        ${1}                   | ${1}              | ${4}         | ${3}
+        ${1}                   | ${4}              | ${4}         | ${0}
+        ${2}                   | ${1}              | ${4}         | ${7}
+        ${2}                   | ${5}              | ${4}         | ${3}
+      `(
+        'given a game with $playersCount players and the xTimesStorytellerLimit is $xTimesStorytellerLimit, when the current turn number is $currentTurnNumber then the remainingTurns is $expectedRemainingTurns',
+        ({ xTimesStorytellerLimit, playersCount, currentTurnNumber, expectedRemainingTurns }) => {
+          const game = buildTestGame()
+            .withXPlayers(playersCount - 1)
+            .withXtimesStorytellerLimit(xTimesStorytellerLimit)
+            .withCurrentTurnNumber(currentTurnNumber)
+            .build();
+          expect(getEndCondition(game)).toEqual({
+            remainingTurns: expectedRemainingTurns,
+          });
+        }
+      );
+    });
+    describe('score limit condition', () => {
+      it('returns the score limit', () => {
+        // arrange
+        const game = buildTestGame()
+          .withScoreLimit(30)
+          .build();
+
+        // act
+        const endCondition = getEndCondition(game);
+
+        // assert
+        expect(endCondition).toEqual({
+          scoreLimit: 30,
+        });
+      });
+    });
+  });
+
   describe('create game', () => {
     it('creates a game', () => {
       // arrange
       const host = buildTestPlayer().build();
 
       // act
-      const result = createGame({ gameId: 'g1', host });
+      const result = createGame({ gameId: 'g1', host, endCondition: { xTimesStorytellerLimit: 2 } });
 
       // assert
       expect({ ...result.value }).toEqual({
         ...buildTestGame()
           .withId('g1')
           .withHost(host)
+          .withXtimesStorytellerLimit(2)
           .build(),
       });
       expect(result.events).toEqual([newGameCreatedEvent({ gameId: 'g1' })]);

@@ -54,7 +54,12 @@ describe('getGame', () => {
         game(gameId: $gameId) {
           id
           currentTurnId
-          remainingTurns
+          endCondition {
+            __typename
+            ... on GameRemainingTurnsEndCondition {
+              remainingTurns
+            }
+          }
           status
           players {
             score

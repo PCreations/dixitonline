@@ -9,6 +9,8 @@ import {
 import { equals as playerEquals } from './player';
 import { makeResult, makeErrorResult } from './result';
 
+export const DEFAULT_END_CONDITION = {};
+
 export const GameStatus = {
   WAITING_FOR_PLAYERS: 'WAITING_FOR_PLAYERS',
   STARTED: 'STARTED',
@@ -34,12 +36,17 @@ export const makeGame = ({
   score = {},
   players = [],
   status = GameStatus.WAITING_FOR_PLAYERS,
-  currentTurn = { id: null, storytellerId: null },
+  currentTurn = { id: null, storytellerId: null, number: 0 },
+  endCondition = DEFAULT_END_CONDITION,
 } = {}) => {
   if (!id) throw new Error('Game must contain an id');
   if (!host) throw new Error('Game must have an host');
-
-  const playersLength = players.length + 1;
+  if (
+    endCondition !== DEFAULT_END_CONDITION &&
+    typeof endCondition.xTimesStorytellerLimit === 'undefined' &&
+    typeof endCondition.scoreLimit === 'undefined'
+  )
+    throw new Error(`Invalid end condition, received "${endCondition}"`);
 
   console.log(`building a game with ${cards.length} cards`);
 
@@ -48,7 +55,7 @@ export const makeGame = ({
     host,
     players,
     cards,
-    remainingTurns: Math.floor(cards.length / playersLength),
+    endCondition,
     score,
     status,
     currentTurn,
@@ -57,10 +64,28 @@ export const makeGame = ({
 
 export const getAllPlayers = game => [game.host, ...game.players];
 
+export const getEndCondition = game => {
+  const allPlayersLength = getAllPlayers(game).length;
+  if (typeof game.endCondition.xTimesStorytellerLimit !== 'undefined') {
+    return {
+      remainingTurns: allPlayersLength * game.endCondition.xTimesStorytellerLimit - game.currentTurn.number,
+    };
+  }
+  if (typeof game.endCondition.scoreLimit !== 'undefined') {
+    return {
+      scoreLimit: game.endCondition.scoreLimit,
+    };
+  }
+  return {
+    remainingTurns: Math.floor(game.cards.length / allPlayersLength),
+  };
+};
+
 const isGameFull = game => getAllPlayers(game).length === MAXIMUM_NUMBER_OF_PLAYERS;
 
-export const createGame = ({ gameId, host }) =>
-  makeResult(makeGame({ id: gameId, host }), [newGameCreatedEvent({ gameId })]);
+export const createGame = ({ gameId, host, endCondition }) => {
+  return makeResult(makeGame({ id: gameId, host, endCondition }), [newGameCreatedEvent({ gameId })]);
+};
 
 export const joinPlayer = (game, player) => {
   if (getAllPlayers(game).some(playerEquals.bind(null, player))) return makeErrorResult(GameError.GAME_ALREADY_JOINED);

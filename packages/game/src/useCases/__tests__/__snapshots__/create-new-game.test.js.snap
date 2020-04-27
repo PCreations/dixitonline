@@ -5,6 +5,35 @@ Object {
   "data": Object {
     "gameCreateGame": Object {
       "game": Object {
+        "endCondition": Object {
+          "remainingTurns": 0,
+        },
+        "host": Object {
+          "id": "p1",
+          "name": "player1",
+        },
+        "id": "g1",
+      },
+    },
+  },
+  "errors": undefined,
+  "extensions": undefined,
+  "http": Object {
+    "headers": Headers {
+      Symbol(map): Object {},
+    },
+  },
+}
+`;
+
+exports[`create new game creates a new game with x times being storyteller as end condition 1`] = `
+Object {
+  "data": Object {
+    "gameCreateGameWithEndingCondition": Object {
+      "game": Object {
+        "endCondition": Object {
+          "remainingTurns": 4,
+        },
         "host": Object {
           "id": "p1",
           "name": "player1",
