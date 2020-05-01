@@ -12,6 +12,7 @@ import {
   GameStatus,
   NUMBER_OF_CARDS_IN_A_DECK,
   DEFAULT_END_CONDITION,
+  makeNullCards,
 } from '../game';
 import { buildTestPlayer } from '../../__tests__/dataBuilders/player';
 import {
@@ -73,7 +74,7 @@ describe('Game', () => {
       host,
       players,
       status: GameStatus.WAITING_FOR_PLAYERS,
-      cards: [],
+      cards: makeNullCards(),
       score: {},
       currentTurn: {
         id: null,
@@ -207,6 +208,22 @@ describe('Game', () => {
       });
       expect(result.events).toEqual([newGameCreatedEvent({ gameId: 'g1' })]);
       expect(result.error).toBeUndefined();
+    });
+    it("can't be created with a xTimesStorytellerLimit set to number < 1", () => {
+      // arrange
+      const host = buildTestPlayer().build();
+
+      // act
+      const { error } = createGame({
+        gameId: 'g1',
+        host,
+        endCondition: {
+          xTimesStorytellerLimit: -1,
+        },
+      });
+
+      // assert
+      expect(error).toEqual(GameError.X_TIMES_STORYTELLER_CANT_BE_LESS_THAN_ONE);
     });
   });
 
@@ -429,40 +446,68 @@ describe('Game', () => {
   });
 
   describe('update score', () => {
-    // arrange
-    const game = buildTestGame()
-      .withXPlayers(2)
-      .withScore()
-      .build();
-    const turnScore = {
-      [game.host.id]: 2,
-      [game.players[0].id]: 1,
-      [game.players[1].id]: 5,
-    };
+    test('correctly updates the score', () => {
+      // arrange
+      const game = buildTestGame()
+        .withXPlayers(2)
+        .withScore()
+        .build();
+      const turnScore = {
+        [game.host.id]: 2,
+        [game.players[0].id]: 1,
+        [game.players[1].id]: 5,
+      };
 
-    // act
-    const { value: editedGame } = updateScore(game, turnScore);
+      // act
+      const { value: editedGame } = updateScore(game, turnScore);
 
-    // assert
-    expect(editedGame.score).toEqual({
-      [game.host.id]: game.score[game.host.id] + 2,
-      [game.players[0].id]: game.score[game.players[0].id] + 1,
-      [game.players[1].id]: game.score[game.players[1].id] + 5,
+      // assert
+      expect(editedGame.score).toEqual({
+        [game.host.id]: game.score[game.host.id] + 2,
+        [game.players[0].id]: game.score[game.players[0].id] + 1,
+        [game.players[1].id]: game.score[game.players[1].id] + 5,
+      });
+    });
+    test('ends the game if the score limit is reached', () => {
+      // arrange
+      const game = buildTestGame()
+        .withXPlayers(2)
+        .withCards(48)
+        .withScoreLimit(30)
+        .withScore([10, 20, 25])
+        .build();
+      const turnScore = {
+        [game.host.id]: 2,
+        [game.players[0].id]: 1,
+        [game.players[1].id]: 5,
+      };
+
+      // act
+      const { value: editedGame, events } = updateScore(game, turnScore);
+
+      // assert
+      expect(editedGame.status).toEqual(GameStatus.ENDED);
+      expect(events).toEqual([gameEndedEvent({ gameId: game.id })]);
     });
   });
 
   describe('set current turn', () => {
     // arrange
-    const game = buildTestGame().build();
+    const game = buildTestGame()
+      .withCurrentTurnNumber(1)
+      .build();
     const currentTurn = {
       id: 't1',
-      storytellerId: 'p1',
+      storytellerId: 'p2',
     };
 
     // act
     const { value: editedGame } = setCurrentTurn(game, currentTurn);
 
     // assert
-    expect(editedGame.currentTurn).toEqual(currentTurn);
+    expect(editedGame.currentTurn).toEqual({
+      ...currentTurn,
+      number: 2,
+    });
   });
 });

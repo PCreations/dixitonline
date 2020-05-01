@@ -1,6 +1,12 @@
 import faker from 'faker';
 import { buildTestPlayer } from './player';
-import { makeGame, MAXIMUM_NUMBER_OF_PLAYERS, GameStatus, NUMBER_OF_CARDS_IN_A_DECK } from '../../domain/game';
+import {
+  makeGame,
+  MAXIMUM_NUMBER_OF_PLAYERS,
+  GameStatus,
+  NUMBER_OF_CARDS_IN_A_DECK,
+  makeNullCards,
+} from '../../domain/game';
 
 const generatePlayers = numberOfPlayers => new Array(numberOfPlayers).fill().map(() => buildTestPlayer().build());
 
@@ -9,7 +15,7 @@ export const buildTestGame = (baseGame = {}) => {
     id: faker.random.uuid(),
     host: buildTestPlayer().build(),
     players: [],
-    cards: [],
+    cards: makeNullCards(),
     score: {},
     status: GameStatus.WAITING_FOR_PLAYERS,
   };

@@ -2,6 +2,7 @@ import {
   defaultEndingConditionStrategy,
   xTimesStorytellerEndingConditionsStrategy,
   scoreLimitEndingCondition,
+  getEndingConditionStrategy,
 } from '../end-condition-strategies';
 import { buildTestGame } from '../../__tests__/dataBuilders/game';
 
@@ -114,6 +115,45 @@ describe('ending condition strategies', () => {
       .build();
     expect(scoreLimitEndingCondition(game)).toEqual({
       isGameEnded: true,
+    });
+  });
+
+  describe('get ending condition strategy', () => {
+    it('gets the default conditions strategy when the endCondition is default', () => {
+      // arrange
+      const game = buildTestGame().build();
+
+      // act
+      const strategy = getEndingConditionStrategy(game);
+
+      // assert
+      expect(strategy).toBe(defaultEndingConditionStrategy);
+    });
+
+    it('gets the score limit strategy when the endCondition is scoreLimit', () => {
+      // arrange
+      const game = buildTestGame()
+        .withScoreLimit(30)
+        .build();
+
+      // act
+      const strategy = getEndingConditionStrategy(game);
+
+      // assert
+      expect(strategy).toBe(scoreLimitEndingCondition);
+    });
+
+    it('gets the xTimesStoryteller strategy when the endCondition is xTimesStorytellerLimit', () => {
+      // arrange
+      const game = buildTestGame()
+        .withXtimesStorytellerLimit(2)
+        .build();
+
+      // act
+      const strategy = getEndingConditionStrategy(game);
+
+      // assert
+      expect(strategy).toBe(xTimesStorytellerEndingConditionsStrategy);
     });
   });
 });

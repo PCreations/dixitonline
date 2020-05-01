@@ -70,17 +70,23 @@ describe('create new game', () => {
       currentUserUsername: 'player1',
     });
     const GAME_CREATE_GAME = gql`
-      mutation GameCreateGame($createGameWithEndingConditionInput: GameCreateGameWithEndingConditionInput!) {
-        gameCreateGameWithEndingCondition(createGameWithEndingConditionInput: $createGameWithEndingConditionInput) {
-          game {
-            id
-            host {
+      mutation GameCreateGame(
+        $createGameWithXtimesStorytellerEndingConditionInput: GameCreateGameWithXtimesStorytellerEndingConditionInput!
+      ) {
+        gameCreateGameWithXtimesStorytellerEndingCondition(
+          createGameWithXtimesStorytellerEndingConditionInput: $createGameWithXtimesStorytellerEndingConditionInput
+        ) {
+          ... on GameCreateGameWithXtimesStorytellerEndingConditionResultSuccess {
+            game {
               id
-              name
-            }
-            endCondition {
-              ... on GameRemainingTurnsEndCondition {
-                remainingTurns
+              host {
+                id
+                name
+              }
+              endCondition {
+                ... on GameRemainingTurnsEndCondition {
+                  remainingTurns
+                }
               }
             }
           }
@@ -101,7 +107,7 @@ describe('create new game', () => {
     const response = await mutate({
       mutation: GAME_CREATE_GAME,
       variables: {
-        createGameWithEndingConditionInput: {
+        createGameWithXtimesStorytellerEndingConditionInput: {
           timesBeingStoryteller: 4,
         },
       },
@@ -112,5 +118,46 @@ describe('create new game', () => {
     const createdGame = await gameRepository.getGameById('g1');
     expect(createdGame).toEqual(expectedGame);
     expect(dispatchDomainEvents).toHaveBeenCalledWith([newGameCreatedEvent({ gameId: 'g1' })]);
+  });
+  it("can't create a new game with x times being storyteller set as 0", async () => {
+    // arrange
+    const dispatchDomainEvents = jest.fn();
+    const gameRepository = makeNullGameRepository({ nextGameId: 'g1' });
+    const server = makeTestServer({
+      getDataSources: makeGetDataSources({
+        gameRepository,
+      }),
+      dispatchDomainEvents,
+      currentUserId: 'p1',
+      currentUserUsername: 'player1',
+    });
+    const GAME_CREATE_GAME = gql`
+      mutation GameCreateGame(
+        $createGameWithXtimesStorytellerEndingConditionInput: GameCreateGameWithXtimesStorytellerEndingConditionInput!
+      ) {
+        gameCreateGameWithXtimesStorytellerEndingCondition(
+          createGameWithXtimesStorytellerEndingConditionInput: $createGameWithXtimesStorytellerEndingConditionInput
+        ) {
+          ... on GameCreateGameWithXtimesStorytellerEndingConditionResultError {
+            type
+          }
+        }
+      }
+    `;
+
+    // act
+    const { mutate } = createTestClient(server);
+    const response = await mutate({
+      mutation: GAME_CREATE_GAME,
+      variables: {
+        createGameWithXtimesStorytellerEndingConditionInput: {
+          timesBeingStoryteller: 0,
+        },
+      },
+    });
+
+    // assert
+    expect(response).toMatchSnapshot();
+    expect(dispatchDomainEvents).not.toHaveBeenCalled();
   });
 });

@@ -1,11 +1,26 @@
-import { mutationField, objectType, inputObjectType } from 'nexus';
+import { mutationField, objectType, inputObjectType, enumType, unionType } from 'nexus';
 import { Game } from '../game';
 import { makeCreateNewGame } from '../../../../useCases/create-new-game';
 import { makePlayer } from '../../../../domain/player';
+import { GameError } from '../../../../domain/game';
 import { makeHandleUseCaseResult } from '../../handle-use-case-result';
 
-export const CreateGameWithEndingConditionResult = objectType({
-  name: 'GameCreateGameWithEndingConditionResult',
+export const CreateGameWithXtimesStorytellerEndingConditionError = enumType({
+  name: 'GameCreateGameWithXtimesStorytellerEndingConditionError',
+  members: [GameError.X_TIMES_STORYTELLER_CANT_BE_LESS_THAN_ONE],
+});
+
+export const CreateGameWithXtimesStorytellerEndingConditionResultError = objectType({
+  name: 'GameCreateGameWithXtimesStorytellerEndingConditionResultError',
+  definition(t) {
+    t.field('type', {
+      type: CreateGameWithXtimesStorytellerEndingConditionError,
+    });
+  },
+});
+
+export const CreateGameWithXtimesStorytellerEndingConditionResultSuccess = objectType({
+  name: 'GameCreateGameWithXtimesStorytellerEndingConditionResultSuccess',
   definition(t) {
     t.field('game', {
       type: Game,
@@ -13,25 +28,47 @@ export const CreateGameWithEndingConditionResult = objectType({
   },
 });
 
-export const CreateGameWithEndingConditionInput = inputObjectType({
-  name: 'GameCreateGameWithEndingConditionInput',
+export const CreateGameWithXtimesStorytellerEndingConditionResult = unionType({
+  name: 'GameCreateGameWithXtimesStorytellerEndingConditionResult',
+  definition(t) {
+    t.members(
+      CreateGameWithXtimesStorytellerEndingConditionResultSuccess,
+      CreateGameWithXtimesStorytellerEndingConditionResultError
+    );
+    t.resolveType(obj =>
+      typeof obj.type === 'undefined'
+        ? 'GameCreateGameWithXtimesStorytellerEndingConditionResultSuccess'
+        : 'GameCreateGameWithXtimesStorytellerEndingConditionResultError'
+    );
+  },
+});
+
+export const CreateGameWithXtimesStorytellerEndingConditionInput = inputObjectType({
+  name: 'GameCreateGameWithXtimesStorytellerEndingConditionInput',
   definition(t) {
     t.int('timesBeingStoryteller');
   },
 });
 
-export const CreateGameWithEndingCondition = mutationField('gameCreateGameWithEndingCondition', {
-  type: CreateGameWithEndingConditionResult,
-  args: {
-    createGameWithEndingConditionInput: CreateGameWithEndingConditionInput,
-  },
-  async resolve(_, { createGameWithEndingConditionInput }, { dataSources, dispatchDomainEvents, currentUser }) {
-    console.log({ currentUser });
-    const createNewGame = makeCreateNewGame({ gameRepository: dataSources.gameRepository });
-    const result = await createNewGame(makePlayer({ id: currentUser.id, name: currentUser.username }), {
-      xTimesStorytellerEndCondition: createGameWithEndingConditionInput.timesBeingStoryteller,
-    });
-    const handleUseCaseResult = makeHandleUseCaseResult({ dispatchDomainEvents, result });
-    return handleUseCaseResult('game');
-  },
-});
+export const CreateGameWithXtimesStorytellerEndingCondition = mutationField(
+  'gameCreateGameWithXtimesStorytellerEndingCondition',
+  {
+    type: CreateGameWithXtimesStorytellerEndingConditionResult,
+    args: {
+      createGameWithXtimesStorytellerEndingConditionInput: CreateGameWithXtimesStorytellerEndingConditionInput,
+    },
+    async resolve(
+      _,
+      { createGameWithXtimesStorytellerEndingConditionInput },
+      { dataSources, dispatchDomainEvents, currentUser }
+    ) {
+      console.log({ currentUser });
+      const createNewGame = makeCreateNewGame({ gameRepository: dataSources.gameRepository });
+      const result = await createNewGame(makePlayer({ id: currentUser.id, name: currentUser.username }), {
+        xTimesStorytellerEndCondition: createGameWithXtimesStorytellerEndingConditionInput.timesBeingStoryteller,
+      });
+      const handleUseCaseResult = makeHandleUseCaseResult({ dispatchDomainEvents, result });
+      return handleUseCaseResult('game');
+    },
+  }
+);

@@ -19,3 +19,13 @@ export const xTimesStorytellerEndingConditionsStrategy = game => {
 export const scoreLimitEndingCondition = game => ({
   isGameEnded: Object.values(game.score).some(s => s >= game.endCondition.scoreLimit),
 });
+
+export const getEndingConditionStrategy = game => {
+  if (game.endCondition.scoreLimit) {
+    return scoreLimitEndingCondition;
+  }
+  if (game.endCondition.xTimesStorytellerLimit) {
+    return xTimesStorytellerEndingConditionsStrategy;
+  }
+  return defaultEndingConditionStrategy;
+};

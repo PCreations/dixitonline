@@ -1,5 +1,22 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`create new game can't create a new game with x times being storyteller set as 0 1`] = `
+Object {
+  "data": Object {
+    "gameCreateGameWithXtimesStorytellerEndingCondition": Object {
+      "type": "X_TIMES_STORYTELLER_CANT_BE_LESS_THAN_ONE",
+    },
+  },
+  "errors": undefined,
+  "extensions": undefined,
+  "http": Object {
+    "headers": Headers {
+      Symbol(map): Object {},
+    },
+  },
+}
+`;
+
 exports[`create new game creates a new game 1`] = `
 Object {
   "data": Object {
@@ -29,7 +46,33 @@ Object {
 exports[`create new game creates a new game with x times being storyteller as end condition 1`] = `
 Object {
   "data": Object {
-    "gameCreateGameWithEndingCondition": Object {
+    "gameCreateGameWithXtimesStorytellerEndingCondition": Object {
+      "game": Object {
+        "endCondition": Object {
+          "remainingTurns": 4,
+        },
+        "host": Object {
+          "id": "p1",
+          "name": "player1",
+        },
+        "id": "g1",
+      },
+    },
+  },
+  "errors": undefined,
+  "extensions": undefined,
+  "http": Object {
+    "headers": Headers {
+      Symbol(map): Object {},
+    },
+  },
+}
+`;
+
+exports[`create new game creates a new game with x times being storyteller as end condition 2`] = `
+Object {
+  "data": Object {
+    "gameCreateGameWithXtimesStorytellerEndingCondition": Object {
       "game": Object {
         "endCondition": Object {
           "remainingTurns": 4,

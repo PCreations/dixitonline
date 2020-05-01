@@ -9,6 +9,7 @@ describe('handle turn ended', () => {
     // arrange
     const game = buildTestGame()
       .withXPlayers(2)
+      .withCards(48)
       .withScore([1, 2, 3])
       .build();
     const initialGames = buildgameRepositoryInitialGames()

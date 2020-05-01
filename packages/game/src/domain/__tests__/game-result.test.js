@@ -1,26 +1,29 @@
-import { makeResult, makeErrorResult } from '../result';
+import { makeGameResult, makeErrorResult } from '../game-result';
+import { buildTestGame } from '../../__tests__/dataBuilders/game';
 
-describe('result', () => {
+describe('game result', () => {
   it('can be create a successfull return value', () => {
     // arrange
     const events = [{ some: 'event' }, { some: 'otherEvent' }];
+    const game = buildTestGame().build();
 
     // act
-    const result = makeResult('some value', events);
+    const result = makeGameResult(game, events);
 
     // assert
     expect(result).toEqual({
-      value: 'some value',
+      value: game,
       events,
     });
   });
   it('creates empty events if only a value is provided', () => {
     // act
-    const result = makeResult('some value');
+    const game = buildTestGame().build();
+    const result = makeGameResult(game);
 
     // assert
     expect(result).toEqual({
-      value: 'some value',
+      value: game,
       events: [],
     });
   });
