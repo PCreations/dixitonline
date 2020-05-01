@@ -49,6 +49,7 @@ export const Game = objectType({
     t.field('endCondition', {
       type: GameEndCondition,
       resolve(game) {
+        console.log(getEndCondition(game));
         return getEndCondition(game);
       },
     });

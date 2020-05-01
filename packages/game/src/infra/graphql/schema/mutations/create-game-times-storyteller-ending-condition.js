@@ -65,7 +65,7 @@ export const CreateGameWithXtimesStorytellerEndingCondition = mutationField(
       console.log({ currentUser });
       const createNewGame = makeCreateNewGame({ gameRepository: dataSources.gameRepository });
       const result = await createNewGame(makePlayer({ id: currentUser.id, name: currentUser.username }), {
-        xTimesStorytellerEndCondition: createGameWithXtimesStorytellerEndingConditionInput.timesBeingStoryteller,
+        xTimesStorytellerLimit: createGameWithXtimesStorytellerEndingConditionInput.timesBeingStoryteller,
       });
       const handleUseCaseResult = makeHandleUseCaseResult({ dispatchDomainEvents, result });
       return handleUseCaseResult('game');

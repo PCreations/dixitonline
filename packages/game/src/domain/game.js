@@ -29,6 +29,7 @@ export const GameError = {
   ONLY_HOST_CAN_START_GAME: 'ONLY_HOST_CAN_START_GAME',
   NOT_ENOUGH_PLAYERS: 'NOT_ENOUGH_PLAYERS',
   X_TIMES_STORYTELLER_CANT_BE_LESS_THAN_ONE: 'X_TIMES_STORYTELLER_CANT_BE_LESS_THAN_ONE',
+  SCORE_LIMIT_CANT_BE_LESS_THAN_ONE: 'SCORE_LIMIT_CANT_BE_LESS_THAN_ONE',
 };
 
 export const MAXIMUM_NUMBER_OF_PLAYERS = 6;
@@ -111,6 +112,9 @@ const isGameFull = game => getAllPlayers(game).length === MAXIMUM_NUMBER_OF_PLAY
 export const createGame = ({ gameId, host, endCondition }) => {
   if (endCondition?.xTimesStorytellerLimit !== undefined && endCondition.xTimesStorytellerLimit < 1) {
     return makeErrorResult(GameError.X_TIMES_STORYTELLER_CANT_BE_LESS_THAN_ONE);
+  }
+  if (endCondition?.scoreLimit !== undefined && endCondition.scoreLimit < 1) {
+    return makeErrorResult(GameError.SCORE_LIMIT_CANT_BE_LESS_THAN_ONE);
   }
   return makeGameResult(makeGame({ id: gameId, host, endCondition }), [newGameCreatedEvent({ gameId })]);
 };

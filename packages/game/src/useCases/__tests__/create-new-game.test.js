@@ -100,6 +100,7 @@ describe('create new game', () => {
     const expectedGame = buildTestGame()
       .withId('g1')
       .withHost(host)
+      .withXtimesStorytellerLimit(4)
       .build();
 
     // act
@@ -119,7 +120,7 @@ describe('create new game', () => {
     expect(createdGame).toEqual(expectedGame);
     expect(dispatchDomainEvents).toHaveBeenCalledWith([newGameCreatedEvent({ gameId: 'g1' })]);
   });
-  it("can't create a new game with x times being storyteller set as 0", async () => {
+  it("can't create a new game with x times being storyteller set as number < 1", async () => {
     // arrange
     const dispatchDomainEvents = jest.fn();
     const gameRepository = makeNullGameRepository({ nextGameId: 'g1' });
@@ -152,6 +153,110 @@ describe('create new game', () => {
       variables: {
         createGameWithXtimesStorytellerEndingConditionInput: {
           timesBeingStoryteller: 0,
+        },
+      },
+    });
+
+    // assert
+    expect(response).toMatchSnapshot();
+    expect(dispatchDomainEvents).not.toHaveBeenCalled();
+  });
+  it('creates a new game with score limit as end condition', async () => {
+    // arrange
+    const dispatchDomainEvents = jest.fn();
+    const gameRepository = makeNullGameRepository({ nextGameId: 'g1' });
+    const server = makeTestServer({
+      getDataSources: makeGetDataSources({
+        gameRepository,
+      }),
+      dispatchDomainEvents,
+      currentUserId: 'p1',
+      currentUserUsername: 'player1',
+    });
+    const GAME_CREATE_GAME = gql`
+      mutation GameCreateGame(
+        $createGameWithScoreLimitEndingConditionInput: GameCreateGameWithScoreLimitEndingConditionInput!
+      ) {
+        gameCreateGameWithScoreLimitEndingCondition(
+          createGameWithScoreLimitEndingConditionInput: $createGameWithScoreLimitEndingConditionInput
+        ) {
+          ... on GameCreateGameWithScoreLimitEndingConditionResultSuccess {
+            game {
+              id
+              host {
+                id
+                name
+              }
+              endCondition {
+                ... on GameScoreLimitEndCondition {
+                  scoreLimit
+                }
+              }
+            }
+          }
+        }
+      }
+    `;
+    const host = buildTestPlayer()
+      .withId('p1')
+      .withName('player1')
+      .build();
+    const expectedGame = buildTestGame()
+      .withId('g1')
+      .withHost(host)
+      .withScoreLimit(30)
+      .build();
+
+    // act
+    const { mutate } = createTestClient(server);
+    const response = await mutate({
+      mutation: GAME_CREATE_GAME,
+      variables: {
+        createGameWithScoreLimitEndingConditionInput: {
+          scoreLimit: 30,
+        },
+      },
+    });
+
+    // assert
+    expect(response).toMatchSnapshot();
+    const createdGame = await gameRepository.getGameById('g1');
+    expect(createdGame).toEqual(expectedGame);
+    expect(dispatchDomainEvents).toHaveBeenCalledWith([newGameCreatedEvent({ gameId: 'g1' })]);
+  });
+  it("can't create a new game with score limit set as number < 1", async () => {
+    // arrange
+    const dispatchDomainEvents = jest.fn();
+    const gameRepository = makeNullGameRepository({ nextGameId: 'g1' });
+    const server = makeTestServer({
+      getDataSources: makeGetDataSources({
+        gameRepository,
+      }),
+      dispatchDomainEvents,
+      currentUserId: 'p1',
+      currentUserUsername: 'player1',
+    });
+    const GAME_CREATE_GAME = gql`
+      mutation GameCreateGame(
+        $createGameWithScoreLimitEndingConditionInput: GameCreateGameWithScoreLimitEndingConditionInput!
+      ) {
+        gameCreateGameWithScoreLimitEndingCondition(
+          createGameWithScoreLimitEndingConditionInput: $createGameWithScoreLimitEndingConditionInput
+        ) {
+          ... on GameCreateGameWithScoreLimitEndingConditionResultError {
+            type
+          }
+        }
+      }
+    `;
+
+    // act
+    const { mutate } = createTestClient(server);
+    const response = await mutate({
+      mutation: GAME_CREATE_GAME,
+      variables: {
+        createGameWithScoreLimitEndingConditionInput: {
+          scoreLimit: -1,
         },
       },
     });

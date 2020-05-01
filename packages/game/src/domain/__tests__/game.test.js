@@ -191,7 +191,24 @@ describe('Game', () => {
   });
 
   describe('create game', () => {
-    it('creates a game', () => {
+    it('creates a game without ending condition', () => {
+      // arrange
+      const host = buildTestPlayer().build();
+
+      // act
+      const result = createGame({ gameId: 'g1', host });
+
+      // assert
+      expect({ ...result.value }).toEqual({
+        ...buildTestGame()
+          .withId('g1')
+          .withHost(host)
+          .build(),
+      });
+      expect(result.events).toEqual([newGameCreatedEvent({ gameId: 'g1' })]);
+      expect(result.error).toBeUndefined();
+    });
+    it('creates a game with x times storyteller ending condition', () => {
       // arrange
       const host = buildTestPlayer().build();
 
@@ -224,6 +241,34 @@ describe('Game', () => {
 
       // assert
       expect(error).toEqual(GameError.X_TIMES_STORYTELLER_CANT_BE_LESS_THAN_ONE);
+    });
+    it('creates a game with a score limit ending condition', () => {
+      // arrange
+      const host = buildTestPlayer().build();
+
+      // act
+      const result = createGame({ gameId: 'g1', host, endCondition: { scoreLimit: 30 } });
+
+      // assert
+      expect({ ...result.value }).toEqual({
+        ...buildTestGame()
+          .withId('g1')
+          .withHost(host)
+          .withScoreLimit(30)
+          .build(),
+      });
+      expect(result.events).toEqual([newGameCreatedEvent({ gameId: 'g1' })]);
+      expect(result.error).toBeUndefined();
+    });
+    it("can't create a game with a score limit set to number < 1", () => {
+      // arrange
+      const host = buildTestPlayer().build();
+
+      // act
+      const { error } = createGame({ gameId: 'g1', host, endCondition: { scoreLimit: -1 } });
+
+      // assert
+      expect(error).toEqual(GameError.SCORE_LIMIT_CANT_BE_LESS_THAN_ONE);
     });
   });
 
