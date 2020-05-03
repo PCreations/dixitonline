@@ -38,6 +38,7 @@ export const vote = (turnState, { playerId, cardId }) => {
         gameId: newTurnState.turn.gameId,
         storytellerId: newTurnState.turn.storytellerId,
         playersWithHandAndScore,
+        discardedCards: newTurnState.turn.board.map(({ id, url }) => ({ id, url })),
       })
     );
   }

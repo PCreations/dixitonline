@@ -294,7 +294,7 @@ describe('turnReducer (root)', () => {
       // assert
       expect(initialTurnState.turn.board).toEqual(state.turn.board);
     });
-    test('playerVoted should lead score computation when the last player has voted', () => {
+    test('playerVoted should lead to score computation when the last player has voted', () => {
       // arrange
       const players = getTestPlayers();
       let initialTurnState = buildTestTurn()

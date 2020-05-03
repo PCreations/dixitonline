@@ -45,6 +45,7 @@ describe('after turn ended subscriber', () => {
       }),
       {}
     );
+    const discardedCards = new Array(3).fill().map(() => buildTestCard().build());
     const gameRepository = makeNullGameRepository({});
     const eventEmitter = new EventEmitter();
     const dispatchDomainEvents = events => events.map(event => eventEmitter.emit(event.type, event));
@@ -62,6 +63,7 @@ describe('after turn ended subscriber', () => {
         id: 't1',
         storytellerId: 'p1',
         playersWithHandAndScore,
+        discardedCards,
       }),
     ]);
 
@@ -71,6 +73,7 @@ describe('after turn ended subscriber', () => {
       actualHandsByPlayerId,
       previousTurnId: 't1',
       turnScore,
+      discardedCards,
     });
   });
 });

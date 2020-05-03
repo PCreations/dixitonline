@@ -1,6 +1,12 @@
 import faker from 'faker';
 import { buildTestPlayer } from './player';
-import { makeGame, MAXIMUM_NUMBER_OF_PLAYERS, GameStatus, NUMBER_OF_CARDS_IN_A_DECK } from '../../domain/game';
+import {
+  makeGame,
+  MAXIMUM_NUMBER_OF_PLAYERS,
+  GameStatus,
+  NUMBER_OF_CARDS_IN_A_DECK,
+  makeNullCards,
+} from '../../domain/game';
 
 const generatePlayers = numberOfPlayers => new Array(numberOfPlayers).fill().map(() => buildTestPlayer().build());
 
@@ -9,7 +15,8 @@ export const buildTestGame = (baseGame = {}) => {
     id: faker.random.uuid(),
     host: buildTestPlayer().build(),
     players: [],
-    cards: [],
+    cards: makeNullCards(),
+    drawPile: [],
     score: {},
     status: GameStatus.WAITING_FOR_PLAYERS,
   };
@@ -26,10 +33,21 @@ export const buildTestGame = (baseGame = {}) => {
       }));
       return this;
     },
+    withDrawPile(drawPile = defaultProperties.drawPile) {
+      overrides.drawPile = drawPile;
+      return this;
+    },
     withCurrentTurnId(turnId) {
       overrides.currentTurn = {
         ...(overrides.currentTurn || {}),
         id: turnId,
+      };
+      return this;
+    },
+    withCurrentTurnNumber(turnNumber) {
+      overrides.currentTurn = {
+        ...(overrides.currentTurn || {}),
+        number: turnNumber,
       };
       return this;
     },
@@ -70,6 +88,18 @@ export const buildTestGame = (baseGame = {}) => {
     },
     asFullGame() {
       overrides.players = generatePlayers(MAXIMUM_NUMBER_OF_PLAYERS - 1);
+      return this;
+    },
+    withXtimesStorytellerLimit(xTimesStorytellerLimit) {
+      overrides.endCondition = {
+        xTimesStorytellerLimit,
+      };
+      return this;
+    },
+    withScoreLimit(limit) {
+      overrides.endCondition = {
+        scoreLimit: limit,
+      };
       return this;
     },
     build() {

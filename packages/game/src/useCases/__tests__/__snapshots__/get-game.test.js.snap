@@ -5,6 +5,10 @@ Object {
   "data": Object {
     "game": Object {
       "currentTurnId": "t1",
+      "endCondition": Object {
+        "__typename": "GameRemainingTurnsEndCondition",
+        "remainingTurns": 10,
+      },
       "id": "g1",
       "players": Array [
         Object {
@@ -23,7 +27,6 @@ Object {
           "score": 3,
         },
       ],
-      "remainingTurns": 10,
       "status": "WAITING_FOR_PLAYERS",
     },
   },

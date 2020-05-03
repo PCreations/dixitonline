@@ -27,3 +27,4 @@ firestore-debug.log
 
 # End of https://www.gitignore.io/api/osx,visualstudiocode
 .env
+sentry.properties

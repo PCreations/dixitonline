@@ -68,7 +68,7 @@ describe('start game', () => {
     const editedGame = await gameRepository.getGameById('g42');
     expect(editedGame.status).toEqual(GameStatus.STARTED);
     expect(dispatchDomainEvents).toHaveBeenCalledWith([
-      newGameStartedEvent({ gameId: 'g42', playerIds: getAllPlayers(game).map(({ id }) => id) }),
+      newGameStartedEvent({ gameId: 'g42', playerIds: getAllPlayers(game).map(({ id }) => id), useAllDeck: false }),
     ]);
   });
   test("a player can't start a game if she's not the host", async () => {

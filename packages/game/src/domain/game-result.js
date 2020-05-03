@@ -1,5 +1,5 @@
-export const makeResult = (value, events = []) => ({
-  value,
+export const makeGameResult = (game, events = []) => ({
+  value: game,
   events,
 });
 
