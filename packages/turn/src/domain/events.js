@@ -17,7 +17,7 @@ export const events = {
       },
     };
   },
-  turnEnded({ id, gameId, storytellerId, playersWithHandAndScore }) {
+  turnEnded({ id, gameId, storytellerId, playersWithHandAndScore, discardedCards }) {
     return {
       type: events.types.TURN_ENDED,
       payload: {
@@ -25,6 +25,7 @@ export const events = {
         gameId,
         storytellerId,
         playersWithHandAndScore,
+        discardedCards,
       },
     };
   },

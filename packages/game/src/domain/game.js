@@ -1,4 +1,5 @@
 /* eslint-disable max-classes-per-file */
+import { shuffle as shuffleWithSeed } from 'shuffle-seed';
 import {
   newGameCreatedEvent,
   playerJoinedGame,
@@ -9,6 +10,8 @@ import {
 import { getEndingConditionStrategy } from './end-condition-strategies';
 import { equals as playerEquals } from './player';
 import { makeGameResult as baseMakeGameResult, makeErrorResult } from './game-result';
+
+const defaultShuffle = toShuffle => shuffleWithSeed(toShuffle, 'default-seed');
 
 export const DEFAULT_END_CONDITION = {
   isGameEnded: false,
@@ -45,6 +48,7 @@ export const makeGame = ({
   id,
   host,
   cards = makeNullCards(),
+  drawPile = [],
   score = {},
   players = [],
   status = GameStatus.WAITING_FOR_PLAYERS,
@@ -65,6 +69,7 @@ export const makeGame = ({
     host,
     players,
     cards,
+    drawPile,
     endCondition,
     score,
     status,
@@ -144,6 +149,25 @@ export const startGame = (game, player) => {
     );
   }
   return makeErrorResult(GameError.ONLY_HOST_CAN_START_GAME);
+};
+
+export const updateDeck = (game, { discardedCards, shuffle = defaultShuffle } = {}) => {
+  if (game.cards.length < getAllPlayers(game).length && game.endCondition !== DEFAULT_END_CONDITION) {
+    const drawPile = shuffle([...game.drawPile, ...discardedCards, ...game.cards]);
+    return makeGameResult(
+      makeGame({
+        ...game,
+        cards: drawPile,
+        drawPile: [],
+      })
+    );
+  }
+  return makeGameResult(
+    makeGame({
+      ...game,
+      drawPile: game.drawPile.concat(discardedCards),
+    })
+  );
 };
 
 export const completeHands = (game, { cards, actualHandsByPlayerId, previousTurnId }) => {

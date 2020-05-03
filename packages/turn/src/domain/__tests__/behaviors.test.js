@@ -103,7 +103,7 @@ describe('behaviors', () => {
       expect(result.events).toEqual([expectedPlayerVotedEvent]);
       expect(turnReducer).toHaveBeenCalledWith(turnState, expectedPlayerVotedEvent);
     });
-    test('when the last player has voted, it should return a turnEnded event', () => {
+    test('when the last player has voted, it should return a turnEnded event with discarded cards', () => {
       // arrange
       const players = getTestPlayers();
       const turnState = buildTestTurn()
@@ -125,6 +125,7 @@ describe('behaviors', () => {
           hand: p.hand.slice(1),
           score: p.id === players[0].id ? 0 : 2,
         })),
+        discardedCards: turnState.turn.board.map(({ id, url }) => ({ id, url })),
         gameId: 'g1',
       });
 
@@ -134,10 +135,8 @@ describe('behaviors', () => {
         cardId: storytellerCardOnBoard.id,
       });
 
-      expect(result.events[1]).toEqual(expectedTurnEndedEvent);
-
       // assert
-      expect(result.events).toContainEqual(expectedTurnEndedEvent);
+      expect(result.events[1]).toEqual(expectedTurnEndedEvent);
     });
     test("can't vote for her own card", () => {
       // arrange

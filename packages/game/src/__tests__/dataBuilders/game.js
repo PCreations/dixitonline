@@ -16,6 +16,7 @@ export const buildTestGame = (baseGame = {}) => {
     host: buildTestPlayer().build(),
     players: [],
     cards: makeNullCards(),
+    drawPile: [],
     score: {},
     status: GameStatus.WAITING_FOR_PLAYERS,
   };
@@ -30,6 +31,10 @@ export const buildTestGame = (baseGame = {}) => {
         id: `c${index}`,
         url: `/cards/${index}.jpg`,
       }));
+      return this;
+    },
+    withDrawPile(drawPile = defaultProperties.drawPile) {
+      overrides.drawPile = drawPile;
       return this;
     },
     withCurrentTurnId(turnId) {

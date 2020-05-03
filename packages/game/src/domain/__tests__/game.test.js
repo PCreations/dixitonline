@@ -1,9 +1,11 @@
+import { shuffle as shuffleWithSeed } from 'shuffle-seed';
 import {
   makeGame,
   getEndCondition,
   createGame,
   joinPlayer,
   startGame,
+  updateDeck,
   completeHands,
   updateScore,
   setCurrentTurn,
@@ -25,7 +27,7 @@ import {
 import { buildTestGame } from '../../__tests__/dataBuilders/game';
 import { buildTestCard } from '../../__tests__/dataBuilders/card';
 
-describe('Game', () => {
+describe.only('Game', () => {
   it('can be correctly created', () => {
     const host = buildTestPlayer().build();
     const players = [
@@ -36,12 +38,14 @@ describe('Game', () => {
       buildTestPlayer().build(),
     ];
     const cards = new Array(48).fill().map(() => buildTestCard().build());
+    const drawPile = new Array(10).fill().map(() => buildTestCard().build());
     const score = { [players[0].id]: 1, [players[1].id]: 3, [players[2].id]: 5 };
     const game = makeGame({
       id: '1',
       host,
       players,
       cards,
+      drawPile,
       score,
       status: GameStatus.STARTED,
       currentTurn: {
@@ -57,6 +61,7 @@ describe('Game', () => {
       host,
       players,
       cards,
+      drawPile,
       score,
       status: GameStatus.STARTED,
       currentTurn: { id: 't1', storytellerId: players[0].id },
@@ -75,6 +80,7 @@ describe('Game', () => {
       players,
       status: GameStatus.WAITING_FOR_PLAYERS,
       cards: makeNullCards(),
+      drawPile: [],
       score: {},
       currentTurn: {
         id: null,
@@ -391,6 +397,98 @@ describe('Game', () => {
       // assert
       expect(events).toEqual([]);
       expect(error).toEqual(GameError.GAME_ALREADY_STARTED);
+    });
+  });
+
+  describe('update deck', () => {
+    it('updates the draw pile with the discarded cards of the previous turn', () => {
+      // arrange
+      const drawPile = new Array(5).fill().map(() => buildTestCard().build());
+      const discardedCards = new Array(5).fill().map(() => buildTestCard().build());
+      const game = buildTestGame()
+        .withXPlayers(2)
+        .withCards(50)
+        .withDrawPile(drawPile)
+        .withStartedStatus()
+        .build();
+
+      // act
+      const result = updateDeck(game, { discardedCards });
+
+      // assert
+      expect(result.value.drawPile).toEqual([...drawPile, ...discardedCards]);
+    });
+    it('completes the cards with the draw pile if the number of cards is below the number of players and there at least 1 remaining turns', () => {
+      // arrange
+      const shuffle = toShuffle => shuffleWithSeed(toShuffle, 'seed');
+      const drawPile = new Array(30).fill().map(() => buildTestCard().build());
+      const discardedCards = new Array(5).fill().map(() => buildTestCard().build());
+      const shuffledDeck = new Array(2).fill().map(() => buildTestCard().build());
+      const expectedNewShuffledDeck = shuffle([...drawPile, ...discardedCards, ...shuffledDeck]);
+      const game = buildTestGame()
+        .withXPlayers(2)
+        .withShuffledDeck(shuffledDeck)
+        .withDrawPile(drawPile)
+        .withStartedStatus()
+        .withXtimesStorytellerLimit(5)
+        .withCurrentTurnNumber(12)
+        .build();
+
+      // act
+      const result = updateDeck(game, {
+        discardedCards,
+        shuffle,
+      });
+
+      // assert
+      expect(result.value.drawPile).toEqual([]);
+      expect(result.value.cards).toEqual(expectedNewShuffledDeck);
+    });
+    it('completes the cards with the draw pile if the number of cards is below the number of players and the end condition is score limit', () => {
+      // arrange
+      const shuffle = toShuffle => shuffleWithSeed(toShuffle, 'seed');
+      const drawPile = new Array(30).fill().map(() => buildTestCard().build());
+      const discardedCards = new Array(5).fill().map(() => buildTestCard().build());
+      const shuffledDeck = new Array(2).fill().map(() => buildTestCard().build());
+      const expectedNewShuffledDeck = shuffle([...drawPile, ...discardedCards, ...shuffledDeck]);
+      const game = buildTestGame()
+        .withXPlayers(2)
+        .withShuffledDeck(shuffledDeck)
+        .withDrawPile(drawPile)
+        .withStartedStatus()
+        .withScoreLimit(30)
+        .build();
+
+      // act
+      const result = updateDeck(game, {
+        discardedCards,
+        shuffle,
+      });
+
+      // assert
+      expect(result.value.drawPile).toEqual([]);
+      expect(result.value.cards).toEqual(expectedNewShuffledDeck);
+    });
+    it('does not complete the cards with the draw pile if the number of cards is below the number of players and the end condition is the default one', () => {
+      // arrange
+      const drawPile = new Array(30).fill().map(() => buildTestCard().build());
+      const discardedCards = new Array(5).fill().map(() => buildTestCard().build());
+      const shuffledDeck = new Array(2).fill().map(() => buildTestCard().build());
+      const game = buildTestGame()
+        .withXPlayers(2)
+        .withShuffledDeck(shuffledDeck)
+        .withDrawPile(drawPile)
+        .withStartedStatus()
+        .build();
+
+      // act
+      const result = updateDeck(game, {
+        discardedCards,
+      });
+
+      // assert
+      expect(result.value.drawPile).toEqual([...drawPile, ...discardedCards]);
+      expect(result.value.cards).toEqual(shuffledDeck);
     });
   });
 
