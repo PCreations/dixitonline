@@ -4,7 +4,7 @@ export const makeAfterGameStartedSubscriber = ({ subscribeToDomainEvent, getShuf
   console.log('Subsribing to GAME_STARTED in decks');
   subscribeToDomainEvent(gameEvents.types.GAME_STARTED, async gameStartedEvent => {
     console.log(`[GAME STARTED] received in decks after game started`);
-    const { gameId } = gameStartedEvent.payload;
-    await getShuffledDeck({ gameId });
+    const { gameId, useAllDeck } = gameStartedEvent.payload;
+    await getShuffledDeck({ gameId, useAllDeck });
   });
 };

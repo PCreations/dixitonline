@@ -21,11 +21,12 @@ export const playerJoinedGame = ({ gameId, playerId }) => ({
   },
 });
 
-export const newGameStartedEvent = ({ gameId, playerIds }) => ({
+export const newGameStartedEvent = ({ gameId, playerIds, useAllDeck }) => ({
   type: types.GAME_STARTED,
   payload: {
     gameId,
     playerIds,
+    useAllDeck,
   },
 });
 

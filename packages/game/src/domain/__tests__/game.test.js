@@ -338,7 +338,7 @@ describe('Game', () => {
     });
   });
 
-  describe('start game', () => {
+  describe.only('start game', () => {
     it('can be started if the player who wants to start the game is the host', () => {
       // arrange
       const game = buildTestGame()
@@ -354,7 +354,27 @@ describe('Game', () => {
         status: GameStatus.STARTED,
       });
       expect(events).toEqual([
-        newGameStartedEvent({ gameId: game.id, playerIds: getAllPlayers(game).map(({ id }) => id) }),
+        newGameStartedEvent({ gameId: game.id, playerIds: getAllPlayers(game).map(({ id }) => id), useAllDeck: false }),
+      ]);
+      expect(error).toBeUndefined();
+    });
+    it('can be started with all the deck if the player who wants to start the game is the host and the ending condition is not the default one', () => {
+      // arrange
+      const game = buildTestGame()
+        .withXPlayers(3)
+        .withScoreLimit(30)
+        .build();
+
+      // act
+      const { value, events, error } = startGame(game, game.host);
+
+      // assert
+      expect(value).toEqual({
+        ...game,
+        status: GameStatus.STARTED,
+      });
+      expect(events).toEqual([
+        newGameStartedEvent({ gameId: game.id, playerIds: getAllPlayers(game).map(({ id }) => id), useAllDeck: true }),
       ]);
       expect(error).toBeUndefined();
     });

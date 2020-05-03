@@ -64,6 +64,8 @@ export const makeGame = ({
   )
     throw new Error(`Invalid end condition, received "${endCondition}"`);
 
+  console.log(`creating a game with ${cards.length} cards`);
+
   return Object.freeze({
     id,
     host,
@@ -140,12 +142,20 @@ export const startGame = (game, player) => {
     return makeErrorResult(GameError.NOT_ENOUGH_PLAYERS);
   }
   if (playerEquals(game.host, player)) {
+    const isDefaultEndCondition =
+      game.endCondition?.xTimesStorytellerLimit === undefined && game.endCondition?.scoreLimit === undefined;
     return makeGameResult(
       makeGame({
         ...game,
         status: GameStatus.STARTED,
       }),
-      [newGameStartedEvent({ gameId: game.id, playerIds: getAllPlayers(game).map(({ id }) => id) })]
+      [
+        newGameStartedEvent({
+          gameId: game.id,
+          playerIds: getAllPlayers(game).map(({ id }) => id),
+          useAllDeck: !isDefaultEndCondition,
+        }),
+      ]
     );
   }
   return makeErrorResult(GameError.ONLY_HOST_CAN_START_GAME);

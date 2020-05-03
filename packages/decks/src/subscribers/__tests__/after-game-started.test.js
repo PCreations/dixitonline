@@ -24,10 +24,11 @@ describe('after game started subscriber', () => {
       gameEvents.newGameStartedEvent({
         gameId: 'g1',
         playerIds: ['p1,', 'p2', 'p3'],
+        useAllDeck: true,
       }),
     ]);
 
     // assert
-    expect(getShuffledDeckSpy).toHaveBeenCalledWith({ gameId: 'g1' });
+    expect(getShuffledDeckSpy).toHaveBeenCalledWith({ gameId: 'g1', useAllDeck: true });
   });
 });
