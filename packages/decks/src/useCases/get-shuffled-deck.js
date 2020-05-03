@@ -1,7 +1,7 @@
 import { events } from '../events';
 
 const CARDS_IN_DECK = 296;
-const NUMBER_OF_CARDS_FOR_GAME_DECK = 84;
+const NUMBER_OF_CARDS_FOR_GAME_DECK = 29;
 
 export const makeGetShuffledDeck = ({ shuffle, dispatchDomainEvents }) => async ({ gameId }) => {
   const deck = new Array(CARDS_IN_DECK).fill().map((_, index) => index + 1);

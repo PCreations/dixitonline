@@ -23,13 +23,13 @@ describe('ending condition strategies', () => {
     test('game ended', () => {
       // act
       const game = buildTestGame()
-        .withCards(5)
+        .withCards(0)
         .withXPlayers(5)
         .build();
       const { remainingTurns, isGameEnded } = defaultEndingConditionStrategy(game);
 
       // assert
-      expect(remainingTurns).toEqual(0);
+      expect(remainingTurns).toEqual(-1);
       expect(isGameEnded).toBe(true);
     });
     test('it floors the remaining turns', () => {
@@ -60,11 +60,11 @@ describe('ending condition strategies', () => {
 
       game = buildTestGame()
         .withXPlayers(3)
-        .withCurrentTurnNumber(4)
+        .withCurrentTurnNumber(5)
         .withXtimesStorytellerLimit(1)
         .build();
       expect(xTimesStorytellerEndingConditionsStrategy(game)).toEqual({
-        remainingTurns: 0,
+        remainingTurns: -1,
         isGameEnded: true,
       });
 

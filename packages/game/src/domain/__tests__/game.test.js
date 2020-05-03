@@ -27,7 +27,7 @@ import {
 import { buildTestGame } from '../../__tests__/dataBuilders/game';
 import { buildTestCard } from '../../__tests__/dataBuilders/card';
 
-describe.only('Game', () => {
+describe('Game', () => {
   it('can be correctly created', () => {
     const host = buildTestPlayer().build();
     const players = [

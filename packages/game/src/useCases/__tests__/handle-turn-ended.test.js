@@ -5,7 +5,7 @@ import { buildgameRepositoryInitialGames } from '../../__tests__/dataBuilders/ga
 import { makeNullGameRepository } from '../../repos/game-repository';
 import { buildTestCard } from '../../../../turn/src/__tests__/dataBuilders/card';
 
-describe.only('handle turn ended', () => {
+describe('handle turn ended', () => {
   it('correctly delegates to game object the behavior of updateDeck, completeHands and updateScore', async () => {
     // arrange
     const game = buildTestGame()

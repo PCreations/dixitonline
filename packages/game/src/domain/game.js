@@ -58,9 +58,9 @@ export const makeGame = ({
   if (!id) throw new Error('Game must contain an id');
   if (!host) throw new Error('Game must have an host');
   if (
-    endCondition !== DEFAULT_END_CONDITION &&
     typeof endCondition.xTimesStorytellerLimit === 'undefined' &&
-    typeof endCondition.scoreLimit === 'undefined'
+    typeof endCondition.scoreLimit === 'undefined' &&
+    typeof endCondition.isGameEnded === 'undefined'
   )
     throw new Error(`Invalid end condition, received "${endCondition}"`);
 
