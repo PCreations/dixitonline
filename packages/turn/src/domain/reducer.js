@@ -88,7 +88,12 @@ const turnPlayersCardChoicePhaseReducer = (state = defaultTurnState, event) =>
             votes: [],
           });
         }
-        if (draft.board.length === Object.values(draft.handByPlayerId).length - 1) {
+        const numberOfPlayers = Object.keys(state.handByPlayerId).length;
+        const shouldPassToVotingPhase =
+          numberOfPlayers === 3
+            ? draft.board.length === (numberOfPlayers - 1) * 2
+            : draft.board.length === numberOfPlayers - 1;
+        if (shouldPassToVotingPhase) {
           const storytellerCardIndex = draft.handByPlayerId[draft.storytellerId].findIndex(
             card => card.id === draft.clue.cardId
           );

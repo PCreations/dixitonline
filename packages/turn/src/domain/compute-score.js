@@ -3,8 +3,11 @@ const toScore = (scores, { playerId, score }) => ({
   [playerId]: score,
 });
 
+const STORYTELLER_EARNED_POINTS = 3;
+
 export const computeScore = ({ storytellerId, board }) => {
   const playersCount = board.length - 1;
+  const pointsWhenNotAllPlayersHaveFoundStorytellerCard = board.length === 3 ? 4 : 3; //?
   const storytellerCardVotes = board.filter(card => card.playerId === storytellerId).flatMap(card => card.votes);
   if (storytellerCardVotes.length === playersCount || storytellerCardVotes.length === 0) {
     const score = board
@@ -22,12 +25,14 @@ export const computeScore = ({ storytellerId, board }) => {
       if (storytellerId === playerId) {
         return {
           playerId,
-          score: 3,
+          score: STORYTELLER_EARNED_POINTS,
         };
       }
       return {
         playerId,
-        score: votes.length + (storytellerCardVotes.includes(playerId) ? 3 : 0),
+        score:
+          votes.length +
+          (storytellerCardVotes.includes(playerId) ? pointsWhenNotAllPlayersHaveFoundStorytellerCard : 0),
       };
     })
     .reduce(toScore, {});

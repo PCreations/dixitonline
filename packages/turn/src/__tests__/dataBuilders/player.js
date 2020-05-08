@@ -17,6 +17,10 @@ export const buildTestPlayer = () => {
       overrides.id = id;
       return this;
     },
+    withName(name = defaultProperties.name) {
+      overrides.name = name;
+      return this;
+    },
     build() {
       return {
         ...defaultProperties,

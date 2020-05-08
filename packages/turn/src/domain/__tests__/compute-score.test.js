@@ -62,7 +62,46 @@ describe('compute score', () => {
       p3: 3,
     });
   });
-  test('at least one player has found the storyteller card but not all players', () => {
+  test('at least one player has found the storyteller card but not all players and there is more than 3 players', () => {
+    // arrange
+    const storytellerId = 'p1';
+    const card1 = {
+      ...buildTestCard().build(),
+      playerId: 'p1',
+      votes: ['p2'],
+    };
+    const card2 = {
+      ...buildTestCard().build(),
+      playerId: 'p2',
+      votes: ['p3'],
+    };
+    const card3 = {
+      ...buildTestCard().build(),
+      playerId: 'p3',
+      votes: ['p4'],
+    };
+    const card4 = {
+      ...buildTestCard().build(),
+      playerId: 'p4',
+      votes: [],
+    };
+    const board = [card1, card2, card3, card4];
+
+    // act
+    const score = computeScore({
+      storytellerId,
+      board,
+    });
+
+    // assert
+    expect(score).toEqual({
+      p1: 3,
+      p2: 4,
+      p3: 1,
+      p4: 0,
+    });
+  });
+  test('at least one player has found the storyteller card but not all players and there is only 3 players', () => {
     // arrange
     const storytellerId = 'p1';
     const card1 = {
@@ -91,7 +130,7 @@ describe('compute score', () => {
     // assert
     expect(score).toEqual({
       p1: 3,
-      p2: 4,
+      p2: 5,
       p3: 0,
     });
   });

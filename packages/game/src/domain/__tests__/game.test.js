@@ -1,6 +1,7 @@
 import { shuffle as shuffleWithSeed } from 'shuffle-seed';
 import {
   makeGame,
+  getNumberOfCardsByHand,
   getEndCondition,
   createGame,
   joinPlayer,
@@ -120,6 +121,23 @@ describe('Game', () => {
     const game = makeGame({ id: 'g1', host });
 
     expect(game.players).toEqual([]);
+  });
+
+  describe('getNumberOfCardsByHand', () => {
+    it('should be 6 for a game with more than 3 players', () => {
+      const game = buildTestGame()
+        .withXPlayers(3)
+        .build();
+
+      expect(getNumberOfCardsByHand(game)).toBe(6);
+    });
+    it('should be 7 for a game with 3 players', () => {
+      const game = buildTestGame()
+        .withXPlayers(2)
+        .build();
+
+      expect(getNumberOfCardsByHand(game)).toBe(7);
+    });
   });
 
   describe('getEndCondition', () => {
@@ -552,20 +570,22 @@ describe('Game', () => {
       // arrange
       const shuffledDeck = new Array(50).fill().map(() => buildTestCard().build());
       const game = buildTestGame()
-        .withXPlayers(2)
+        .withXPlayers(3)
         .withStartedStatus()
         .withShuffledDeck(shuffledDeck)
         .build();
-      const totalNumberOfPlayers = 3;
+      const totalNumberOfPlayers = 4;
       const actualHandsByPlayerId = {
-        [game.host.id]: new Array(6).fill().map(() => buildTestCard().build()),
-        [game.players[0].id]: new Array(6).fill().map(() => buildTestCard().build()),
-        [game.players[1].id]: new Array(6).fill().map(() => buildTestCard().build()),
+        [game.host.id]: new Array(5).fill().map(() => buildTestCard().build()),
+        [game.players[0].id]: new Array(5).fill().map(() => buildTestCard().build()),
+        [game.players[1].id]: new Array(5).fill().map(() => buildTestCard().build()),
+        [game.players[2].id]: new Array(5).fill().map(() => buildTestCard().build()),
       };
       const expectedHands = {
         [game.host.id]: actualHandsByPlayerId[game.host.id].concat(shuffledDeck[0]),
         [game.players[0].id]: actualHandsByPlayerId[game.players[0].id].concat(shuffledDeck[1]),
         [game.players[1].id]: actualHandsByPlayerId[game.players[1].id].concat(shuffledDeck[2]),
+        [game.players[2].id]: actualHandsByPlayerId[game.players[2].id].concat(shuffledDeck[3]),
       };
 
       // act

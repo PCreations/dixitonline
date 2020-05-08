@@ -5,7 +5,12 @@ import { defineClue, choseCard, vote } from '../behaviors';
 import { TurnError } from '../errors';
 import { buildTestPlayer } from '../../__tests__/dataBuilders/player';
 
-const getTestPlayers = () => [buildTestPlayer().build(), buildTestPlayer().build(), buildTestPlayer().build()];
+const getTestPlayers = () => [
+  buildTestPlayer().build(),
+  buildTestPlayer().build(),
+  buildTestPlayer().build(),
+  buildTestPlayer().build(),
+];
 
 describe('behaviors', () => {
   describe('define clue', () => {
@@ -112,6 +117,7 @@ describe('behaviors', () => {
         .withPlayers(players)
         .inPlayersVotingPhase()
         .withPlayerThatHavePlayed({ playerId: players[1].id, voteOnCardOwnedByPlayerId: players[0].id })
+        .withPlayerThatHavePlayed({ playerId: players[2].id, voteOnCardOwnedByPlayerId: players[0].id })
         .build();
       const activePlayer = players[2];
       const storytellerCardOnBoard = turnState.turn.board.find(

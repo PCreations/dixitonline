@@ -4,7 +4,12 @@ import { turnReducer } from '../../domain/reducer';
 import { buildTestPlayer } from './player';
 
 export const buildTestTurn = () => {
-  let defaultPlayers = [buildTestPlayer().build(), buildTestPlayer().build(), buildTestPlayer().build()];
+  let defaultPlayers = [
+    buildTestPlayer().build(),
+    buildTestPlayer().build(),
+    buildTestPlayer().build(),
+    buildTestPlayer().build(),
+  ];
   let id = faker.random.uuid();
   let gameId = faker.random.uuid();
   let history = [];
@@ -74,6 +79,10 @@ export const buildTestTurn = () => {
         .withPlayerThatHavePlayed({
           playerId: defaultPlayers[2].id,
           voteOnCardOwnedByPlayerId: defaultPlayers[0].id,
+        })
+        .withPlayerThatHavePlayed({
+          playerId: defaultPlayers[3].id,
+          voteOnCardOwnedByPlayerId: defaultPlayers[1].id,
         });
     },
     withHistory(historyOverrides = []) {

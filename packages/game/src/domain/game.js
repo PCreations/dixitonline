@@ -38,6 +38,7 @@ export const GameError = {
 export const MAXIMUM_NUMBER_OF_PLAYERS = 6;
 export const MINIMUM_NUMBER_OF_PLAYERS = 3;
 export const NUMBER_OF_CARDS_IN_A_DECK = 84;
+export const NUMBER_OF_CARDS_BY_HAND = 6;
 
 export const makeNullCards = () => ({
   isNullCards: true,
@@ -94,6 +95,9 @@ const applyEndingConditionStrategy = ({ value: game, events }) => {
 };
 
 const makeGameResult = (game, events = []) => applyEndingConditionStrategy(baseMakeGameResult(game, events));
+
+export const getNumberOfCardsByHand = game =>
+  getAllPlayers(game).length === 3 ? NUMBER_OF_CARDS_BY_HAND + 1 : NUMBER_OF_CARDS_BY_HAND;
 
 export const getAllPlayers = game => [game.host, ...game.players];
 
@@ -182,17 +186,20 @@ export const updateDeck = (game, { discardedCards, shuffle = defaultShuffle } = 
 
 export const completeHands = (game, { cards, actualHandsByPlayerId, previousTurnId }) => {
   const allPlayers = getAllPlayers(game);
+  const numberOfCardsByHand = getNumberOfCardsByHand(game);
   const actualCards = cards ?? game.cards;
-  console.log('actualCards length', actualCards.length);
   if (!actualHandsByPlayerId) {
     const handsByPlayerId = allPlayers.reduce(
       (hands, player, playerIndex) => ({
         ...hands,
-        [player.id]: actualCards.slice(playerIndex * 6, playerIndex * 6 + 6),
+        [player.id]: actualCards.slice(
+          playerIndex * numberOfCardsByHand,
+          playerIndex * numberOfCardsByHand + numberOfCardsByHand
+        ),
       }),
       {}
     );
-    const remainingCards = actualCards.slice(allPlayers.length * 6);
+    const remainingCards = actualCards.slice(allPlayers.length * numberOfCardsByHand);
     return makeGameResult(
       makeGame({
         ...game,
@@ -202,13 +209,15 @@ export const completeHands = (game, { cards, actualHandsByPlayerId, previousTurn
     );
   }
   const handsByPlayerId = Object.entries(actualHandsByPlayerId).reduce(
-    (completedHands, [playerId, hand], playerIndex) => ({
-      ...completedHands,
-      [playerId]: hand.concat(actualCards[playerIndex]),
-    }),
+    (completedHands, [playerId, hand], playerIndex) => {
+      const numberOfCardsToCompleteHand = numberOfCardsByHand - hand.length;
+      return {
+        ...completedHands,
+        [playerId]: hand.concat(actualCards.slice(playerIndex, playerIndex + numberOfCardsToCompleteHand)),
+      };
+    },
     {}
   );
-  console.log('new actual cards length', actualCards.slice(allPlayers.length).length);
   return makeGameResult(
     makeGame({
       ...game,
