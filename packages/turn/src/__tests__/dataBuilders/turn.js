@@ -44,8 +44,8 @@ export const buildTestTurn = () => {
       const self = this;
       return {
         ...self,
-        withPlayerThatHavePlayed(player = defaultPlayers[1]) {
-          history.push(events.playerCardChosen({ playerId: player.id, cardId: player.hand[0].id }));
+        withPlayerThatHaveChosenAcard(player = defaultPlayers[1], cardIndex = 0) {
+          history.push(events.playerCardChosen({ playerId: player.id, cardId: player.hand[cardIndex].id }));
           return this;
         },
       };

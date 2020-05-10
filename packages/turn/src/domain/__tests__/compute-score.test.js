@@ -119,7 +119,17 @@ describe('compute score', () => {
       playerId: 'p3',
       votes: [],
     };
-    const board = [card1, card2, card3];
+    const card4 = {
+      ...buildTestCard().build(),
+      playerId: 'p3',
+      votes: [],
+    };
+    const card5 = {
+      ...buildTestCard().build(),
+      playerId: 'p2',
+      votes: [],
+    };
+    const board = [card1, card2, card3, card4, card5];
 
     // act
     const score = computeScore({
@@ -129,7 +139,7 @@ describe('compute score', () => {
 
     // assert
     expect(score).toEqual({
-      p1: 3,
+      p1: 4,
       p2: 5,
       p3: 0,
     });

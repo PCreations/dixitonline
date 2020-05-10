@@ -3,14 +3,32 @@ const toScore = (scores, { playerId, score }) => ({
   [playerId]: score,
 });
 
-const STORYTELLER_EARNED_POINTS = 3;
+const getStorytellerEarnedPoints = playersCount => (playersCount === 3 ? 4 : 3);
 
 export const computeScore = ({ storytellerId, board }) => {
-  const playersCount = board.length - 1;
-  const pointsWhenNotAllPlayersHaveFoundStorytellerCard = board.length === 3 ? 4 : 3; //?
+  const playersCount = board.reduce(
+    (players, { playerId }) => (players.includes(playerId) ? players : players.concat(playerId)),
+    []
+  ).length;
+  const pointsWhenNotAllPlayersHaveFoundStorytellerCard = playersCount === 3 ? 4 : 3;
   const storytellerCardVotes = board.filter(card => card.playerId === storytellerId).flatMap(card => card.votes);
-  if (storytellerCardVotes.length === playersCount || storytellerCardVotes.length === 0) {
-    const score = board
+  let mergedBoard = board;
+  if (playersCount === 3) {
+    mergedBoard = Object.entries(
+      board.reduce(
+        (cardsByPlayerId, card) => ({
+          ...cardsByPlayerId,
+          [card.playerId]: card.votes.concat(cardsByPlayerId[card.playerId] || []),
+        }),
+        {}
+      )
+    ).flatMap(([playerId, votes]) => ({
+      playerId,
+      votes,
+    }));
+  }
+  if (storytellerCardVotes.length === playersCount - 1 || storytellerCardVotes.length === 0) {
+    const score = mergedBoard
       .map(({ playerId, votes }) => {
         return {
           playerId,
@@ -20,12 +38,12 @@ export const computeScore = ({ storytellerId, board }) => {
       .reduce(toScore, {});
     return score;
   }
-  return board
+  return mergedBoard
     .map(({ playerId, votes }) => {
       if (storytellerId === playerId) {
         return {
           playerId,
-          score: STORYTELLER_EARNED_POINTS,
+          score: getStorytellerEarnedPoints(playersCount),
         };
       }
       return {
