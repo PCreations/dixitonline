@@ -22,6 +22,11 @@ const getTestPlayers = () => [
     name: 'player3',
     hand: buildTestHand().build(),
   },
+  {
+    id: 'p4',
+    name: 'player4',
+    hand: buildTestHand().build(),
+  },
 ];
 
 describe('turnReducer (root)', () => {
@@ -78,6 +83,7 @@ describe('turnReducer (root)', () => {
           p1: players[0].hand,
           p2: players[1].hand,
           p3: players[2].hand,
+          p4: players[3].hand,
         },
       },
       playerById: {
@@ -92,6 +98,10 @@ describe('turnReducer (root)', () => {
         p3: {
           id: 'p3',
           name: 'player3',
+        },
+        p4: {
+          id: 'p4',
+          name: 'player4',
         },
       },
     });
@@ -206,18 +216,22 @@ describe('turnReducer (root)', () => {
         playerId: players[1].id,
         cardId: players[1].hand[0].id,
       });
-      const initialTurnState = buildTestTurn()
-        .withPlayers(players)
-        .inPlayersCardChoicePhase()
-        .withHistory([player1CardChosen])
-        .build();
       const player2CardChosen = events.playerCardChosen({
         playerId: players[2].id,
         cardId: players[2].hand[0].id,
       });
+      const initialTurnState = buildTestTurn()
+        .withPlayers(players)
+        .inPlayersCardChoicePhase()
+        .withHistory([player1CardChosen, player2CardChosen])
+        .build();
+      const player3CardChosen = events.playerCardChosen({
+        playerId: players[3].id,
+        cardId: players[3].hand[0].id,
+      });
 
       // act
-      const state = turnReducer(initialTurnState, player2CardChosen);
+      const state = turnReducer(initialTurnState, player3CardChosen);
 
       // assert
       expect(state.turn.board).toEqual([
@@ -232,12 +246,98 @@ describe('turnReducer (root)', () => {
           votes: [],
         },
         {
+          ...players[3].hand[0],
+          playerId: players[3].id,
+          votes: [],
+        },
+        {
           ...players[0].hand[0],
           playerId: players[0].id,
           votes: [],
         },
       ]);
       expect(state.turn.handByPlayerId[players[0].id]).not.toContainEqual(players[0].hand[0]);
+      expect(state.turn.phase).toEqual(TurnPhase.PLAYERS_VOTING);
+    });
+    test('phase should not be set to players voting phase when the last player has chosen her card and there is 3 players', () => {
+      // arrange
+      const players = getTestPlayers().slice(0, 3);
+      const player1CardChosen = events.playerCardChosen({
+        playerId: players[1].id,
+        cardId: players[1].hand[0].id,
+      });
+      const player2CardChosen = events.playerCardChosen({
+        playerId: players[2].id,
+        cardId: players[2].hand[0].id,
+      });
+      const initialTurnState = buildTestTurn()
+        .withPlayers(players)
+        .inPlayersCardChoicePhase()
+        .withHistory([player1CardChosen])
+        .build();
+
+      // act
+      const state = turnReducer(initialTurnState, player2CardChosen);
+
+      // assert
+      expect(state.turn.phase).toEqual(TurnPhase.PLAYERS_CARD_CHOICE);
+    });
+    test('when there is 3 players, the phase should be set to players voting phase when the last player has chosen her second card and the storyteller card should be added to the board', () => {
+      // arrange
+      const players = getTestPlayers().slice(0, 3);
+      const player1Card1Chosen = events.playerCardChosen({
+        playerId: players[1].id,
+        cardId: players[1].hand[0].id,
+      });
+      const player1Card2Chosen = events.playerCardChosen({
+        playerId: players[1].id,
+        cardId: players[1].hand[1].id,
+      });
+      const player2Card1Chosen = events.playerCardChosen({
+        playerId: players[2].id,
+        cardId: players[2].hand[0].id,
+      });
+      const player2Card2Chosen = events.playerCardChosen({
+        playerId: players[2].id,
+        cardId: players[2].hand[1].id,
+      });
+      const initialTurnState = buildTestTurn()
+        .withPlayers(players)
+        .inPlayersCardChoicePhase()
+        .withHistory([player1Card1Chosen, player1Card2Chosen, player2Card1Chosen])
+        .build();
+
+      // act
+      const state = turnReducer(initialTurnState, player2Card2Chosen);
+
+      // assert
+      expect(state.turn.board).toEqual([
+        {
+          ...players[1].hand[0],
+          playerId: players[1].id,
+          votes: [],
+        },
+        {
+          ...players[1].hand[1],
+          playerId: players[1].id,
+          votes: [],
+        },
+        {
+          ...players[2].hand[0],
+          playerId: players[2].id,
+          votes: [],
+        },
+        {
+          ...players[2].hand[1],
+          playerId: players[2].id,
+          votes: [],
+        },
+        {
+          ...players[0].hand[0],
+          playerId: players[0].id,
+          votes: [],
+        },
+      ]);
       expect(state.turn.phase).toEqual(TurnPhase.PLAYERS_VOTING);
     });
   });
@@ -303,10 +403,11 @@ describe('turnReducer (root)', () => {
         .build();
       const player1Voted = events.playerVoted({ playerId: players[1].id, cardId: initialTurnState.turn.board[1].id });
       const player2Voted = events.playerVoted({ playerId: players[2].id, cardId: initialTurnState.turn.board[0].id });
-      initialTurnState = turnReducer(initialTurnState, player1Voted);
+      const player3Voted = events.playerVoted({ playerId: players[2].id, cardId: initialTurnState.turn.board[0].id });
+      initialTurnState = turnReducer(turnReducer(initialTurnState, player1Voted), player2Voted);
 
       // act
-      const state = turnReducer(initialTurnState, player2Voted);
+      const state = turnReducer(initialTurnState, player3Voted);
 
       // assert
       expect(computeScore).toHaveBeenCalledWith({

@@ -1,25 +1,26 @@
 import { shuffle as shuffleWithSeed } from 'shuffle-seed';
-import { buildTestHand } from '../../__tests__/dataBuilders/hand';
 import { buildTestTurn } from '../../__tests__/dataBuilders/turn';
 import { TurnPhase } from '../reducer';
 import { viewPhaseAs } from '../view-phase-as';
+import { buildTestPlayer } from '../../__tests__/dataBuilders/player';
 
 const getTestPlayers = () => [
-  {
-    id: 'p1',
-    name: 'player1',
-    hand: buildTestHand().build(),
-  },
-  {
-    id: 'p2',
-    name: 'player2',
-    hand: buildTestHand().build(),
-  },
-  {
-    id: 'p3',
-    name: 'player3',
-    hand: buildTestHand().build(),
-  },
+  buildTestPlayer()
+    .withId('p1')
+    .withName('player1')
+    .build(),
+  buildTestPlayer()
+    .withId('p2')
+    .withName('player2')
+    .build(),
+  buildTestPlayer()
+    .withId('p3')
+    .withName('player3')
+    .build(),
+  buildTestPlayer()
+    .withId('p4')
+    .withName('player4')
+    .build(),
 ];
 
 describe('view phase as', () => {
@@ -56,6 +57,11 @@ describe('view phase as', () => {
             name: 'player3',
             readyForNextPhase: true,
           },
+          {
+            id: 'p4',
+            name: 'player4',
+            readyForNextPhase: true,
+          },
         ],
       });
     });
@@ -89,6 +95,11 @@ describe('view phase as', () => {
           {
             id: 'p3',
             name: 'player3',
+            readyForNextPhase: true,
+          },
+          {
+            id: 'p4',
+            name: 'player4',
             readyForNextPhase: true,
           },
         ],
@@ -130,6 +141,11 @@ describe('view phase as', () => {
             name: 'player3',
             readyForNextPhase: false,
           },
+          {
+            id: 'p4',
+            name: 'player4',
+            readyForNextPhase: false,
+          },
         ],
       });
     });
@@ -139,7 +155,7 @@ describe('view phase as', () => {
       const initialState = buildTestTurn()
         .withPlayers(players)
         .inPlayersCardChoicePhase()
-        .withPlayerThatHavePlayed(players[1])
+        .withPlayerThatHaveChosenAcard(players[1])
         .build();
 
       // act
@@ -168,7 +184,89 @@ describe('view phase as', () => {
             name: 'player3',
             readyForNextPhase: false,
           },
+          {
+            id: 'p4',
+            name: 'player4',
+            readyForNextPhase: false,
+          },
         ],
+      });
+    });
+    describe('3 players mode', () => {
+      test('view as a player that has not chosen its first card, when someone has chosen only one card', () => {
+        // arrange
+        const players = getTestPlayers().slice(0, 3);
+        const initialState = buildTestTurn()
+          .withPlayers(players)
+          .inPlayersCardChoicePhase()
+          .withPlayerThatHaveChosenAcard(players[1])
+          .build();
+        // act
+        const phase = viewPhaseAs(initialState, players[1].id);
+
+        // assert
+        expect(phase).toEqual({
+          id: initialState.turn.id,
+          type: TurnPhase.PLAYERS_CARD_CHOICE,
+          clue: initialState.turn.clue.text,
+          storytellerId: 'p1',
+          hand: initialState.turn.handByPlayerId[players[1].id],
+          players: [
+            {
+              id: 'p1',
+              name: 'player1',
+              readyForNextPhase: true,
+            },
+            {
+              id: 'p2',
+              name: 'player2',
+              readyForNextPhase: false,
+            },
+            {
+              id: 'p3',
+              name: 'player3',
+              readyForNextPhase: false,
+            },
+          ],
+        });
+      });
+      test('view as a player when someone has chosen two cards', () => {
+        // arrange
+        const players = getTestPlayers().slice(0, 3);
+        const initialState = buildTestTurn()
+          .withPlayers(players)
+          .inPlayersCardChoicePhase()
+          .withPlayerThatHaveChosenAcard(players[1])
+          .withPlayerThatHaveChosenAcard(players[1], 1)
+          .build();
+        // act
+        const phase = viewPhaseAs(initialState, players[1].id);
+
+        // assert
+        expect(phase).toEqual({
+          id: initialState.turn.id,
+          type: TurnPhase.PLAYERS_CARD_CHOICE,
+          clue: initialState.turn.clue.text,
+          storytellerId: 'p1',
+          hand: initialState.turn.handByPlayerId[players[1].id],
+          players: [
+            {
+              id: 'p1',
+              name: 'player1',
+              readyForNextPhase: true,
+            },
+            {
+              id: 'p2',
+              name: 'player2',
+              readyForNextPhase: true,
+            },
+            {
+              id: 'p3',
+              name: 'player3',
+              readyForNextPhase: false,
+            },
+          ],
+        });
       });
     });
   });
@@ -207,6 +305,11 @@ describe('view phase as', () => {
           {
             id: 'p3',
             name: 'player3',
+            readyForNextPhase: false,
+          },
+          {
+            id: 'p4',
+            name: 'player4',
             readyForNextPhase: false,
           },
         ],
@@ -251,6 +354,11 @@ describe('view phase as', () => {
           {
             id: 'p3',
             name: 'player3',
+            readyForNextPhase: false,
+          },
+          {
+            id: 'p4',
+            name: 'player4',
             readyForNextPhase: false,
           },
         ],
@@ -301,6 +409,12 @@ describe('view phase as', () => {
             name: 'player3',
             readyForNextPhase: true,
             score: initialState.turn.score.p3,
+          },
+          {
+            id: 'p4',
+            name: 'player4',
+            readyForNextPhase: true,
+            score: initialState.turn.score.p4,
           },
         ],
       });

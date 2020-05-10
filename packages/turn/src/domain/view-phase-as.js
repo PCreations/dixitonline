@@ -63,6 +63,16 @@ const buildPhaseView = (state = defaultState, shuffle) => {
       }));
       return this;
     },
+    withPlayersAsReadyIfTheyHaveChosenTwoCards() {
+      properties.players = Object.values(state.playerById).map(player => ({
+        ...player,
+        readyForNextPhase:
+          player.id === state.turn.storytellerId ||
+          state.turn.board.filter(card => card.playerId === player.id).length === 2,
+      }));
+      console.log(state.turn.board);
+      return this;
+    },
     withPlayersAsReadyIfTheyHaveVoted() {
       properties.players = Object.values(state.playerById).map(player => {
         return {
@@ -98,13 +108,15 @@ export const viewPhaseAs = (state = defaultState, playerId, shuffle) => {
         .withPlayerHand(playerId)
         .withPlayersAsEveryoneReadyExceptStoryteller()
         .build();
-    case TurnPhase.PLAYERS_CARD_CHOICE:
-      return buildPhaseView(state)
+    case TurnPhase.PLAYERS_CARD_CHOICE: {
+      const phase = buildPhaseView(state)
         .withTurnPhase()
         .withClue()
-        .withPlayerHand(playerId)
-        .withPlayersAsReadyIfTheyHaveChosenACard()
-        .build();
+        .withPlayerHand(playerId);
+      return Object.keys(state.playerById).length === 3
+        ? phase.withPlayersAsReadyIfTheyHaveChosenTwoCards().build()
+        : phase.withPlayersAsReadyIfTheyHaveChosenACard().build();
+    }
     case TurnPhase.PLAYERS_VOTING:
       return buildPhaseView(state, shuffleFunction)
         .withTurnPhase()
