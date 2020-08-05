@@ -3,12 +3,19 @@ import { events as turnEvents } from '@dixit/turn';
 import { makeAfterTurnStartedSubscriber } from '../after-turn-started';
 import { makeNullGameRepository } from '../../repos';
 import { makeSetCurrentTurn } from '../../useCases/set-current-turn';
+import { buildTestGame } from '../../__tests__/dataBuilders/game';
 
 describe('after turn started subscriber', () => {
   test('it should set the current turn id', async () => {
     // arrange
     expect.assertions(1);
-    const gameRepository = makeNullGameRepository({});
+    const gameRepository = makeNullGameRepository({
+      gamesData: {
+        g1: buildTestGame()
+          .withId('g1')
+          .build(),
+      },
+    });
     const eventEmitter = new EventEmitter();
     const dispatchDomainEvents = events => events.map(event => eventEmitter.emit(event.type, event));
     const subscribeToDomainEvent = eventEmitter.on.bind(eventEmitter);

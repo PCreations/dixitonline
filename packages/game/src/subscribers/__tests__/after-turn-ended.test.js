@@ -46,7 +46,9 @@ describe('after turn ended subscriber', () => {
       {}
     );
     const discardedCards = new Array(3).fill().map(() => buildTestCard().build());
-    const gameRepository = makeNullGameRepository({});
+    const gameRepository = makeNullGameRepository({
+      gamesData: { [game.id]: game },
+    });
     const eventEmitter = new EventEmitter();
     const dispatchDomainEvents = events => events.map(event => eventEmitter.emit(event.type, event));
     const subscribeToDomainEvent = eventEmitter.on.bind(eventEmitter);
@@ -59,7 +61,7 @@ describe('after turn ended subscriber', () => {
     // act
     dispatchDomainEvents([
       turnEvents.turnEnded({
-        gameId: 'g1',
+        gameId: game.id,
         id: 't1',
         storytellerId: 'p1',
         playersWithHandAndScore,
@@ -69,7 +71,7 @@ describe('after turn ended subscriber', () => {
 
     // assert
     expect(handleTurnEnded).toHaveBeenCalledWith({
-      gameId: 'g1',
+      gameId: game.id,
       actualHandsByPlayerId,
       previousTurnId: 't1',
       turnScore,

@@ -119,7 +119,7 @@ describe('behaviors', () => {
         .withPlayerThatHavePlayed({ playerId: players[1].id, voteOnCardOwnedByPlayerId: players[0].id })
         .withPlayerThatHavePlayed({ playerId: players[2].id, voteOnCardOwnedByPlayerId: players[0].id })
         .build();
-      const activePlayer = players[2];
+      const activePlayer = players[3];
       const storytellerCardOnBoard = turnState.turn.board.find(
         ({ playerId }) => playerId === turnState.turn.storytellerId
       );
@@ -153,6 +153,7 @@ describe('behaviors', () => {
         .build();
       const activePlayer = players[1];
       const activePlayerCardOnBoard = turnState.turn.board.find(({ playerId }) => playerId === activePlayer.id);
+
       // act
       const result = vote(turnState, {
         playerId: activePlayer.id,

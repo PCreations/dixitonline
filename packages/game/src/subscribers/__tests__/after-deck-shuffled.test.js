@@ -3,13 +3,20 @@ import { events as deckEvents } from '@dixit/decks';
 import { makeAfterDeckShuffledSubscriber } from '../after-deck-shuffled';
 import { makeNullGameRepository } from '../../repos';
 import { makeCompleteHands } from '../../useCases/complete-hands';
+import { buildTestGame } from '../../__tests__/dataBuilders/game';
 
 describe('after deck shuffled subscriber', () => {
   test('it should call the completeHands use case when the deck for this game has been shuffled', async () => {
     // arrange
     expect.assertions(1);
     const cardsFromDecks = [1, 2, 3, 4, 5];
-    const gameRepository = makeNullGameRepository({});
+    const gameRepository = makeNullGameRepository({
+      gamesData: {
+        g1: buildTestGame()
+          .withId('g1')
+          .build(),
+      },
+    });
     const eventEmitter = new EventEmitter();
     const dispatchDomainEvents = events => events.map(event => eventEmitter.emit(event.type, event));
     const subscribeToDomainEvent = eventEmitter.on.bind(eventEmitter);

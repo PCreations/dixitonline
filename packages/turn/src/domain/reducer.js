@@ -112,6 +112,8 @@ const turnPlayersCardChoicePhaseReducer = (state = defaultTurnState, event) =>
     }
   });
 
+const playerHasntAlreadyVoted = (playerId, board) => !board.some(({ votes }) => votes.includes(playerId));
+
 const turnPlayersVotingPhaseReducer = (state = defaultTurnState, event) => {
   if (!event) return state;
   const newState = produce(state, draft => {
@@ -119,7 +121,7 @@ const turnPlayersVotingPhaseReducer = (state = defaultTurnState, event) => {
     switch (event.type) {
       case events.types.PLAYER_VOTED: {
         const { cardId, playerId } = event.payload;
-        if (playerId !== draft.storytellerId) {
+        if (playerId !== draft.storytellerId && playerHasntAlreadyVoted(playerId, draft.board)) {
           draft.board.forEach(card => {
             if (card.id === cardId && playerId !== card.playerId) {
               card.votes.push(playerId);

@@ -394,6 +394,29 @@ describe('turnReducer (root)', () => {
       // assert
       expect(initialTurnState.turn.board).toEqual(state.turn.board);
     });
+    test('playerVoted should not be handled if player has already voted', () => {
+      // arrange
+      const players = getTestPlayers();
+      const activePlayer = players[1];
+      const initialTurnState = buildTestTurn()
+        .withPlayers(players)
+        .inPlayersVotingPhase()
+        .withPlayerThatHavePlayed({
+          playerId: activePlayer.id,
+          voteOnCardOwnedByPlayerId: players[0].id,
+        })
+        .build();
+      const playerVoted = events.playerVoted({
+        playerId: activePlayer.id,
+        cardId: initialTurnState.turn.board[3].id,
+      });
+
+      // act
+      const state = turnReducer(initialTurnState, playerVoted);
+
+      // assert
+      expect(initialTurnState.turn.board).toEqual(state.turn.board);
+    });
     test('playerVoted should lead to score computation when the last player has voted', () => {
       // arrange
       const players = getTestPlayers();
@@ -403,7 +426,7 @@ describe('turnReducer (root)', () => {
         .build();
       const player1Voted = events.playerVoted({ playerId: players[1].id, cardId: initialTurnState.turn.board[1].id });
       const player2Voted = events.playerVoted({ playerId: players[2].id, cardId: initialTurnState.turn.board[0].id });
-      const player3Voted = events.playerVoted({ playerId: players[2].id, cardId: initialTurnState.turn.board[0].id });
+      const player3Voted = events.playerVoted({ playerId: players[3].id, cardId: initialTurnState.turn.board[0].id });
       initialTurnState = turnReducer(turnReducer(initialTurnState, player1Voted), player2Voted);
 
       // act
