@@ -114,8 +114,11 @@ describe('Game', () => {
   it('must have an id', () => {
     expect(() => makeGame({ id: undefined })).toThrow('Game must contain an id');
   });
-  it('must have an host', () => {
+  it('must have an host if not in EXPIRED state', () => {
     expect(() => makeGame({ id: 'g1' })).toThrow('Game must have an host');
+  });
+  it('can be created without an host if game is in EXPIRED state', () => {
+    expect(() => makeGame({ id: 'g1', status: GameStatus.EXPIRED })).not.toThrow('Game must have an host');
   });
   it('players list must be empty by default', () => {
     const host = buildTestPlayer().build();
@@ -357,7 +360,7 @@ describe('Game', () => {
     });
   });
 
-  describe.only('quit player', () => {
+  describe('quit player', () => {
     it('removes a player from a game', () => {
       // arrange
       const host = buildTestPlayer().build();
@@ -371,7 +374,41 @@ describe('Game', () => {
       expect(getAllPlayers(gameEdited)).toEqual([host]);
     });
 
-    test.todo('host quit the game');
+    it('promotes the next player as host when the host quite the game', () => {
+      // arrange
+      const host = buildTestPlayer()
+        .withId('host-id')
+        .withName('hostname')
+        .build();
+      const player = buildTestPlayer()
+        .withId('player-id')
+        .withName('I am the future host')
+        .build();
+      const game = makeGame({ id: 'g1', host, players: [player] });
+
+      // act
+      const { value: gameEdited } = quitGame(game, host);
+
+      // assert
+      expect(getAllPlayers(gameEdited)).toEqual([player]);
+      expect(gameEdited.host).toEqual(player);
+    });
+
+    it('sets the game to EXPIRED when the last players left the game', () => {
+      // arrange
+      const host = buildTestPlayer()
+        .withId('host-id')
+        .withName('hostname')
+        .build();
+      const game = makeGame({ id: 'g1', host });
+
+      // act
+      const { value: gameEdited } = quitGame(game, host);
+
+      // assert
+      expect(gameEdited.status).toEqual(GameStatus.EXPIRED);
+    });
+
     test.todo('cannot quit a game already started');
   });
 

@@ -23,6 +23,7 @@ export const GameStatus = {
   WAITING_FOR_PLAYERS: 'WAITING_FOR_PLAYERS',
   STARTED: 'STARTED',
   ENDED: 'ENDED',
+  EXPIRED: 'EXPIRED',
 };
 
 export const GameError = {
@@ -57,7 +58,7 @@ export const makeGame = ({
   endCondition = DEFAULT_END_CONDITION,
 } = {}) => {
   if (!id) throw new Error('Game must contain an id');
-  if (!host) throw new Error('Game must have an host');
+  if (!host && status !== GameStatus.EXPIRED) throw new Error('Game must have an host');
   if (
     typeof endCondition.xTimesStorytellerLimit === 'undefined' &&
     typeof endCondition.scoreLimit === 'undefined' &&
@@ -138,13 +139,26 @@ export const joinPlayer = (game, player) => {
   ]);
 };
 
-export const quitGame = (game, playerToQuit) =>
-  makeGameResult(
+export const quitGame = (game, playerToQuit) => {
+  const withoutPlayer = playerToRemove => player => !playerEquals(playerToRemove, player);
+
+  if (playerEquals(game.host, playerToQuit)) {
+    return makeGameResult(
+      makeGame({
+        ...game,
+        host: game.players[0],
+        players: game.players.filter(withoutPlayer(game.players[0])),
+        status: game.players.length === 0 ? GameStatus.EXPIRED : game.status,
+      })
+    );
+  }
+  return makeGameResult(
     makeGame({
       ...game,
-      players: game.players.filter(player => player.id !== playerToQuit.id),
+      players: game.players.filter(withoutPlayer(playerToQuit)),
     })
   );
+};
 
 export const startGame = (game, player) => {
   if (game.status === GameStatus.STARTED) {
