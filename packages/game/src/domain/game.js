@@ -139,7 +139,7 @@ export const joinPlayer = (game, player) => {
   ]);
 };
 
-export const quitGame = (game, playerToQuit) => {
+export const quitPlayer = (game, playerToQuit) => {
   const withoutPlayer = playerToRemove => player => !playerEquals(playerToRemove, player);
 
   if (playerEquals(game.host, playerToQuit)) {

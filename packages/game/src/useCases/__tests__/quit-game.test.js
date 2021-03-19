@@ -1,5 +1,6 @@
 import { createTestClient } from 'apollo-server-testing';
 import gql from 'graphql-tag';
+import { getAllPlayers } from '../../domain/game';
 import { makeGetDataSources } from '../../infra/graphql/get-data-sources';
 import { makeNullGameRepository } from '../../repos/game-repository';
 import { buildTestGame } from '../../__tests__/dataBuilders/game';
@@ -31,7 +32,7 @@ describe('quit game', () => {
     });
     const GAME_QUIT_GAME = gql`
       mutation GameQuitGame($quitGameInput: GameQuitGameInput!) {
-        gameQuitGame(quitGame: $quitGameInput) {
+        gameQuitGame(quitGameInput: $quitGameInput) {
           ... on GameQuitGameResultSuccess {
             game {
               players {
@@ -47,11 +48,13 @@ describe('quit game', () => {
     const { mutate } = createTestClient(server);
     const response = await mutate({
       mutation: GAME_QUIT_GAME,
-      variables: { quitGameInput: { gameId: 'g1' } },
+      variables: { quitGameInput: { gameId: game.id } },
       operationName: 'GameQuitGame',
     });
+    const updatedGame = await gameRepository.getGameById(game.id);
 
     // assert
     expect(response.data.gameQuitGame.game.players).not.toContainEqual({ id: player2.id });
+    expect(getAllPlayers(updatedGame)).toEqual([host]);
   });
 });

@@ -5,7 +5,7 @@ import {
   getEndCondition,
   createGame,
   joinPlayer,
-  quitGame,
+  quitPlayer,
   startGame,
   updateDeck,
   completeHands,
@@ -368,7 +368,7 @@ describe('Game', () => {
       const game = makeGame({ id: 'g1', host, players: [playerThatWillQuitTheGame] });
 
       // act
-      const { value: gameEdited } = quitGame(game, playerThatWillQuitTheGame);
+      const { value: gameEdited } = quitPlayer(game, playerThatWillQuitTheGame);
 
       // assert
       expect(getAllPlayers(gameEdited)).toEqual([host]);
@@ -387,7 +387,7 @@ describe('Game', () => {
       const game = makeGame({ id: 'g1', host, players: [player] });
 
       // act
-      const { value: gameEdited } = quitGame(game, host);
+      const { value: gameEdited } = quitPlayer(game, host);
 
       // assert
       expect(getAllPlayers(gameEdited)).toEqual([player]);
@@ -403,7 +403,7 @@ describe('Game', () => {
       const game = makeGame({ id: 'g1', host });
 
       // act
-      const { value: gameEdited } = quitGame(game, host);
+      const { value: gameEdited } = quitPlayer(game, host);
 
       // assert
       expect(gameEdited.status).toEqual(GameStatus.EXPIRED);
