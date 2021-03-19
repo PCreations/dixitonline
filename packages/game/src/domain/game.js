@@ -138,6 +138,14 @@ export const joinPlayer = (game, player) => {
   ]);
 };
 
+export const quitGame = (game, playerToQuit) =>
+  makeGameResult(
+    makeGame({
+      ...game,
+      players: game.players.filter(player => player.id !== playerToQuit.id),
+    })
+  );
+
 export const startGame = (game, player) => {
   if (game.status === GameStatus.STARTED) {
     return makeErrorResult(GameError.GAME_ALREADY_STARTED);

@@ -5,6 +5,7 @@ import {
   getEndCondition,
   createGame,
   joinPlayer,
+  quitGame,
   startGame,
   updateDeck,
   completeHands,
@@ -354,6 +355,24 @@ describe('Game', () => {
       // assert
       expect(error).toEqual(GameError.MAXIMUM_NUMBER_OF_PLAYERS_REACHED);
     });
+  });
+
+  describe.only('quit player', () => {
+    it('removes a player from a game', () => {
+      // arrange
+      const host = buildTestPlayer().build();
+      const playerThatWillQuitTheGame = buildTestPlayer().build();
+      const game = makeGame({ id: 'g1', host, players: [playerThatWillQuitTheGame] });
+
+      // act
+      const { value: gameEdited } = quitGame(game, playerThatWillQuitTheGame);
+
+      // assert
+      expect(getAllPlayers(gameEdited)).toEqual([host]);
+    });
+
+    test.todo('host quit the game');
+    test.todo('cannot quit a game already started');
   });
 
   describe('start game', () => {
