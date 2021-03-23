@@ -55,13 +55,15 @@ export const CreateGameWithScoreLimitEndingCondition = mutationField('gameCreate
   async resolve(
     _,
     { createGameWithScoreLimitEndingConditionInput },
-    { dataSources, dispatchDomainEvents, currentUser }
+    { dataSources, dispatchDomainEvents, currentUser, getNowDate }
   ) {
-    console.log({ currentUser });
     const createNewGame = makeCreateNewGame({ gameRepository: dataSources.gameRepository });
-    const result = await createNewGame(makePlayer({ id: currentUser.id, name: currentUser.username }), {
-      scoreLimit: createGameWithScoreLimitEndingConditionInput.scoreLimit,
-    });
+    const result = await createNewGame(
+      makePlayer({ id: currentUser.id, name: currentUser.username, heartbeat: getNowDate() }),
+      {
+        scoreLimit: createGameWithScoreLimitEndingConditionInput.scoreLimit,
+      }
+    );
     const handleUseCaseResult = makeHandleUseCaseResult({ dispatchDomainEvents, result });
     return handleUseCaseResult('game');
   },

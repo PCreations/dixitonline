@@ -8,6 +8,38 @@ export class GameNotFoundError extends Error {
   }
 }
 
+/* eslint-disable no-underscore-dangle */
+const convertFirestoreDateToDate = (firestoreDate = { _seconds: +new Date() }) => new Date(firestoreDate._seconds);
+
+const convertDateToFirestoreDate = (date = new Date()) => ({
+  _seconds: +date,
+  _nanoseconds: 709000000,
+});
+
+const convertGameDataToFirestoreGame = game => ({
+  ...game,
+  host: {
+    ...game.host,
+    heartbeat: convertDateToFirestoreDate(game.host.heartbeat),
+  },
+  players: game.players.map(p => ({
+    ...p,
+    heartbeat: convertDateToFirestoreDate(p.heartbeat),
+  })),
+});
+
+const convertFirestoreGameToGameData = firestoreGame => ({
+  ...firestoreGame,
+  host: {
+    ...firestoreGame.host,
+    heartbeat: convertFirestoreDateToDate(firestoreGame.host.heartbeat),
+  },
+  players: firestoreGame.players.map(p => ({
+    ...p,
+    heartbeat: convertFirestoreDateToDate(p.heartbeat),
+  })),
+});
+
 export const makeGameRepository = ({ uuid = shortid, firestore = makeNullFirestore() } = {}) => {
   const lobbyGames = firestore.collection('lobby-games');
   return {
@@ -15,14 +47,14 @@ export const makeGameRepository = ({ uuid = shortid, firestore = makeNullFiresto
       return uuid();
     },
     saveGame(game) {
-      return lobbyGames.doc(game.id).set(game);
+      return lobbyGames.doc(game.id).set(convertGameDataToFirestoreGame(game));
     },
     async getGameById(id) {
       const doc = await lobbyGames.doc(id).get();
       if (!doc.exists) {
         throw new GameNotFoundError(id);
       }
-      return makeGame(doc.data());
+      return makeGame(convertFirestoreGameToGameData(doc.data()));
     },
     getAllGames() {
       return lobbyGames
@@ -30,7 +62,7 @@ export const makeGameRepository = ({ uuid = shortid, firestore = makeNullFiresto
         .get()
         .then(snapshot => {
           const games = [];
-          snapshot.forEach(doc => games.push(makeGame(doc.data())));
+          snapshot.forEach(doc => games.push(makeGame(convertFirestoreGameToGameData(doc.data()))));
           return games;
         });
     },
@@ -46,7 +78,10 @@ export const makeNullGameRepository = ({ nextGameId, gamesData }) =>
 const nullUuid = expectedUuid => () => expectedUuid;
 
 const makeNullFirestore = (gamesInitialData = {}) => {
-  const gamesData = { ...gamesInitialData };
+  const gamesData = Object.fromEntries(
+    Object.entries(gamesInitialData).map(([gameId, game]) => [gameId, convertGameDataToFirestoreGame(game)])
+  );
+
   return {
     collection() {
       return {

@@ -6,6 +6,7 @@ export const createMakeTestServer = ({ schema, getContext }) => ({
   dispatchDomainEvents = () => {},
   currentUserId = '',
   currentUserUsername = '',
+  getNowDate = () => new Date('2021-04-04'),
 } = {}) =>
   new ApolloServer({
     schema,
@@ -16,5 +17,6 @@ export const createMakeTestServer = ({ schema, getContext }) => ({
         userIdInDecodedToken: currentUserId,
         currentUserUsername,
       }),
+      getNowDate,
     }),
   });

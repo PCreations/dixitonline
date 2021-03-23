@@ -303,15 +303,24 @@ describe('Game', () => {
   describe('join player', () => {
     it('joins a player', () => {
       // arrange
+      const now = new Date();
       const host = buildTestPlayer().build();
       const game = makeGame({ id: 'g1', host });
-      const playerThatWantsToJoinTheGame = buildTestPlayer().build();
+      const playerThatWantsToJoinTheGame = buildTestPlayer()
+        .joinedAt(now)
+        .build();
 
       // act
       const { value: gameEdited, events } = joinPlayer(game, playerThatWantsToJoinTheGame);
 
       // assert
-      expect(gameEdited.players).toEqual([playerThatWantsToJoinTheGame]);
+      expect(gameEdited.players).toEqual([
+        {
+          id: playerThatWantsToJoinTheGame.id,
+          name: playerThatWantsToJoinTheGame.name,
+          heartbeat: now,
+        },
+      ]);
       expect(events).toEqual([playerJoinedGame({ gameId: game.id, playerId: playerThatWantsToJoinTheGame.id })]);
     });
     it('returns a GameAlreadyJoinedByPlayerError if the player is the host', () => {

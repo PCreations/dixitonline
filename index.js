@@ -45,6 +45,7 @@ export default ({ firestore, firebaseAuth, dispatchDomainEvents, subscribeToDoma
       ...getTurnDataSources(),
     }),
     context: async (...args) => {
+      console.log('CURRENT TIME', new Date());
       const [context] = args;
       if (context.req?.body.operationName !== 'IntrospectionQuery') {
         try {

@@ -12,10 +12,12 @@ const getJoinGameTestServer = ({
   currentUserId = 'p2',
   currentUserUsername = 'player2',
   maxOutPlayers = false,
+  getNowDate = () => new Date(),
 } = {}) => {
   const host = buildTestPlayer()
     .withId('p1')
     .withName('player1')
+    .joinedAt(getNowDate())
     .build();
   let gameToBeBuilt = buildTestGame()
     .withId('g1')
@@ -38,6 +40,7 @@ const getJoinGameTestServer = ({
     dispatchDomainEvents,
     currentUserId,
     currentUserUsername,
+    getNowDate,
   });
 
   return {
@@ -51,12 +54,14 @@ const getJoinGameTestServer = ({
 describe('join game', () => {
   test('a player can join a game', async () => {
     // arrange
-    const { game, dispatchDomainEvents, gameRepository, server } = getJoinGameTestServer();
+    const getNowDate = () => new Date('2021-04-04');
+    const { game, dispatchDomainEvents, gameRepository, server } = getJoinGameTestServer({ getNowDate });
     const expectedUpdatedGame = buildTestGame(game)
       .withPlayers([
         buildTestPlayer()
           .withId('p2')
           .withName('player2')
+          .joinedAt(getNowDate())
           .build(),
       ])
       .build();
@@ -82,7 +87,7 @@ describe('join game', () => {
 
     // act
     const { mutate } = createTestClient(server);
-    const response = await mutate({
+    await mutate({
       mutation: GAME_JOIN_GAME,
       variables: { joinGameInput: { gameId: 'g1' } },
       operationName: 'GameJoinGame',
@@ -90,7 +95,7 @@ describe('join game', () => {
     const updatedGame = await gameRepository.getGameById('g1');
 
     // assert
-    expect(response).toMatchSnapshot();
+
     // TODO : change this when https://github.com/facebook/jest/pull/9575 is released
     expect({ ...updatedGame }).toEqual({ ...expectedUpdatedGame });
     expect(dispatchDomainEvents).toHaveBeenCalledWith([playerJoinedGame({ gameId: 'g1', playerId: 'p2' })]);

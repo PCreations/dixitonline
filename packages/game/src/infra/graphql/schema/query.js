@@ -17,8 +17,10 @@ export const GetGame = queryField('game', {
   args: {
     gameId: idArg({ required: true }),
   },
-  resolve(_, { gameId }, { dataSources }) {
+  async resolve(_, { gameId }, { dataSources }) {
     const getGame = makeGetGame({ gameRepository: dataSources.gameRepository });
-    return getGame(gameId);
+    const game = await getGame(gameId);
+    console.log('GAME', JSON.stringify(game, null, 2));
+    return game;
   },
 });

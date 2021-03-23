@@ -1,38 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`join game a player can join a game 1`] = `
-Object {
-  "data": Object {
-    "gameJoinGame": Object {
-      "game": Object {
-        "host": Object {
-          "id": "p1",
-          "name": "player1",
-        },
-        "id": "g1",
-        "players": Array [
-          Object {
-            "id": "p1",
-            "name": "player1",
-          },
-          Object {
-            "id": "p2",
-            "name": "player2",
-          },
-        ],
-      },
-    },
-  },
-  "errors": undefined,
-  "extensions": undefined,
-  "http": Object {
-    "headers": Headers {
-      Symbol(map): Object {},
-    },
-  },
-}
-`;
-
 exports[`join game a player can't join a game she has already joined 1`] = `
 Object {
   "data": Object {

@@ -45,10 +45,10 @@ export const JoinGame = mutationField('gameJoinGame', {
   args: {
     joinGameInput: JoinGameInput,
   },
-  async resolve(_, { joinGameInput }, { dataSources, dispatchDomainEvents, currentUser }) {
+  async resolve(_, { joinGameInput }, { dataSources, dispatchDomainEvents, currentUser, getNowDate }) {
     const { gameId } = joinGameInput;
     const joinGame = makeJoinGame({ gameRepository: dataSources.gameRepository });
-    const result = await joinGame({ gameId, currentUser });
+    const result = await joinGame({ gameId, currentUser, now: getNowDate() });
     const handleUseCaseResult = makeHandleUseCaseResult({ dispatchDomainEvents, result });
     return handleUseCaseResult('game');
   },

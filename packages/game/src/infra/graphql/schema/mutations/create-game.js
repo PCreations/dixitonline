@@ -15,10 +15,11 @@ export const CreateGameResult = objectType({
 
 export const CreateGame = mutationField('gameCreateGame', {
   type: CreateGameResult,
-  async resolve(_, __, { dataSources, dispatchDomainEvents, currentUser }) {
-    console.log({ currentUser });
+  async resolve(_, __, { dataSources, dispatchDomainEvents, currentUser, getNowDate }) {
     const createNewGame = makeCreateNewGame({ gameRepository: dataSources.gameRepository });
-    const result = await createNewGame(makePlayer({ id: currentUser.id, name: currentUser.username }));
+    const result = await createNewGame(
+      makePlayer({ id: currentUser.id, name: currentUser.username, heartbeat: getNowDate() })
+    );
     const handleUseCaseResult = makeHandleUseCaseResult({ dispatchDomainEvents, result });
     return handleUseCaseResult('game');
   },

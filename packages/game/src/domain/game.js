@@ -132,8 +132,12 @@ export const createGame = ({ gameId, host, endCondition }) => {
 };
 
 export const joinPlayer = (game, player) => {
-  if (getAllPlayers(game).some(playerEquals.bind(null, player))) return makeErrorResult(GameError.GAME_ALREADY_JOINED);
+  const isGameAlreadyJoined = getAllPlayers(game).some(playerEquals.bind(null, player));
+
+  if (isGameAlreadyJoined) return makeErrorResult(GameError.GAME_ALREADY_JOINED);
+
   if (isGameFull(game)) return makeErrorResult(GameError.MAXIMUM_NUMBER_OF_PLAYERS_REACHED);
+
   return makeGameResult(makeGame({ ...game, players: game.players.concat(player) }), [
     playerJoinedGame({ gameId: game.id, playerId: player.id }),
   ]);

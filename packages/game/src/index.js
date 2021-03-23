@@ -8,7 +8,7 @@ import { makeGetContext } from './infra/graphql/get-context';
 export const initialize = ({ firestore, authorizationService, dispatchDomainEvents, subscribeToDomainEvent }) => {
   const gameRepository = makeGameRepository({ firestore });
   const getDataSources = makeGetDataSources({ gameRepository });
-  const getContext = makeGetContext({ dispatchDomainEvents, authorizationService });
+  const getContext = makeGetContext({ dispatchDomainEvents, authorizationService, getNowDate: () => new Date() });
   initializeSubscribers({ subscribeToDomainEvent, dispatchDomainEvents, gameRepository });
 
   return {

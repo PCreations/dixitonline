@@ -60,13 +60,15 @@ export const CreateGameWithXtimesStorytellerEndingCondition = mutationField(
     async resolve(
       _,
       { createGameWithXtimesStorytellerEndingConditionInput },
-      { dataSources, dispatchDomainEvents, currentUser }
+      { dataSources, dispatchDomainEvents, currentUser, getNowDate }
     ) {
-      console.log({ currentUser });
       const createNewGame = makeCreateNewGame({ gameRepository: dataSources.gameRepository });
-      const result = await createNewGame(makePlayer({ id: currentUser.id, name: currentUser.username }), {
-        xTimesStorytellerLimit: createGameWithXtimesStorytellerEndingConditionInput.timesBeingStoryteller,
-      });
+      const result = await createNewGame(
+        makePlayer({ id: currentUser.id, name: currentUser.username, heartbeat: getNowDate() }),
+        {
+          xTimesStorytellerLimit: createGameWithXtimesStorytellerEndingConditionInput.timesBeingStoryteller,
+        }
+      );
       const handleUseCaseResult = makeHandleUseCaseResult({ dispatchDomainEvents, result });
       return handleUseCaseResult('game');
     },
