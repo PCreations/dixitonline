@@ -369,58 +369,6 @@ describe('Game', () => {
     });
   });
 
-  describe('quit player', () => {
-    it('removes a player from a game', () => {
-      // arrange
-      const host = buildTestPlayer().build();
-      const playerThatWillQuitTheGame = buildTestPlayer().build();
-      const game = makeGame({ id: 'g1', host, players: [playerThatWillQuitTheGame] });
-
-      // act
-      const { value: gameEdited } = quitPlayer(game, playerThatWillQuitTheGame);
-
-      // assert
-      expect(getAllPlayers(gameEdited)).toEqual([host]);
-    });
-
-    it('promotes the next player as host when the host quite the game', () => {
-      // arrange
-      const host = buildTestPlayer()
-        .withId('host-id')
-        .withName('hostname')
-        .build();
-      const player = buildTestPlayer()
-        .withId('player-id')
-        .withName('I am the future host')
-        .build();
-      const game = makeGame({ id: 'g1', host, players: [player] });
-
-      // act
-      const { value: gameEdited } = quitPlayer(game, host);
-
-      // assert
-      expect(getAllPlayers(gameEdited)).toEqual([player]);
-      expect(gameEdited.host).toEqual(player);
-    });
-
-    it('sets the game to EXPIRED when the last players left the game', () => {
-      // arrange
-      const host = buildTestPlayer()
-        .withId('host-id')
-        .withName('hostname')
-        .build();
-      const game = makeGame({ id: 'g1', host });
-
-      // act
-      const { value: gameEdited } = quitPlayer(game, host);
-
-      // assert
-      expect(gameEdited.status).toEqual(GameStatus.EXPIRED);
-    });
-
-    test.todo('cannot quit a game already started');
-  });
-
   describe('start game', () => {
     it('can be started if the player who wants to start the game is the host', () => {
       // arrange

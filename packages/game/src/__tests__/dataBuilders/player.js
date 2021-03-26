@@ -5,7 +5,7 @@ export const buildTestPlayer = () => {
   const defaultProperties = {
     id: faker.random.uuid(),
     name: faker.name.firstName(),
-    heartbeat: new Date('2021-04-04'),
+    heartbeat: new Date(),
   };
   const properties = {};
   return {
@@ -15,6 +15,10 @@ export const buildTestPlayer = () => {
     },
     withName(name = defaultProperties.name) {
       properties.name = name;
+      return this;
+    },
+    lastSeenXsecondsAgo({ now = new Date(), seconds = 0 }) {
+      properties.heartbeat = new Date(+now - seconds * 1000);
       return this;
     },
     joinedAt(now) {

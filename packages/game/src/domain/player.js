@@ -4,4 +4,4 @@ export const makePlayer = ({ id, name, heartbeat } = {}) => {
   return { id, name, heartbeat };
 };
 
-export const equals = (player1, player2) => player1.id === player2.id;
+export const equals = (player1, player2) => player1?.id === player2?.id;

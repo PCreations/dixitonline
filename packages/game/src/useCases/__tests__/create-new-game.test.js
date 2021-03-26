@@ -163,6 +163,7 @@ describe('create new game', () => {
   });
   it('creates a new game with score limit as end condition', async () => {
     // arrange
+    const now = new Date();
     const dispatchDomainEvents = jest.fn();
     const gameRepository = makeNullGameRepository({ nextGameId: 'g1' });
     const server = makeTestServer({
@@ -172,6 +173,7 @@ describe('create new game', () => {
       dispatchDomainEvents,
       currentUserId: 'p1',
       currentUserUsername: 'player1',
+      getNowDate: () => now,
     });
     const GAME_CREATE_GAME = gql`
       mutation GameCreateGame(
@@ -200,6 +202,7 @@ describe('create new game', () => {
     const host = buildTestPlayer()
       .withId('p1')
       .withName('player1')
+      .joinedAt(now)
       .build();
     const expectedGame = buildTestGame()
       .withId('g1')

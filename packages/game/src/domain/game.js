@@ -19,6 +19,8 @@ export const DEFAULT_END_CONDITION = {
 
 export const CARDS_NOT_DEALT_YET = null;
 
+export const PLAYER_INACTIVE_AFTER_X_SECONDS = 60;
+
 export const GameStatus = {
   WAITING_FOR_PLAYERS: 'WAITING_FOR_PLAYERS',
   STARTED: 'STARTED',
@@ -100,7 +102,7 @@ const makeGameResult = (game, events = []) => applyEndingConditionStrategy(baseM
 export const getNumberOfCardsByHand = game =>
   getAllPlayers(game).length === 3 ? NUMBER_OF_CARDS_BY_HAND + 1 : NUMBER_OF_CARDS_BY_HAND;
 
-export const getAllPlayers = game => [game.host, ...game.players];
+export const getAllPlayers = game => [game.host, ...game.players].filter(Boolean);
 
 export const getEndCondition = game => {
   const allPlayersLength = getAllPlayers(game).length;
@@ -143,23 +145,18 @@ export const joinPlayer = (game, player) => {
   ]);
 };
 
-export const quitPlayer = (game, playerToQuit) => {
-  const withoutPlayer = playerToRemove => player => !playerEquals(playerToRemove, player);
+export const removeInactivePlayers = (game, now) => {
+  const isPlayerActive = player => +now - player.heartbeat < PLAYER_INACTIVE_AFTER_X_SECONDS * 1000;
 
-  if (playerEquals(game.host, playerToQuit)) {
-    return makeGameResult(
-      makeGame({
-        ...game,
-        host: game.players[0],
-        players: game.players.filter(withoutPlayer(game.players[0])),
-        status: game.players.length === 0 ? GameStatus.EXPIRED : game.status,
-      })
-    );
-  }
+  const players = game.players.filter(isPlayerActive);
+  const host = isPlayerActive(game.host) ? game.host : players[0];
+
   return makeGameResult(
     makeGame({
       ...game,
-      players: game.players.filter(withoutPlayer(playerToQuit)),
+      host,
+      players: playerEquals(players[0], host) ? players.slice(1) : players,
+      status: !host && players.length === 0 ? GameStatus.EXPIRED : game.status,
     })
   );
 };

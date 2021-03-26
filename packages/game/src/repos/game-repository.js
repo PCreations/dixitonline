@@ -18,10 +18,12 @@ const convertDateToFirestoreDate = (date = new Date()) => ({
 
 const convertGameDataToFirestoreGame = game => ({
   ...game,
-  host: {
-    ...game.host,
-    heartbeat: convertDateToFirestoreDate(game.host.heartbeat),
-  },
+  host: game.host
+    ? {
+        ...game.host,
+        heartbeat: convertDateToFirestoreDate(game.host.heartbeat),
+      }
+    : null,
   players: game.players.map(p => ({
     ...p,
     heartbeat: convertDateToFirestoreDate(p.heartbeat),
@@ -30,10 +32,12 @@ const convertGameDataToFirestoreGame = game => ({
 
 const convertFirestoreGameToGameData = firestoreGame => ({
   ...firestoreGame,
-  host: {
-    ...firestoreGame.host,
-    heartbeat: convertFirestoreDateToDate(firestoreGame.host.heartbeat),
-  },
+  host: firestoreGame.host
+    ? {
+        ...firestoreGame.host,
+        heartbeat: convertFirestoreDateToDate(firestoreGame.host.heartbeat),
+      }
+    : undefined,
   players: firestoreGame.players.map(p => ({
     ...p,
     heartbeat: convertFirestoreDateToDate(p.heartbeat),
