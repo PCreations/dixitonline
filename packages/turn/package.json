@@ -16,7 +16,7 @@
     "@dixit/shared": "1.0.0",
     "@dixit/users": "1.0.0",
     "@firebase/testing": "^0.17.0",
-    "apollo-server": "^2.11.0",
+    "apollo-server": "^2.14.2",
     "apollo-server-testing": "^2.11.0",
     "faker": "^4.1.0",
     "firebase-admin": "^8.10.0",
