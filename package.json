@@ -51,7 +51,7 @@
     "@dixit/turn": "1.0.0",
     "@dixit/users": "1.0.0",
     "@sentry/node": "5.15.4",
-    "apollo-server-express": "^2.11.0",
+    "apollo-server-express": "^2.14.2",
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "faker": "^4.1.0",
