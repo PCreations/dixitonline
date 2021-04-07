@@ -36,6 +36,7 @@ export const Game = objectType({
   definition(t) {
     t.id('id');
     t.field('host', { type: Player });
+    t.boolean('isPrivate');
     t.field('status', { type: GameStatus });
     t.id('currentTurnId', {
       nullable: true,

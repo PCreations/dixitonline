@@ -51,6 +51,7 @@ export const makeNullCards = () => ({
 export const makeGame = ({
   id,
   host,
+  isPrivate = true,
   cards = makeNullCards(),
   drawPile = [],
   score = {},
@@ -73,6 +74,7 @@ export const makeGame = ({
   return Object.freeze({
     id,
     host,
+    isPrivate,
     players,
     cards,
     drawPile,
@@ -123,14 +125,14 @@ export const getEndCondition = game => {
 
 const isGameFull = game => getAllPlayers(game).length === MAXIMUM_NUMBER_OF_PLAYERS;
 
-export const createGame = ({ gameId, host, endCondition }) => {
+export const createGame = ({ gameId, host, endCondition, isPrivate }) => {
   if (endCondition?.xTimesStorytellerLimit !== undefined && endCondition.xTimesStorytellerLimit < 1) {
     return makeErrorResult(GameError.X_TIMES_STORYTELLER_CANT_BE_LESS_THAN_ONE);
   }
   if (endCondition?.scoreLimit !== undefined && endCondition.scoreLimit < 1) {
     return makeErrorResult(GameError.SCORE_LIMIT_CANT_BE_LESS_THAN_ONE);
   }
-  return makeGameResult(makeGame({ id: gameId, host, endCondition }), [newGameCreatedEvent({ gameId })]);
+  return makeGameResult(makeGame({ id: gameId, host, endCondition, isPrivate }), [newGameCreatedEvent({ gameId })]);
 };
 
 export const joinPlayer = (game, player) => {

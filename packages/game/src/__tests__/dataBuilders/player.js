@@ -5,7 +5,7 @@ export const buildTestPlayer = () => {
   const defaultProperties = {
     id: faker.random.uuid(),
     name: faker.name.firstName(),
-    heartbeat: new Date(),
+    heartbeat: new Date('2021-04-04'),
   };
   const properties = {};
   return {

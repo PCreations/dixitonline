@@ -47,6 +47,7 @@ Object {
           "name": "player1",
         },
         "id": "g1",
+        "isPrivate": true,
       },
     },
   },

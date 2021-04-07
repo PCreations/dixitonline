@@ -14,6 +14,7 @@ export const buildTestGame = (baseGame = {}) => {
   const defaultProperties = {
     id: faker.random.uuid(),
     host: buildTestPlayer().build(),
+    isPrivate: true,
     players: [],
     cards: makeNullCards(),
     drawPile: [],
@@ -24,6 +25,10 @@ export const buildTestGame = (baseGame = {}) => {
   return {
     withId(id = defaultProperties.id) {
       overrides.id = id;
+      return this;
+    },
+    asPublic() {
+      overrides.isPrivate = false;
       return this;
     },
     withCards(length = NUMBER_OF_CARDS_IN_A_DECK) {

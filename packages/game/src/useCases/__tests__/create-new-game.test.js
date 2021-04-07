@@ -25,6 +25,7 @@ describe('create new game', () => {
         gameCreateGame {
           game {
             id
+            isPrivate
             host {
               id
               name
@@ -57,6 +58,49 @@ describe('create new game', () => {
     expect(createdGame).toEqual(expectedGame);
     expect(dispatchDomainEvents).toHaveBeenCalledWith([newGameCreatedEvent({ gameId: 'g1' })]);
   });
+
+  it('creates a new public game', async () => {
+    // arrange
+    const dispatchDomainEvents = jest.fn();
+    const gameRepository = makeNullGameRepository({ nextGameId: 'g1' });
+    const server = makeTestServer({
+      getDataSources: makeGetDataSources({
+        gameRepository,
+      }),
+      dispatchDomainEvents,
+      currentUserId: 'p1',
+      currentUserUsername: 'player1',
+    });
+    const GAME_CREATE_GAME = gql`
+      mutation GameCreatePublicGame {
+        gameCreatePublicGame {
+          game {
+            isPrivate
+          }
+        }
+      }
+    `;
+    const host = buildTestPlayer()
+      .withId('p1')
+      .withName('player1')
+      .build();
+    const expectedGame = buildTestGame()
+      .asPublic()
+      .withId('g1')
+      .withHost(host)
+      .build();
+
+    // act
+    const { mutate } = createTestClient(server);
+    const response = await mutate({ mutation: GAME_CREATE_GAME });
+
+    // assert
+    expect(response.data.gameCreatePublicGame.game.isPrivate).toBe(false);
+    const createdGame = await gameRepository.getGameById('g1');
+    expect(createdGame).toEqual(expectedGame);
+    expect(dispatchDomainEvents).toHaveBeenCalledWith([newGameCreatedEvent({ gameId: 'g1' })]);
+  });
+
   it('creates a new game with x times being storyteller as end condition', async () => {
     // arrange
     const dispatchDomainEvents = jest.fn();

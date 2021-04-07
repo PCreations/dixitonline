@@ -2,6 +2,8 @@ import { queryField, idArg } from 'nexus';
 import { Game } from './game';
 import { makeGetGames } from '../../../useCases/get-games';
 import { makeGetGame } from '../../../useCases/get-game';
+import { GameStatus } from '../../../domain/game';
+import { makeRemoveInactivePlayers } from '../../../useCases/remove-inactive-players';
 
 export const Games = queryField('games', {
   list: true,
@@ -17,10 +19,16 @@ export const GetGame = queryField('game', {
   args: {
     gameId: idArg({ required: true }),
   },
-  async resolve(_, { gameId }, { dataSources }) {
-    const getGame = makeGetGame({ gameRepository: dataSources.gameRepository });
-    const game = await getGame(gameId);
-    console.log('GAME', JSON.stringify(game, null, 2));
+  async resolve(_, { gameId }, { dataSources, getNowDate }) {
+    const getGame = makeGetGame({ gameRepository: dataSources.gameRepository, getNowDate });
+    const removeInactivePlayers = makeRemoveInactivePlayers({ gameRepository: dataSources.gameRepository });
+    let game = await getGame(gameId);
+
+    if (game.status === GameStatus.WAITING_FOR_PLAYERS) {
+      const result = await removeInactivePlayers({ gameId: game.id, now: getNowDate() });
+      game = result.value;
+    }
+
     return game;
   },
 });

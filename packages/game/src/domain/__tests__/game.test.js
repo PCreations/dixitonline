@@ -61,6 +61,7 @@ describe('Game', () => {
     expect(game).toEqual({
       id: '1',
       host,
+      isPrivate: true,
       players,
       cards,
       drawPile,
@@ -79,6 +80,7 @@ describe('Game', () => {
     expect(game).toEqual({
       id: '1',
       host,
+      isPrivate: true,
       players,
       status: GameStatus.WAITING_FOR_PLAYERS,
       cards: makeNullCards(),
