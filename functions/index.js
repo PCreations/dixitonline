@@ -24,8 +24,10 @@ const subscribeToDomainEvent = (type, callback) => {
   });
 };
 
-const app = dixit({
-  firestore: firebaseApp.firestore(),
+const firestore = firebaseApp.firestore();
+
+const { app, removeInactivePlayers } = dixit({
+  firestore,
   firebaseAuth: firebaseApp.auth(),
   dispatchDomainEvents,
   subscribeToDomainEvent,
@@ -62,3 +64,19 @@ exports.api = functions
     memory: '1GB',
   })
   .https.onRequest(app);
+
+exports.removeInactivePlayers = functions.pubsub.schedule('every 1 mins').onRun(async () => {
+  console.log('RUNNING REMOVE INACTIVE PLAYERS');
+  const gameIds = await firestore
+    .collection('lobby-games')
+    .where('status', '==', 'WAITING_FOR_PLAYERS')
+    .get()
+    .then(snp => {
+      const ids = [];
+      snp.forEach(doc => ids.push(doc.data().id));
+      return ids;
+    });
+  console.log(`Handling ${gameIds.length} games`);
+  await Promise.all(gameIds.map(id => removeInactivePlayers({ gameId: id, now: new Date() })));
+  return null;
+});

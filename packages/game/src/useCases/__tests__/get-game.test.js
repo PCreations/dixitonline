@@ -131,9 +131,9 @@ describe('getGame', () => {
     // act
     const { query } = createTestClient(server);
     await query({ query: GET_GAME, variables: { gameId: 'g1' }, operationName: 'GetGame' });
-    const updatedGame = await gameRepository.getGameById('g1');
+    const playerHeartbeat = await gameRepository.getPlayerHeartbeat({ playerId: 'p1', gameId: 'g1' });
 
     // assert
-    expect(updatedGame.host.heartbeat).toEqual(now);
+    expect(playerHeartbeat.heartbeat).toEqual(now);
   });
 });

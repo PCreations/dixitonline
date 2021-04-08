@@ -38,29 +38,7 @@ describe.skip('gameRepository', () => {
     const game = await gameRepository.getGameById('g1');
     expect(game).toEqual(expectedGame);
   });
-  it('can retrieves all games that are waiting for players', async () => {
-    // arrange
-    const gameRepository = makeGameRepository({ firestore: firebaseApp.firestore() });
-    const game1 = buildTestGame()
-      .withId('g1')
-      .build();
-    const game2 = buildTestGame()
-      .withId('g2')
-      .withStartedStatus()
-      .build();
-    const game3 = buildTestGame()
-      .withId('g3')
-      .build();
-    await gameRepository.saveGame(game1);
-    await gameRepository.saveGame(game2);
-    await gameRepository.saveGame(game3);
 
-    // act
-    const games = await gameRepository.getAllGames();
-
-    // assert
-    expect(games).toEqual([game1, game3]);
-  });
   it('can delete a game', async () => {
     // arrange
     const gameRepository = makeGameRepository({ firestore: firebaseApp.firestore() });
@@ -140,54 +118,5 @@ describe('Null gameRepository', () => {
     // assert
     expect(gameG1).toEqual(game1);
     expect(gameG2).toEqual(game2);
-  });
-  it('retrieves all given games', async () => {
-    // arrange
-    const game1 = buildTestGame()
-      .withId('g1')
-      .build();
-    const game2 = buildTestGame()
-      .withId('g2')
-      .withStartedStatus()
-      .build();
-    const game3 = buildTestGame()
-      .withId('g3')
-      .build();
-    const initialGames = buildgameRepositoryInitialGames()
-      .withGames([game1, game2, game3])
-      .build();
-    const gameRepository = makeNullGameRepository({
-      nextGameId: 'g3',
-      gamesData: initialGames,
-    });
-
-    // act
-    const games = await gameRepository.getAllGames();
-
-    // assert
-    expect(games).toEqual([game1, game3]);
-  });
-  it('can delete a game', async () => {
-    // arrange
-    const game1 = buildTestGame()
-      .withId('g1')
-      .build();
-    const game2 = buildTestGame()
-      .withId('g2')
-      .build();
-    const initialGames = buildgameRepositoryInitialGames()
-      .withGames([game1, game2])
-      .build();
-    const gameRepository = makeNullGameRepository({
-      nextGameId: 'g3',
-      gamesData: initialGames,
-    });
-
-    // act
-    await gameRepository.deleteGameById(game1.id);
-    const games = await gameRepository.getAllGames();
-
-    // assert
-    expect(games).toEqual([game2]);
   });
 });

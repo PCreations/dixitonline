@@ -19,7 +19,7 @@ export const DEFAULT_END_CONDITION = {
 
 export const CARDS_NOT_DEALT_YET = null;
 
-export const PLAYER_INACTIVE_AFTER_X_SECONDS = 60;
+export const PLAYER_INACTIVE_AFTER_X_SECONDS = 15;
 
 export const GameStatus = {
   WAITING_FOR_PLAYERS: 'WAITING_FOR_PLAYERS',
@@ -147,8 +147,11 @@ export const joinPlayer = (game, player) => {
   ]);
 };
 
-export const removeInactivePlayers = (game, now) => {
-  const isPlayerActive = player => +now - player.heartbeat < PLAYER_INACTIVE_AFTER_X_SECONDS * 1000;
+export const removeInactivePlayers = (game, now, playersHeartbeats) => {
+  console.log(playersHeartbeats);
+  const getPlayerHeartbeat = player => playersHeartbeats.find(p => p.playerId === player.id).heartbeat;
+
+  const isPlayerActive = player => +now - getPlayerHeartbeat(player) < PLAYER_INACTIVE_AFTER_X_SECONDS * 1000;
 
   const players = game.players.filter(isPlayerActive);
   const host = isPlayerActive(game.host) ? game.host : players[0];

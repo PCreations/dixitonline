@@ -1,16 +1,6 @@
-import { makeGame } from '../domain/game';
-import { makePlayer } from '../domain/player';
-
-export const makeGetGame = ({ gameRepository, getNowDate }) => async gameId => {
+export const makeGetGame = ({ gameRepository, getNowDate }) => async (gameId, currentUser) => {
   const game = await gameRepository.getGameById(gameId);
+  await gameRepository.savePlayerHeartbeat({ playerId: currentUser.id, gameId, heartbeat: getNowDate() });
 
-  const updatedGame = makeGame({
-    ...game,
-    host: makePlayer({
-      ...game.host,
-      heartbeat: getNowDate(),
-    }),
-  });
-  await gameRepository.saveGame(updatedGame);
-  return updatedGame;
+  return game;
 };

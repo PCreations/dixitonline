@@ -26,10 +26,13 @@ export const buildTestPlayer = () => {
       return this;
     },
     build() {
-      return makePlayer({
-        ...defaultProperties,
-        ...properties,
-      });
+      return {
+        heartbeat: properties.heartbeat,
+        ...makePlayer({
+          ...defaultProperties,
+          ...properties,
+        }),
+      };
     },
   };
 };

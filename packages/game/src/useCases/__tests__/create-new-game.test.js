@@ -246,7 +246,6 @@ describe('create new game', () => {
     const host = buildTestPlayer()
       .withId('p1')
       .withName('player1')
-      .joinedAt(now)
       .build();
     const expectedGame = buildTestGame()
       .withId('g1')

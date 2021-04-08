@@ -5,7 +5,6 @@ import {
   getEndCondition,
   createGame,
   joinPlayer,
-  quitPlayer,
   startGame,
   updateDeck,
   completeHands,

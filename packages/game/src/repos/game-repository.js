@@ -18,37 +18,52 @@ const convertDateToFirestoreDate = (date = new Date()) => ({
 
 const convertGameDataToFirestoreGame = game => ({
   ...game,
-  host: game.host
-    ? {
-        ...game.host,
-        heartbeat: convertDateToFirestoreDate(game.host.heartbeat),
-      }
-    : null,
-  players: game.players.map(p => ({
-    ...p,
-    heartbeat: convertDateToFirestoreDate(p.heartbeat),
-  })),
+  host: game.host ? game.host : {},
 });
 
 const convertFirestoreGameToGameData = firestoreGame => ({
   ...firestoreGame,
-  host: firestoreGame.host
-    ? {
-        ...firestoreGame.host,
-        heartbeat: convertFirestoreDateToDate(firestoreGame.host.heartbeat),
-      }
-    : undefined,
-  players: firestoreGame.players.map(p => ({
-    ...p,
-    heartbeat: convertFirestoreDateToDate(p.heartbeat),
-  })),
+  host: firestoreGame.host ? firestoreGame.host : undefined,
 });
 
 export const makeGameRepository = ({ uuid = shortid, firestore = makeNullFirestore() } = {}) => {
   const lobbyGames = firestore.collection('lobby-games');
+  const playersHeartbeatsCollection = firestore.collection('players-heartbeats');
   return {
     getNextGameId() {
       return uuid();
+    },
+    getPlayerHeartbeat({ playerId, gameId }) {
+      return playersHeartbeatsCollection
+        .doc(`${gameId}-${playerId}`)
+        .get()
+        .then(snp => ({
+          playerId: snp.data().playerId,
+          gameId: snp.data().gameId,
+          heartbeat: convertFirestoreDateToDate(snp.data().heartbeat),
+        }));
+    },
+    savePlayerHeartbeat({ playerId, gameId, heartbeat }) {
+      return playersHeartbeatsCollection.doc(`${gameId}-${playerId}`).set({
+        playerId,
+        gameId,
+        heartbeat: convertDateToFirestoreDate(heartbeat),
+      });
+    },
+    getGamePlayersHeartbeats(gameId) {
+      return playersHeartbeatsCollection
+        .where('gameId', '==', gameId)
+        .get()
+        .then(snp => {
+          const players = [];
+          snp.forEach(doc =>
+            players.push({
+              ...doc.data(),
+              heartbeat: convertFirestoreDateToDate(doc.data().heartbeat),
+            })
+          );
+          return players;
+        });
     },
     saveGame(game) {
       return lobbyGames.doc(game.id).set(convertGameDataToFirestoreGame(game));
@@ -58,7 +73,9 @@ export const makeGameRepository = ({ uuid = shortid, firestore = makeNullFiresto
       if (!doc.exists) {
         throw new GameNotFoundError(id);
       }
-      return makeGame(convertFirestoreGameToGameData(doc.data()));
+      const game = makeGame(convertFirestoreGameToGameData(doc.data()));
+      console.log('retrieved game', JSON.stringify(game, null, 2));
+      return game;
     },
     getAllGames() {
       return lobbyGames
@@ -85,42 +102,80 @@ const makeNullFirestore = (gamesInitialData = {}) => {
   const gamesData = Object.fromEntries(
     Object.entries(gamesInitialData).map(([gameId, game]) => [gameId, convertGameDataToFirestoreGame(game)])
   );
-
+  const playersHeartbeatsData = Object.fromEntries(
+    Object.values(gamesData).flatMap(gameData =>
+      [gameData.host, ...gameData.players].filter(Boolean).map(player => [
+        `${gameData.id}-${player.id}`,
+        {
+          gameId: gameData.id,
+          playerId: player.id,
+          heartbeat: convertDateToFirestoreDate(player.heartbeat),
+        },
+      ])
+    )
+  );
   return {
-    collection() {
+    collection(name) {
       return {
         where(field, _, value) {
           return {
             async get() {
-              const docs = Object.values(gamesData)
-                .filter(Boolean)
-                .filter(game => game[field] === value)
-                .map(game => ({
-                  data() {
-                    return game;
-                  },
-                }));
+              let docs;
+              if (name === 'lobby-games') {
+                docs = Object.values(gamesData)
+                  .filter(Boolean)
+                  .filter(game => game[field] === value)
+                  .map(game => ({
+                    data() {
+                      return game;
+                    },
+                  }));
+              } else {
+                docs = Object.values(playersHeartbeatsData)
+                  .filter(Boolean)
+                  .filter(playerHeartbeat => playerHeartbeat[field] === value)
+                  .map(playerHeartbeat => ({
+                    data() {
+                      return playerHeartbeat;
+                    },
+                  }));
+              }
               return {
-                forEach: docs.forEach.bind(docs),
+                forEach: cb => docs.forEach(cb),
               };
             },
           };
         },
-        doc(gameId) {
+        doc(id) {
+          if (name === 'lobby-games') {
+            return {
+              get() {
+                return {
+                  data() {
+                    return gamesData[id];
+                  },
+                  exists: typeof gamesData[id] !== 'undefined',
+                };
+              },
+              async set(game) {
+                gamesData[id] = game;
+              },
+              delete() {
+                gamesData[id] = undefined;
+              },
+            };
+          }
           return {
-            get() {
+            async get() {
               return {
                 data() {
-                  return gamesData[gameId];
+                  return playersHeartbeatsData[id];
                 },
-                exists: typeof gamesData[gameId] !== 'undefined',
+                exists: typeof playersHeartbeatsData[id] !== 'undefined',
               };
             },
             async set(game) {
-              gamesData[gameId] = game;
-            },
-            delete() {
-              gamesData[gameId] = undefined;
+              playersHeartbeatsData[id] = game;
             },
           };
         },

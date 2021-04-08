@@ -4,6 +4,8 @@ import cors from 'cors';
 import { ApolloServer, AuthenticationError } from 'apollo-server-express';
 import { initialize as initializeDecks } from '@dixit/decks';
 import { GameTypes, initialize as initializeGame } from '@dixit/game';
+import { makeGameRepository } from '@dixit/game/src/repos/game-repository';
+import { makeRemoveInactivePlayers as makeRemoveInactivePlayersUseCase } from '@dixit/game/src/useCases/remove-inactive-players';
 import { TurnTypes, initialize as initializeTurn } from '@dixit/turn';
 import { makeGraphqlExpressAuthorizationService } from '@dixit/users';
 import { SentryPlugin } from './sentry-plugin';
@@ -17,6 +19,24 @@ const Mutation = mutationType({
 });
 
 export default ({ firestore, firebaseAuth, dispatchDomainEvents, subscribeToDomainEvent }) => {
+  const gameRepository = makeGameRepository({ firestore });
+  const removeInactivePlayers = makeRemoveInactivePlayersUseCase({ gameRepository });
+
+  setInterval(async () => {
+    console.log('RUNNING REMOVE INACTIVE PLAYERS');
+    const gameIds = await firestore
+      .collection('lobby-games')
+      .where('status', '==', 'WAITING_FOR_PLAYERS')
+      .get()
+      .then(snp => {
+        const ids = [];
+        snp.forEach(doc => ids.push(doc.data().id));
+        return ids;
+      });
+    console.log(`Handling ${gameIds.length} games`);
+    await Promise.all(gameIds.map(id => removeInactivePlayers({ gameId: id, now: new Date() })));
+  }, 10000);
+
   const authorizationService = makeGraphqlExpressAuthorizationService({ firebaseAuth });
   initializeDecks({ firestore, dispatchDomainEvents, subscribeToDomainEvent });
   const { getContext: getGameContext, getDataSources: getGameDataSources } = initializeGame({
@@ -67,5 +87,8 @@ export default ({ firestore, firebaseAuth, dispatchDomainEvents, subscribeToDoma
 
   server.applyMiddleware({ app });
 
-  return app;
+  return {
+    app,
+    removeInactivePlayers,
+  };
 };

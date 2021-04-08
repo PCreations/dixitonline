@@ -61,7 +61,6 @@ describe('join game', () => {
         buildTestPlayer()
           .withId('p2')
           .withName('player2')
-          .joinedAt(getNowDate())
           .build(),
       ])
       .build();
@@ -93,11 +92,12 @@ describe('join game', () => {
       operationName: 'GameJoinGame',
     });
     const updatedGame = await gameRepository.getGameById('g1');
-
+    const playerHeartbeat = await gameRepository.getPlayerHeartbeat({ playerId: 'p2', gameId: 'g1' });
     // assert
 
     // TODO : change this when https://github.com/facebook/jest/pull/9575 is released
     expect({ ...updatedGame }).toEqual({ ...expectedUpdatedGame });
+    expect(playerHeartbeat.heartbeat).toEqual(getNowDate());
     expect(dispatchDomainEvents).toHaveBeenCalledWith([playerJoinedGame({ gameId: 'g1', playerId: 'p2' })]);
   });
   test("a player can't join a game she has already joined", async () => {

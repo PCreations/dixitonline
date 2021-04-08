@@ -55,7 +55,7 @@ describe('check inactive players', () => {
     const game = buildTestGame()
       .withHost(host)
       .withPlayers([activePlayer, otherActivePlayer])
-      .build();
+      .build(); //?
     const gameRepository = makeNullGameRepository({
       gamesData: {
         [game.id]: game,
