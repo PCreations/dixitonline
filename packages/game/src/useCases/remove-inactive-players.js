@@ -4,6 +4,12 @@ export const makeRemoveInactivePlayers = ({ gameRepository }) => async ({ gameId
   const game = await gameRepository.getGameById(gameId);
   const playersHeartbeats = await gameRepository.getGamePlayersHeartbeats(game.id);
 
+  console.log(
+    JSON.stringify({
+      now,
+      playersHeartbeats,
+    })
+  );
   const result = removeInactivePlayers(game, now, playersHeartbeats);
 
   if (!result.error) await gameRepository.saveGame(result.value);

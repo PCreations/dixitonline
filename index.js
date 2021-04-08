@@ -22,21 +22,6 @@ export default ({ firestore, firebaseAuth, dispatchDomainEvents, subscribeToDoma
   const gameRepository = makeGameRepository({ firestore });
   const removeInactivePlayers = makeRemoveInactivePlayersUseCase({ gameRepository });
 
-  setInterval(async () => {
-    console.log('RUNNING REMOVE INACTIVE PLAYERS');
-    const gameIds = await firestore
-      .collection('lobby-games')
-      .where('status', '==', 'WAITING_FOR_PLAYERS')
-      .get()
-      .then(snp => {
-        const ids = [];
-        snp.forEach(doc => ids.push(doc.data().id));
-        return ids;
-      });
-    console.log(`Handling ${gameIds.length} games`);
-    await Promise.all(gameIds.map(id => removeInactivePlayers({ gameId: id, now: new Date() })));
-  }, 10000);
-
   const authorizationService = makeGraphqlExpressAuthorizationService({ firebaseAuth });
   initializeDecks({ firestore, dispatchDomainEvents, subscribeToDomainEvent });
   const { getContext: getGameContext, getDataSources: getGameDataSources } = initializeGame({

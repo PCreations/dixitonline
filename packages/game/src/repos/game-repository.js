@@ -87,6 +87,25 @@ export const makeGameRepository = ({ uuid = shortid, firestore = makeNullFiresto
           return games;
         });
     },
+    getLobbyInfos() {
+      return lobbyGames
+        .where('status', 'in', [GameStatus.WAITING_FOR_PLAYERS, GameStatus.STARTED])
+        .get()
+        .then(snapshot => {
+          const lobbyInfos = {
+            waitingGames: 0,
+            connectedPlayers: 0,
+          };
+          snapshot.forEach(doc => {
+            const HOST_COUNT = 1;
+            if (doc.data().status === GameStatus.WAITING_FOR_PLAYERS && !doc.data().isPrivate) {
+              lobbyInfos.waitingGames += 1;
+            }
+            lobbyInfos.connectedPlayers += doc.data().players.length + HOST_COUNT;
+          });
+          return lobbyInfos;
+        });
+    },
     deleteGameById(gameId) {
       return lobbyGames.doc(gameId).delete();
     },
@@ -117,14 +136,19 @@ const makeNullFirestore = (gamesInitialData = {}) => {
   return {
     collection(name) {
       return {
-        where(field, _, value) {
+        where(field, operator, value) {
           return {
             async get() {
               let docs;
               if (name === 'lobby-games') {
                 docs = Object.values(gamesData)
                   .filter(Boolean)
-                  .filter(game => game[field] === value)
+                  .filter(game => {
+                    if (operator === '==') {
+                      return game[field] === value;
+                    }
+                    return value.some(val => game[field] === val);
+                  })
                   .map(game => ({
                     data() {
                       return game;
