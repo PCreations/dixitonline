@@ -106,8 +106,15 @@ describe('lobbyInfos', () => {
 
     // act
     const { query } = createTestClient(server);
-    await query({ query: GET_GAME, variables: { gameId: 'g1' }, operationName: 'GetGame' });
-    const playerHeartbeat = await gameRepository.getPlayerHeartbeat({ playerId: 'p1', gameId: 'g1' });
+    await query({
+      query: GET_GAME,
+      variables: { gameId: 'g1' },
+      operationName: 'GetGame',
+    });
+    const playerHeartbeat = await gameRepository.getPlayerHeartbeat({
+      playerId: 'p1',
+      gameId: 'g1',
+    });
 
     // assert
     expect(playerHeartbeat.heartbeat).toEqual(now);

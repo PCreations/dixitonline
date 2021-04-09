@@ -123,7 +123,7 @@ export const getEndCondition = game => {
   };
 };
 
-const isGameFull = game => getAllPlayers(game).length === MAXIMUM_NUMBER_OF_PLAYERS;
+export const isGameFull = game => getAllPlayers(game).length === MAXIMUM_NUMBER_OF_PLAYERS;
 
 export const createGame = ({ gameId, host, endCondition, isPrivate }) => {
   if (endCondition?.xTimesStorytellerLimit !== undefined && endCondition.xTimesStorytellerLimit < 1) {

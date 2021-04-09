@@ -1,5 +1,5 @@
 import shortid from 'shortid';
-import { makeGame, GameStatus } from '../domain/game';
+import { makeGame, GameStatus, PLAYER_INACTIVE_AFTER_X_SECONDS } from '../domain/game';
 
 export class GameNotFoundError extends Error {
   constructor(gameId) {
@@ -50,6 +50,19 @@ export const makeGameRepository = ({ uuid = shortid, firestore = makeNullFiresto
         heartbeat: convertDateToFirestoreDate(heartbeat),
       });
     },
+    deleteInactivePlayersHeartbeat({ now }) {
+      const inactiveAfterMs = PLAYER_INACTIVE_AFTER_X_SECONDS * 1000;
+      const considerInactiveAfterDate = new Date(+now - inactiveAfterMs);
+      return playersHeartbeatsCollection.get().then(snp => {
+        const heartbeatsToDelete = [];
+        snp.forEach(doc => {
+          if (convertFirestoreDateToDate(doc.data().heartbeat) <= considerInactiveAfterDate) {
+            heartbeatsToDelete.push(doc.ref);
+          }
+        });
+        return Promise.all(heartbeatsToDelete.map(ref => ref.delete()));
+      });
+    },
     getGamePlayersHeartbeats(gameId) {
       return playersHeartbeatsCollection
         .where('gameId', '==', gameId)
@@ -77,6 +90,17 @@ export const makeGameRepository = ({ uuid = shortid, firestore = makeNullFiresto
       console.log('retrieved game', JSON.stringify(game, null, 2));
       return game;
     },
+    getPublicGamesWaitingForPlayers() {
+      return lobbyGames
+        .where('status', '==', GameStatus.WAITING_FOR_PLAYERS)
+        .where('isPrivate', '==', false)
+        .get()
+        .then(snapshot => {
+          const games = [];
+          snapshot.forEach(doc => games.push(makeGame(convertFirestoreGameToGameData(doc.data()))));
+          return games;
+        });
+    },
     getAllGames() {
       return lobbyGames
         .where('status', '==', GameStatus.WAITING_FOR_PLAYERS)
@@ -88,23 +112,19 @@ export const makeGameRepository = ({ uuid = shortid, firestore = makeNullFiresto
         });
     },
     getLobbyInfos() {
-      return lobbyGames
-        .where('status', 'in', [GameStatus.WAITING_FOR_PLAYERS, GameStatus.STARTED])
-        .get()
-        .then(snapshot => {
-          const lobbyInfos = {
-            waitingGames: 0,
-            connectedPlayers: 0,
-          };
-          snapshot.forEach(doc => {
-            const HOST_COUNT = 1;
-            if (doc.data().status === GameStatus.WAITING_FOR_PLAYERS && !doc.data().isPrivate) {
-              lobbyInfos.waitingGames += 1;
-            }
-            lobbyInfos.connectedPlayers += doc.data().players.length + HOST_COUNT;
-          });
-          return lobbyInfos;
-        });
+      return Promise.all([
+        lobbyGames
+          .where('status', '==', GameStatus.WAITING_FOR_PLAYERS)
+          .where('isPrivate', '==', false)
+          .get()
+          .then(snp => snp.size),
+        playersHeartbeatsCollection.get().then(snp => snp.size),
+      ]).then(([waitingGames, connectedPlayers]) => {
+        return {
+          waitingGames,
+          connectedPlayers,
+        };
+      });
     },
     deleteGameById(gameId) {
       return lobbyGames.doc(gameId).delete();
@@ -137,9 +157,9 @@ const makeNullFirestore = (gamesInitialData = {}) => {
     collection(name) {
       return {
         where(field, operator, value) {
+          let docs;
           return {
             async get() {
-              let docs;
               if (name === 'lobby-games') {
                 docs = Object.values(gamesData)
                   .filter(Boolean)
@@ -157,7 +177,9 @@ const makeNullFirestore = (gamesInitialData = {}) => {
               } else {
                 docs = Object.values(playersHeartbeatsData)
                   .filter(Boolean)
-                  .filter(playerHeartbeat => playerHeartbeat[field] === value)
+                  .filter(playerHeartbeat => {
+                    return playerHeartbeat[field] === value;
+                  })
                   .map(playerHeartbeat => ({
                     data() {
                       return playerHeartbeat;
@@ -166,6 +188,28 @@ const makeNullFirestore = (gamesInitialData = {}) => {
               }
               return {
                 forEach: cb => docs.forEach(cb),
+                size: docs.length,
+              };
+            },
+            where(field2, _, value2) {
+              return {
+                async get() {
+                  docs = Object.values(gamesData)
+                    .filter(Boolean)
+                    .filter(game => {
+                      return game[field] === value && game[field2] === value2;
+                    })
+                    .map(game => ({
+                      data() {
+                        return game;
+                      },
+                    }));
+
+                  return {
+                    forEach: cb => docs.forEach(cb),
+                    size: docs.length,
+                  };
+                },
               };
             },
           };
@@ -201,6 +245,24 @@ const makeNullFirestore = (gamesInitialData = {}) => {
             async set(game) {
               playersHeartbeatsData[id] = game;
             },
+          };
+        },
+        async get() {
+          const docs = Object.values(playersHeartbeatsData)
+            .filter(Boolean)
+            .map(playerHeartbeat => ({
+              data() {
+                return playerHeartbeat;
+              },
+              ref: {
+                async delete() {
+                  delete playersHeartbeatsData[`${playerHeartbeat.gameId}-${playerHeartbeat.playerId}`];
+                },
+              },
+            }));
+          return {
+            size: Object.keys(playersHeartbeatsData).length,
+            forEach: cb => docs.forEach(cb),
           };
         },
       };

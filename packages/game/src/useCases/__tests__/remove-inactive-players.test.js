@@ -16,6 +16,7 @@ describe('check inactive players', () => {
       .lastSeenXsecondsAgo({ now, seconds: PLAYER_INACTIVE_AFTER_X_SECONDS - 1 })
       .build();
     const inactivePlayer = buildTestPlayer()
+      .withId('inactive-player')
       .joinedAt(new Date('2021-04-04:09:10:00'))
       .lastSeenXsecondsAgo({ now, seconds: PLAYER_INACTIVE_AFTER_X_SECONDS })
       .build();
@@ -32,9 +33,11 @@ describe('check inactive players', () => {
 
     // act
     const result = await removeInactivePlayers({ gameId: game.id, now });
+    const playersHeartbeats = await gameRepository.getGamePlayersHeartbeats(game.id);
 
     // assert
     expect(getAllPlayers(result.value)).toEqual([host, activePlayer]);
+    expect(playersHeartbeats.find(p => p.playerId === inactivePlayer.id)).toBeUndefined();
   });
 
   it('removes the host if inactive and sets the first player as new host', async () => {
