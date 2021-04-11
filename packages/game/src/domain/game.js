@@ -148,7 +148,6 @@ export const joinPlayer = (game, player) => {
 };
 
 export const removeInactivePlayers = (game, now, playersHeartbeats) => {
-  console.log(playersHeartbeats);
   const getPlayerHeartbeat = player => playersHeartbeats.find(p => p.playerId === player.id).heartbeat;
 
   const isPlayerActive = player => +now - getPlayerHeartbeat(player) < PLAYER_INACTIVE_AFTER_X_SECONDS * 1000;

@@ -3,6 +3,7 @@ import { removeInactivePlayers } from '../domain/game';
 export const makeRemoveInactivePlayers = ({ gameRepository }) => async ({ gameId, now }) => {
   const game = await gameRepository.getGameById(gameId);
   const playersHeartbeats = await gameRepository.getGamePlayersHeartbeats(game.id);
+  if (playersHeartbeats.length === 0) return [game];
 
   const result = removeInactivePlayers(game, now, playersHeartbeats);
 

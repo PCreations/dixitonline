@@ -68,6 +68,20 @@ export default ({ firestore, firebaseAuth, dispatchDomainEvents, subscribeToDoma
   });
 
   const app = express();
+
+  app.use(async (_, __, next) => {
+    const gameIds = await firestore
+      .collection('lobby-games')
+      .where('status', '==', 'WAITING_FOR_PLAYERS')
+      .get()
+      .then(snp => {
+        const ids = [];
+        snp.forEach(doc => ids.push(doc.data().id));
+        console.log(`Handling ${ids.length} games`);
+        return Promise.all(ids.map(id => removeInactivePlayers({ gameId: id, now: new Date() })));
+      });
+    next();
+  });
   app.use(cors({ origin: true }));
 
   server.applyMiddleware({ app });
