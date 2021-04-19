@@ -19,8 +19,7 @@ export const VoteResultSuccess = objectType({
     t.field('phase', {
       type: TurnPhase,
       resolve(turnState, _, { currentUser }) {
-        console.log(turnState.turn.board);
-        const result = mapPhaseStateToGraphQL(viewPhaseAs(turnState, currentUser.id)); //?
+        const result = mapPhaseStateToGraphQL(viewPhaseAs(turnState, currentUser.id));
         return result;
       },
     });

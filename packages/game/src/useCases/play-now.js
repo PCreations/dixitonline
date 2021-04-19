@@ -8,10 +8,18 @@ export const makePlayNow = ({ gameRepository }) => async ({ currentUser, now }) 
 
   const notFull = game => !isGameFull(game);
 
+  const logGames = label => games => {
+    console.log({ [label]: games });
+    return games;
+  };
+
   const publicGamesWaitingForPlayers = await gameRepository
     .getPublicGamesWaitingForPlayers()
+    .then(logGames('publicGamesWaitingForPlayers'))
     .then(games => games.filter(currentUserNotInGame))
-    .then(games => games.filter(notFull));
+    .then(logGames('currentUserNotInGame'))
+    .then(games => games.filter(notFull))
+    .then(logGames('notFullGames'));
 
   if (publicGamesWaitingForPlayers.length === 0) {
     const createNewGame = makeCreateNewGame({ gameRepository });

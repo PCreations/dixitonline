@@ -116,7 +116,9 @@ const playerHasntAlreadyVoted = (playerId, board) => !board.some(({ votes }) => 
 
 const turnPlayersVotingPhaseReducer = (state = defaultTurnState, event) => {
   if (!event) return state;
+  console.log('receiving event', JSON.stringify(event, null, 2));
   const newState = produce(state, draft => {
+    console.log('state', JSON.stringify(state, null, 2));
     if (!event) return draft;
     switch (event.type) {
       case events.types.PLAYER_VOTED: {

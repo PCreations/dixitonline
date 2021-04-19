@@ -43,6 +43,22 @@ export const makeGameRepository = ({ uuid = shortid, firestore = makeNullFiresto
           heartbeat: convertFirestoreDateToDate(snp.data().heartbeat),
         }));
     },
+    getGamePlayersHeartbeats(gameId) {
+      return playersHeartbeatsCollection
+        .where('gameId', '==', gameId)
+        .get()
+        .then(snp => {
+          const playersHeartbeats = [];
+          snp.forEach(heartbeat => {
+            playersHeartbeats.push({
+              playerId: heartbeat.data().playerId,
+              gameId: heartbeat.data().gameId,
+              heartbeat: convertFirestoreDateToDate(heartbeat.data().heartbeat),
+            });
+          });
+          return playersHeartbeats;
+        });
+    },
     savePlayerHeartbeat({ playerId, gameId, heartbeat }) {
       return playersHeartbeatsCollection.doc(`${gameId}-${playerId}`).set({
         playerId,
@@ -63,23 +79,17 @@ export const makeGameRepository = ({ uuid = shortid, firestore = makeNullFiresto
         return Promise.all(heartbeatsToDelete.map(ref => ref.delete()));
       });
     },
-    getGamePlayersHeartbeats(gameId) {
-      return playersHeartbeatsCollection
-        .where('gameId', '==', gameId)
-        .get()
-        .then(snp => {
-          const players = [];
-          snp.forEach(doc =>
-            players.push({
-              ...doc.data(),
-              heartbeat: convertFirestoreDateToDate(doc.data().heartbeat),
-            })
-          );
-          return players;
-        });
-    },
     saveGame(game) {
-      return lobbyGames.doc(game.id).set(convertGameDataToFirestoreGame(game));
+      return firestore.runTransaction(async t => {
+        const gameRef = lobbyGames.doc(game.id);
+        const gameDoc = await gameRef.get();
+
+        const gameToSave = convertGameDataToFirestoreGame({
+          ...convertFirestoreGameToGameData(gameDoc.data() || {}),
+          ...game,
+        });
+        return t.set(gameRef, gameToSave);
+      });
     },
     async getGameById(id) {
       const doc = await lobbyGames.doc(id).get();
@@ -87,7 +97,6 @@ export const makeGameRepository = ({ uuid = shortid, firestore = makeNullFiresto
         throw new GameNotFoundError(id);
       }
       const game = makeGame(convertFirestoreGameToGameData(doc.data()));
-      console.log('retrieved game', JSON.stringify(game, null, 2));
       return game;
     },
     getPublicGamesWaitingForPlayers() {

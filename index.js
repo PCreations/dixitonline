@@ -6,7 +6,7 @@ import { initialize as initializeDecks } from '@dixit/decks';
 import { GameTypes, initialize as initializeGame } from '@dixit/game';
 import { makeGameRepository } from '@dixit/game/src/repos/game-repository';
 import { makeRemoveInactivePlayers as makeRemoveInactivePlayersUseCase } from '@dixit/game/src/useCases/remove-inactive-players';
-import { TurnTypes, initialize as initializeTurn } from '@dixit/turn';
+import { TurnTypes, initialize as initializeTurn, turnReducer } from '@dixit/turn';
 import { makeGraphqlExpressAuthorizationService } from '@dixit/users';
 import { SentryPlugin } from './sentry-plugin';
 
@@ -50,7 +50,6 @@ export default ({ firestore, firebaseAuth, dispatchDomainEvents, subscribeToDoma
       ...getTurnDataSources(),
     }),
     context: async (...args) => {
-      console.log('CURRENT TIME', new Date());
       const [context] = args;
       if (context.req?.body.operationName !== 'IntrospectionQuery') {
         try {
@@ -70,16 +69,21 @@ export default ({ firestore, firebaseAuth, dispatchDomainEvents, subscribeToDoma
   const app = express();
 
   app.use(async (_, __, next) => {
-    const gameIds = await firestore
-      .collection('lobby-games')
-      .where('status', '==', 'WAITING_FOR_PLAYERS')
-      .get()
-      .then(snp => {
-        const ids = [];
-        snp.forEach(doc => ids.push(doc.data().id));
-        console.log(`Handling ${ids.length} games`);
-        return Promise.all(ids.map(id => removeInactivePlayers({ gameId: id, now: new Date() })));
-      });
+    try {
+      await firestore
+        .collection('lobby-games')
+        .where('status', '==', 'WAITING_FOR_PLAYERS')
+        .where('isPrivate', '==', false)
+        .get()
+        .then(snp => {
+          const ids = [];
+          snp.forEach(doc => ids.push(doc.data().id));
+          console.log(`Handling ${ids.length} games`, ids);
+          return Promise.all(ids.map(id => removeInactivePlayers({ gameId: id, now: new Date() })));
+        });
+    } catch (err) {
+      console.error(err);
+    }
     next();
   });
   app.use(cors({ origin: true }));
@@ -87,6 +91,7 @@ export default ({ firestore, firebaseAuth, dispatchDomainEvents, subscribeToDoma
   server.applyMiddleware({ app });
 
   return {
+    turnReducer,
     app,
     removeInactivePlayers,
   };

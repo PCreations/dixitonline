@@ -1,6 +1,7 @@
 import { makeUserRepository } from '@dixit/users';
 import * as TurnTypes from './infra/graphql/schema';
 import { events } from './domain/events';
+import { turnReducer } from './domain/reducer';
 import { makeTurnRepository } from './repos';
 import { initialize as initializeSubscribers } from './subscribers';
 import { makeGetDataSources } from './infra/graphql/get-data-sources';
@@ -26,3 +27,4 @@ export const initialize = ({
 };
 export { TurnTypes };
 export { events };
+export { turnReducer };

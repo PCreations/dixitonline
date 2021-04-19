@@ -37,7 +37,6 @@ const buildPhaseView = (state = defaultState, shuffle) => {
         ...boardRest,
         votes: votes.map(playerId => {
           if (!state.playerById[playerId]) {
-            console.log(`player ${playerId} not found`, state.playerById);
             return {};
           }
           return {
@@ -70,7 +69,7 @@ const buildPhaseView = (state = defaultState, shuffle) => {
           player.id === state.turn.storytellerId ||
           state.turn.board.filter(card => card.playerId === player.id).length === 2,
       }));
-      console.log(state.turn.board);
+
       return this;
     },
     withPlayersAsReadyIfTheyHaveVoted() {

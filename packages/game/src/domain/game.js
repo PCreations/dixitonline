@@ -19,7 +19,7 @@ export const DEFAULT_END_CONDITION = {
 
 export const CARDS_NOT_DEALT_YET = null;
 
-export const PLAYER_INACTIVE_AFTER_X_SECONDS = 15;
+export const PLAYER_INACTIVE_AFTER_X_SECONDS = 30;
 
 export const GameStatus = {
   WAITING_FOR_PLAYERS: 'WAITING_FOR_PLAYERS',
@@ -68,8 +68,6 @@ export const makeGame = ({
     typeof endCondition.isGameEnded === 'undefined'
   )
     throw new Error(`Invalid end condition, received "${endCondition}"`);
-
-  console.log(`creating a game with ${cards.length} cards`);
 
   return Object.freeze({
     id,
@@ -148,7 +146,7 @@ export const joinPlayer = (game, player) => {
 };
 
 export const removeInactivePlayers = (game, now, playersHeartbeats) => {
-  const getPlayerHeartbeat = player => playersHeartbeats.find(p => p.playerId === player.id).heartbeat;
+  const getPlayerHeartbeat = player => playersHeartbeats.find(p => p.playerId === player.id)?.heartbeat ?? 0;
 
   const isPlayerActive = player => +now - getPlayerHeartbeat(player) < PLAYER_INACTIVE_AFTER_X_SECONDS * 1000;
 
@@ -262,7 +260,6 @@ export const updateScore = (game, turnScore) => {
     }),
     {}
   );
-  console.log('updated score', newScore);
   return makeGameResult(
     makeGame({
       ...game,
