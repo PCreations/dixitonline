@@ -3,7 +3,7 @@ import { makeAfterGameStartedSubscriber } from './after-game-started';
 import { makeGetShuffledDeck } from '../useCases/get-shuffled-deck';
 
 export const initialize = ({ subscribeToDomainEvent, dispatchDomainEvents, deckRepository }) => {
-  const shuffle = toShuffle => shuffleWithSeed(toShuffle, +new Date());
+  const shuffle = shuffleWithSeed;
   const getShuffledDeckUseCase = makeGetShuffledDeck({ deckRepository, shuffle, dispatchDomainEvents });
 
   // initialize subscribers

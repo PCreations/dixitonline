@@ -7,6 +7,10 @@ export const buildTestCard = () => {
   };
   const overrides = {};
   return {
+    withId(id) {
+      overrides.id = id;
+      return this;
+    },
     build() {
       return {
         ...defaultProperties,
