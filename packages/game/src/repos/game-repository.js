@@ -82,7 +82,7 @@ export const makeGameRepository = ({ uuid = shortid, firestore = makeNullFiresto
     saveGame(game) {
       return firestore.runTransaction(async t => {
         const gameRef = lobbyGames.doc(game.id);
-        const gameDoc = await gameRef.get();
+        const gameDoc = await t.get(gameRef);
 
         const gameToSave = convertGameDataToFirestoreGame({
           ...convertFirestoreGameToGameData(gameDoc.data() || {}),
@@ -162,7 +162,8 @@ const makeNullFirestore = (gamesInitialData = {}) => {
       ])
     )
   );
-  return {
+
+  const nullFirestore = {
     collection(name) {
       return {
         where(field, operator, value) {
@@ -276,5 +277,13 @@ const makeNullFirestore = (gamesInitialData = {}) => {
         },
       };
     },
+    runTransaction(cb) {
+      cb({
+        get: doc => doc.get(),
+        set: (doc, data) => doc.set(data),
+      });
+    },
   };
+
+  return nullFirestore;
 };

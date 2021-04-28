@@ -7,6 +7,7 @@ export const makeHandleTurnEnded = ({ gameRepository, dispatchDomainEvents }) =>
   previousTurnId,
   discardedCards,
 }) => {
+  // TODO : mettre dans une transaction game + rendre indempotent le updateScore + updateDeck + completeHands
   const game = await gameRepository.getGameById(gameId);
   const result = updateScore(game, turnScore);
   const { value: gameWithUpdatedDeck } = updateDeck(result.value, { discardedCards });
