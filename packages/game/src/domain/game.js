@@ -102,6 +102,8 @@ const makeGameResult = (game, events = []) => applyEndingConditionStrategy(baseM
 export const getNumberOfCardsByHand = game =>
   getAllPlayers(game).length === 3 ? NUMBER_OF_CARDS_BY_HAND + 1 : NUMBER_OF_CARDS_BY_HAND;
 
+const getNumberOfCardsDrawnByTurn = game => (getAllPlayers(game).length === 3 ? 2 : 1);
+
 export const getAllPlayers = game => [game.host, ...game.players].filter(Boolean);
 
 export const getEndCondition = game => {
@@ -233,20 +235,21 @@ export const completeHands = (game, { cards, actualHandsByPlayerId, previousTurn
       [handsCompletedEvent({ gameId: game.id, handsByPlayerId })]
     );
   }
-  const handsByPlayerId = Object.entries(actualHandsByPlayerId).reduce(
-    (completedHands, [playerId, hand], playerIndex) => {
-      const numberOfCardsToCompleteHand = numberOfCardsByHand - hand.length;
-      return {
-        ...completedHands,
-        [playerId]: hand.concat(actualCards.slice(playerIndex, playerIndex + numberOfCardsToCompleteHand)),
-      };
-    },
-    {}
-  );
+  let totalCardsDrawn = 0;
+  let currentCardIndex;
+  const handsByPlayerId = Object.entries(actualHandsByPlayerId).reduce((completedHands, [playerId, hand]) => {
+    currentCardIndex = totalCardsDrawn;
+    const numberOfCardsToCompleteHand = numberOfCardsByHand - hand.length;
+    totalCardsDrawn += numberOfCardsToCompleteHand;
+    return {
+      ...completedHands,
+      [playerId]: hand.concat(actualCards.slice(currentCardIndex, currentCardIndex + numberOfCardsToCompleteHand)),
+    };
+  }, {});
   return makeGameResult(
     makeGame({
       ...game,
-      cards: actualCards.slice(allPlayers.length),
+      cards: actualCards.slice(totalCardsDrawn),
     }),
     [handsCompletedEvent({ gameId: game.id, handsByPlayerId, previousTurnId })]
   );

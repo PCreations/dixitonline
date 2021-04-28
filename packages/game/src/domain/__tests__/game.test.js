@@ -615,6 +615,57 @@ describe('Game', () => {
         })
       );
     });
+
+    it("3 players mode : completes with two cards each player's hand when given previous hands and return the full new hand", () => {
+      // arrange
+      const shuffledDeck = new Array(50).fill().map((_, index) =>
+        buildTestCard()
+          .withId(`${index + 16}`)
+          .build()
+      );
+      const game = buildTestGame()
+        .withXPlayers(2)
+        .withStartedStatus()
+        .withShuffledDeck(shuffledDeck)
+        .build();
+      const actualHandsByPlayerId = {
+        [game.host.id]: new Array(6).fill().map((_, index) =>
+          buildTestCard()
+            .withId(`${index}`)
+            .build()
+        ),
+        [game.players[0].id]: new Array(5).fill().map((_, index) =>
+          buildTestCard()
+            .withId(`${index + 6}`)
+            .build()
+        ),
+        [game.players[1].id]: new Array(5).fill().map((_, index) =>
+          buildTestCard()
+            .withId(`${index + 11}`)
+            .build()
+        ),
+      };
+      const totalCardsDrawn = 5;
+      const expectedHands = {
+        [game.host.id]: actualHandsByPlayerId[game.host.id].concat(shuffledDeck[0]),
+        [game.players[0].id]: actualHandsByPlayerId[game.players[0].id].concat(shuffledDeck[1], shuffledDeck[2]),
+        [game.players[1].id]: actualHandsByPlayerId[game.players[1].id].concat(shuffledDeck[3], shuffledDeck[4]),
+      };
+
+      // act
+      const { events, value } = completeHands(game, { actualHandsByPlayerId, previousTurnId: 't1' });
+
+      // assert
+      expect(value.cards).toEqual(shuffledDeck.slice(totalCardsDrawn));
+      expect(events[0]).toEqual(
+        handsCompletedEvent({
+          gameId: game.id,
+          handsByPlayerId: expectedHands,
+          previousTurnId: 't1',
+        })
+      );
+    });
+
     it('returns a game ended event if there is not enough cards to complete hands', () => {
       // arrange
       const shuffledDeck = new Array(2).fill().map(() => buildTestCard().build());
