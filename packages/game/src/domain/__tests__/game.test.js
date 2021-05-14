@@ -13,7 +13,8 @@ import {
   GameError,
   getAllPlayers,
   GameStatus,
-  NUMBER_OF_CARDS_IN_A_DECK,
+  MAXIMUM_NUMBER_OF_PLAYERS,
+  NUMBER_OF_CARDS_IN_DECK_PER_PLAYERS_FOR_DEFAULT_MODE,
   DEFAULT_END_CONDITION,
   makeNullCards,
 } from '../game';
@@ -547,18 +548,22 @@ describe('Game', () => {
   describe('complete hand', () => {
     it('returns the hands for the player by removing cards from the deck when no hands have been dealt yet and correctly computes the remaining turns number', () => {
       // arrange
-      const shuffledDeck = new Array(NUMBER_OF_CARDS_IN_A_DECK).fill().map(() => buildTestCard().build());
+      const shuffledDeck = new Array(MAXIMUM_NUMBER_OF_PLAYERS * NUMBER_OF_CARDS_IN_DECK_PER_PLAYERS_FOR_DEFAULT_MODE)
+        .fill()
+        .map(() => buildTestCard().build());
       const game = buildTestGame()
         .asFullGame()
         .withStartedStatus()
         .build();
-      const totalNumberOfPlayers = 6;
+      const totalNumberOfPlayers = 8;
       const expectedHostHand = shuffledDeck.slice(0, 6);
       const expectedPlayer1Hand = shuffledDeck.slice(6, 12);
       const expectedPlayer2Hand = shuffledDeck.slice(12, 18);
       const expectedPlayer3Hand = shuffledDeck.slice(18, 24);
       const expectedPlayer4Hand = shuffledDeck.slice(24, 30);
       const expectedPlayer5Hand = shuffledDeck.slice(30, 36);
+      const expectedPlayer6Hand = shuffledDeck.slice(36, 42);
+      const expectedPlayer7Hand = shuffledDeck.slice(42, 48);
 
       // act
       const { events, value } = completeHands(game, { cards: shuffledDeck });
@@ -575,6 +580,8 @@ describe('Game', () => {
             [game.players[2].id]: expectedPlayer3Hand,
             [game.players[3].id]: expectedPlayer4Hand,
             [game.players[4].id]: expectedPlayer5Hand,
+            [game.players[5].id]: expectedPlayer6Hand,
+            [game.players[6].id]: expectedPlayer7Hand,
           },
         })
       );

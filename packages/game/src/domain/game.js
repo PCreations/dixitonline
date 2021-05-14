@@ -38,9 +38,9 @@ export const GameError = {
   SCORE_LIMIT_CANT_BE_LESS_THAN_ONE: 'SCORE_LIMIT_CANT_BE_LESS_THAN_ONE',
 };
 
-export const MAXIMUM_NUMBER_OF_PLAYERS = 6;
+export const MAXIMUM_NUMBER_OF_PLAYERS = 8;
+export const NUMBER_OF_CARDS_IN_DECK_PER_PLAYERS_FOR_DEFAULT_MODE = 14;
 export const MINIMUM_NUMBER_OF_PLAYERS = 3;
-export const NUMBER_OF_CARDS_IN_A_DECK = 84;
 export const NUMBER_OF_CARDS_BY_HAND = 6;
 
 export const makeNullCards = () => ({
