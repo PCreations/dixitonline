@@ -1,0 +1,20 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`restart game an ended game can be restarted 1`] = `
+Object {
+  "data": Object {
+    "gameStartGame": Object {
+      "game": Object {
+        "id": "g42",
+      },
+    },
+  },
+  "errors": undefined,
+  "extensions": undefined,
+  "http": Object {
+    "headers": Headers {
+      Symbol(map): Object {},
+    },
+  },
+}
+`;

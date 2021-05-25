@@ -2,7 +2,7 @@ import admin from 'firebase-admin';
 import * as serviceAccount from '../../secrets/dixit-firebase-admin.json';
 import { makeUserRepository, makeNullUserRepository } from '../user-repository';
 
-describe('user repository', () => {
+describe.skip('user repository', () => {
   it('can retrieve a user by id', async () => {
     // arrange
     admin.initializeApp({

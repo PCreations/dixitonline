@@ -38,7 +38,7 @@ describe('behaviors', () => {
     });
     it('returns an error when the player is not the storyteller', () => {
       // arrange
-      const players = getTestPlayers();
+      const players = [buildTestPlayer().build(), buildTestPlayer().build(), buildTestPlayer().build()];
       const turnState = buildTestTurn()
         .withPlayers(players)
         .build();
@@ -158,6 +158,26 @@ describe('behaviors', () => {
       const result = vote(turnState, {
         playerId: activePlayer.id,
         cardId: activePlayerCardOnBoard.id,
+      });
+
+      // assert
+      expect(result.error).toEqual(TurnError.YOU_CANT_VOTE_FOR_YOUR_OWN_CARD);
+    });
+
+    test("can't vote for her own cards", () => {
+      // arrange
+      const players = [buildTestPlayer().build(), buildTestPlayer().build(), buildTestPlayer().build()];
+      const turnState = buildTestTurn()
+        .withPlayers(players)
+        .inPlayersVotingPhase()
+        .build();
+      const activePlayer = players[1];
+      const activePlayerCardsOnBoard = turnState.turn.board.filter(({ playerId }) => playerId === activePlayer.id);
+
+      // act
+      const result = vote(turnState, {
+        playerId: activePlayer.id,
+        cardId: activePlayerCardsOnBoard[1].id,
       });
 
       // assert

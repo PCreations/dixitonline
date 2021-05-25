@@ -19,8 +19,10 @@ export const choseCard = (turnState, { playerId, cardId }) => {
 };
 
 export const vote = (turnState, { playerId, cardId }) => {
-  const playerCardOnBoard = turnState.turn.board.find(({ playerId: cardPlayerId }) => playerId === cardPlayerId);
-  if (playerCardOnBoard.id === cardId) {
+  const playerCardsOnBoard = turnState.turn.board
+    .filter(({ playerId: cardPlayerId }) => playerId === cardPlayerId)
+    .map(c => c.id);
+  if (playerCardsOnBoard.includes(cardId)) {
     return makeErrorResult(TurnError.YOU_CANT_VOTE_FOR_YOUR_OWN_CARD);
   }
   const playerVotedEvent = events.playerVoted({ playerId, cardId });

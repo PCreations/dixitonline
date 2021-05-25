@@ -20,15 +20,8 @@ const buildPhaseView = (state = defaultState, shuffle) => {
       properties.hand = state.turn.handByPlayerId[playerId];
       return this;
     },
-    withBoardForVoting(viewedByPlayerId) {
-      const boardWithoutVotes = shuffle(
-        state.turn.board
-          .filter(({ playerId }) => {
-            if (viewedByPlayerId === state.turn.storytellerId) return true;
-            return playerId !== viewedByPlayerId;
-          })
-          .map(({ id, url }) => ({ id, url }))
-      );
+    withBoardForVoting() {
+      const boardWithoutVotes = shuffle(state.turn.board.map(({ id, url }) => ({ id, url })));
       properties.board = boardWithoutVotes;
       return this;
     },

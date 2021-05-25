@@ -17,6 +17,7 @@ import {
   NUMBER_OF_CARDS_IN_DECK_PER_PLAYERS_FOR_DEFAULT_MODE,
   DEFAULT_END_CONDITION,
   makeNullCards,
+  NUMBER_OF_CARDS_BY_HAND,
 } from '../game';
 import { buildTestPlayer } from '../../__tests__/dataBuilders/player';
 import {
@@ -555,34 +556,23 @@ describe('Game', () => {
         .asFullGame()
         .withStartedStatus()
         .build();
-      const totalNumberOfPlayers = 8;
-      const expectedHostHand = shuffledDeck.slice(0, 6);
-      const expectedPlayer1Hand = shuffledDeck.slice(6, 12);
-      const expectedPlayer2Hand = shuffledDeck.slice(12, 18);
-      const expectedPlayer3Hand = shuffledDeck.slice(18, 24);
-      const expectedPlayer4Hand = shuffledDeck.slice(24, 30);
-      const expectedPlayer5Hand = shuffledDeck.slice(30, 36);
-      const expectedPlayer6Hand = shuffledDeck.slice(36, 42);
-      const expectedPlayer7Hand = shuffledDeck.slice(42, 48);
-
+      const totalNumberOfPlayers = MAXIMUM_NUMBER_OF_PLAYERS;
+      const expectedHands = {};
+      for (let i = 0; i < MAXIMUM_NUMBER_OF_PLAYERS; i += 1) {
+        const playerId = i === 0 ? game.host.id : game.players[i - 1].id;
+        expectedHands[playerId] = shuffledDeck.slice(i * 6, i * 6 + 6);
+      }
       // act
       const { events, value } = completeHands(game, { cards: shuffledDeck });
 
       // assert
       expect(value.cards).toEqual(shuffledDeck.slice(6 * totalNumberOfPlayers));
+
+      expect(events[0].payload.handsByPlayerId).toEqual(expectedHands);
       expect(events).toContainEqual(
         handsCompletedEvent({
           gameId: game.id,
-          handsByPlayerId: {
-            [game.host.id]: expectedHostHand,
-            [game.players[0].id]: expectedPlayer1Hand,
-            [game.players[1].id]: expectedPlayer2Hand,
-            [game.players[2].id]: expectedPlayer3Hand,
-            [game.players[3].id]: expectedPlayer4Hand,
-            [game.players[4].id]: expectedPlayer5Hand,
-            [game.players[5].id]: expectedPlayer6Hand,
-            [game.players[6].id]: expectedPlayer7Hand,
-          },
+          handsByPlayerId: expectedHands,
         })
       );
     });

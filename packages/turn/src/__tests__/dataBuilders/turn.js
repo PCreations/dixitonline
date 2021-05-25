@@ -54,7 +54,13 @@ export const buildTestTurn = () => {
       this.inPlayersCardChoicePhase();
       const playersCardChosenEvents = defaultPlayers
         .filter(player => player.id !== getStoryteller().id)
-        .map(player => events.playerCardChosen({ playerId: player.id, cardId: player.hand[0].id }));
+        .flatMap(player =>
+          [events.playerCardChosen({ playerId: player.id, cardId: player.hand[0].id })].concat(
+            defaultPlayers.length === 3
+              ? [events.playerCardChosen({ playerId: player.id, cardId: player.hand[1].id })]
+              : []
+          )
+        );
       history = history.concat(playersCardChosenEvents);
       const self = this;
       return {

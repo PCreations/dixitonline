@@ -1,12 +1,6 @@
 import faker from 'faker';
 import { buildTestPlayer } from './player';
-import {
-  makeGame,
-  MAXIMUM_NUMBER_OF_PLAYERS,
-  GameStatus,
-  NUMBER_OF_CARDS_IN_A_DECK,
-  makeNullCards,
-} from '../../domain/game';
+import { makeGame, MAXIMUM_NUMBER_OF_PLAYERS, GameStatus, makeNullCards } from '../../domain/game';
 
 const generatePlayers = numberOfPlayers => new Array(numberOfPlayers).fill().map(() => buildTestPlayer().build());
 
@@ -31,7 +25,7 @@ export const buildTestGame = (baseGame = {}) => {
       overrides.isPrivate = false;
       return this;
     },
-    withCards(length = NUMBER_OF_CARDS_IN_A_DECK) {
+    withCards(length) {
       overrides.cards = new Array(length).fill().map((_, index) => ({
         id: `c${index}`,
         url: `/cards/${index}.jpg`,
@@ -58,6 +52,10 @@ export const buildTestGame = (baseGame = {}) => {
     },
     withStartedStatus() {
       overrides.status = GameStatus.STARTED;
+      return this;
+    },
+    withEndedStatus() {
+      overrides.status = GameStatus.ENDED;
       return this;
     },
     withShuffledDeck(cards) {
