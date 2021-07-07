@@ -17,7 +17,6 @@ import {
   NUMBER_OF_CARDS_IN_DECK_PER_PLAYERS_FOR_DEFAULT_MODE,
   DEFAULT_END_CONDITION,
   makeNullCards,
-  NUMBER_OF_CARDS_BY_HAND,
 } from '../game';
 import { buildTestPlayer } from '../../__tests__/dataBuilders/player';
 import {
@@ -559,6 +558,34 @@ describe('Game', () => {
       const totalNumberOfPlayers = MAXIMUM_NUMBER_OF_PLAYERS;
       const expectedHands = {};
       for (let i = 0; i < MAXIMUM_NUMBER_OF_PLAYERS; i += 1) {
+        const playerId = i === 0 ? game.host.id : game.players[i - 1].id;
+        expectedHands[playerId] = shuffledDeck.slice(i * 6, i * 6 + 6);
+      }
+      // act
+      const { events, value } = completeHands(game, { cards: shuffledDeck });
+
+      // assert
+      expect(value.cards).toEqual(shuffledDeck.slice(6 * totalNumberOfPlayers));
+
+      expect(events[0].payload.handsByPlayerId).toEqual(expectedHands);
+      expect(events).toContainEqual(
+        handsCompletedEvent({
+          gameId: game.id,
+          handsByPlayerId: expectedHands,
+        })
+      );
+    });
+
+    it('returns the hands for the player by removing cards from the deck when no hands have been dealt yet and correctly computes the remaining turns number', () => {
+      // arrange
+      const shuffledDeck = new Array(98).fill().map(() => buildTestCard().build());
+      const game = buildTestGame()
+        .withXPlayers(6)
+        .withStartedStatus()
+        .build();
+      const totalNumberOfPlayers = 7;
+      const expectedHands = {};
+      for (let i = 0; i < 7; i += 1) {
         const playerId = i === 0 ? game.host.id : game.players[i - 1].id;
         expectedHands[playerId] = shuffledDeck.slice(i * 6, i * 6 + 6);
       }

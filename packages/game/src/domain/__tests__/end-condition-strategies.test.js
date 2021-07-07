@@ -11,13 +11,25 @@ describe('ending condition strategies', () => {
     test('game not ended', () => {
       // act
       const game = buildTestGame()
-        .withCards(48)
-        .withXPlayers(5)
+        .withCards(56)
+        .withXPlayers(6)
         .build();
       const { remainingTurns, isGameEnded } = defaultEndingConditionStrategy(game);
 
       // assert
       expect(remainingTurns).toEqual(8);
+      expect(isGameEnded).toBe(false);
+    });
+    test('game not ended with 3 players', () => {
+      // act
+      const game = buildTestGame()
+        .withCards(6)
+        .withXPlayers(2)
+        .build();
+      const { remainingTurns, isGameEnded } = defaultEndingConditionStrategy(game);
+
+      // assert
+      expect(remainingTurns).toEqual(1);
       expect(isGameEnded).toBe(false);
     });
     test('game ended', () => {

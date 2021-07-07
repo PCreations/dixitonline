@@ -15,7 +15,7 @@ describe('get shuffled deck', () => {
     const getShuffledDeck = makeGetShuffledDeck({ shuffle, dispatchDomainEvents });
 
     // act
-    const shuffledDeck = await getShuffledDeck({ gameId: 'g1' });
+    const shuffledDeck = await getShuffledDeck({ gameId: 'g1', playersCount: 6 });
 
     // assert
     expect(shuffledDeck.cards.length).toEqual(DEFAULT_GAME_CARDS_COUNT);

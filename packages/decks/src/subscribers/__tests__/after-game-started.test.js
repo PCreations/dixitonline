@@ -29,6 +29,6 @@ describe('after game started subscriber', () => {
     ]);
 
     // assert
-    expect(getShuffledDeckSpy).toHaveBeenCalledWith({ gameId: 'g1', useAllDeck: true });
+    expect(getShuffledDeckSpy).toHaveBeenCalledWith({ gameId: 'g1', playersCount: 3, useAllDeck: true });
   });
 });

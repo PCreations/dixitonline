@@ -6,8 +6,9 @@ const remainingTurnsEndingCondition = remainingTurns => ({
 export const defaultEndingConditionStrategy = game => {
   const playersCount = game.players.length + 1;
   const cardsCount = game.cards.length;
-  const cardsPerPlayers = cardsCount / playersCount;
-  return remainingTurnsEndingCondition(cardsPerPlayers <= 0 ? -1 : Math.floor(cardsCount / playersCount));
+  const cardsPerDraw = game.players.length === 2 ? 5 : playersCount;
+  const cardsPerPlayers = cardsCount / cardsPerDraw;
+  return remainingTurnsEndingCondition(cardsPerPlayers <= 0 ? -1 : Math.floor(cardsCount / cardsPerDraw));
 };
 
 export const xTimesStorytellerEndingConditionsStrategy = game => {

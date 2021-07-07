@@ -20,7 +20,7 @@ export const DefineClueResultSuccess = objectType({
     t.field('phase', {
       type: TurnPhase,
       resolve(turnState, _, { currentUser }) {
-        return mapPhaseStateToGraphQL(viewPhaseAs(turnState, currentUser.id)); //?
+        return mapPhaseStateToGraphQL(viewPhaseAs(turnState, currentUser.id));
       },
     });
   },

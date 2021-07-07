@@ -38,7 +38,7 @@ describe('play now', () => {
 
     // act
     const { mutate } = createTestClient(server);
-    const response = await mutate({ mutation: GAME_PLAY_NOW }); //?
+    const response = await mutate({ mutation: GAME_PLAY_NOW });
 
     // assert
     expect(response.data.gamePlayNow.game).toEqual({
@@ -100,7 +100,7 @@ describe('play now', () => {
 
     // act
     const { mutate } = createTestClient(server);
-    const response = await mutate({ mutation: GAME_PLAY_NOW }); //?
+    const response = await mutate({ mutation: GAME_PLAY_NOW });
 
     // assert
     expect(response.data.gamePlayNow.game).toEqual({
@@ -155,7 +155,7 @@ describe('play now', () => {
 
     // act
     const { mutate } = createTestClient(server);
-    const response = await mutate({ mutation: GAME_PLAY_NOW }); //?
+    const response = await mutate({ mutation: GAME_PLAY_NOW });
 
     // assert
     expect(response.data.gamePlayNow.game).toEqual({
