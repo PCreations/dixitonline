@@ -1,14 +1,16 @@
-import { GameStatus } from '../../../domain/game';
+import { EventEmitter } from 'events';
 import * as gameEvents from '../../../domain/events';
-import { createOnGameCreated } from '../on-game-created';
+import { makeOnGameCreatedSubscriber } from '../on-game-created';
 import { createInMemoryGameProjectionGateway } from '../gateways';
 import { makeNullGameRepository } from '../../../repos';
 import { buildTestGame } from '../../../__tests__/dataBuilders/game';
 import { buildTestPlayer } from '../../../__tests__/dataBuilders/player';
 import { buildgameRepositoryInitialGames } from '../../../__tests__/dataBuilders/game-repository-initial-games';
+import { createGameProjection } from '../game-projection';
 
 describe('onGameCreated', () => {
-  it('generate game view when a new game is created', async () => {
+  it('generate game view when a new game is created', done => {
+    expect.assertions(1);
     const gameCreated = buildTestGame()
       .withId('gameId')
       .withXtimesStorytellerLimit(2)
@@ -24,27 +26,19 @@ describe('onGameCreated', () => {
         .withGames([gameCreated])
         .build(),
     });
+    const eventEmitter = new EventEmitter();
+    const dispatchDomainEvent = event => eventEmitter.emit(event.type, event);
+    const subscribeToDomainEvent = eventEmitter.on.bind(eventEmitter);
     const gameProjectionGateway = createInMemoryGameProjectionGateway();
-    const onGameCreated = createOnGameCreated({ gameProjectionGateway, gameRepository });
+    makeOnGameCreatedSubscriber({ subscribeToDomainEvent, gameProjectionGateway, gameRepository });
 
-    await onGameCreated(gameEvents.newGameCreatedEvent({ gameId: 'gameId' }).payload);
+    dispatchDomainEvent(gameEvents.newGameCreatedEvent({ gameId: 'gameId' }));
 
-    const game = await gameProjectionGateway.getGame({ gameId: 'gameId' });
-    expect(game).toEqual({
-      id: 'gameId',
-      status: GameStatus.WAITING_FOR_PLAYERS,
-      endCondition: {
-        xTimesStorytellerLimit: 2,
-      },
-      players: {
-        hostId: {
-          isHost: true,
-          username: 'Host',
-          isReady: true,
-          score: 0,
-          isStoryteller: false,
-        },
-      },
+    setImmediate(async () => {
+      const gameProjection = await gameProjectionGateway.getGame({ gameId: 'gameId' });
+      const updatedGame = await gameRepository.getGameById('gameId');
+      expect(gameProjection).toEqual(createGameProjection(updatedGame));
+      done();
     });
   });
 });

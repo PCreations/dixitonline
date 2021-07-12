@@ -1,20 +1,15 @@
 import { EventEmitter } from 'events';
-import * as gameEvents from '../../../domain/events';
-import { makeOnPlayerJoinedSubscriber } from '../on-player-joined';
+import { events as turnEvents } from '@dixit/turn';
+import { makeOnTurnStartedSubscriber } from '../on-turn-started';
 import { createInMemoryGameProjectionGateway } from '../gateways';
 import { makeNullGameRepository } from '../../../repos';
 import { buildTestGame } from '../../../__tests__/dataBuilders/game';
 import { buildTestPlayer } from '../../../__tests__/dataBuilders/player';
 import { buildgameRepositoryInitialGames } from '../../../__tests__/dataBuilders/game-repository-initial-games';
-import { createGameProjection } from '../game-projection';
 
-describe('onPlayerJoined', () => {
-  it('generate game view when a player has joined a game', async done => {
-    expect.assertions(1);
-    const playerThatHasJoinedTheGame = buildTestPlayer()
-      .withId('playerId')
-      .withName('Player')
-      .build();
+describe('onTurnStarted', () => {
+  it('updates the storyteller when a new turn has started', async done => {
+    expect.assertions(2);
     const game = buildTestGame()
       .withId('gameId')
       .withXtimesStorytellerLimit(2)
@@ -24,8 +19,13 @@ describe('onPlayerJoined', () => {
           .withName('Host')
           .build()
       )
-      .withPlayers([playerThatHasJoinedTheGame])
+      .withPlayers([
+        buildTestPlayer()
+          .withId('player2')
+          .build(),
+      ])
       .build();
+
     const eventEmitter = new EventEmitter();
     const dispatchDomainEvent = event => eventEmitter.emit(event.type, event);
     const subscribeToDomainEvent = eventEmitter.on.bind(eventEmitter);
@@ -35,17 +35,17 @@ describe('onPlayerJoined', () => {
         .build(),
     });
     const gameProjectionGateway = createInMemoryGameProjectionGateway();
-    makeOnPlayerJoinedSubscriber({
+    makeOnTurnStartedSubscriber({
       subscribeToDomainEvent,
       gameProjectionGateway,
       gameRepository,
     });
-    dispatchDomainEvent(gameEvents.playerJoinedGame({ gameId: 'gameId', playerId: playerThatHasJoinedTheGame.id }));
+    dispatchDomainEvent(turnEvents.turnStarted({ id: 'turnId', gameId: 'gameId', storytellerId: 'player2' }));
 
     setImmediate(async () => {
-      const gameProjection = await gameProjectionGateway.getGame({ gameId: 'gameId' });
-      const updatedGame = await gameRepository.getGameById('gameId');
-      expect(gameProjection).toEqual(createGameProjection(updatedGame));
+      const updatedGameProjection = await gameProjectionGateway.getGame({ gameId: 'gameId' });
+      expect(updatedGameProjection.players.player2.isStoryteller).toBe(true);
+      expect(updatedGameProjection.players.hostId.isStoryteller).toBe(false);
       done();
     });
   });

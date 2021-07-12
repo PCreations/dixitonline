@@ -1,20 +1,4 @@
-export const createOnGameCreated = ({ gameProjectionGateway, gameRepository }) => async ({ gameId }) => {
-  const createdGame = await gameRepository.getGameById(gameId);
+import { makeOnGameEventProjection } from './make-on-game-event-projection';
+import * as gameEvents from '../../domain/events';
 
-  const gameProjection = {
-    id: gameId,
-    status: createdGame.status,
-    endCondition: createdGame.endCondition,
-    players: {
-      [createdGame.host.id]: {
-        isHost: true,
-        username: createdGame.host.name,
-        isReady: true,
-        score: 0,
-        isStoryteller: false,
-      },
-    },
-  };
-
-  return gameProjectionGateway.save(gameProjection);
-};
+export const makeOnGameCreatedSubscriber = makeOnGameEventProjection(gameEvents.types.NEW_GAME_CREATED);
