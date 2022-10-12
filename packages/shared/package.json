@@ -11,7 +11,7 @@
   "private": true,
   "dependencies": {
     "@dixit/users": "1.0.0",
-    "apollo-server": "^2.11.0",
+    "apollo-server": "^2.25.4",
     "nexus": "^0.12.0-rc.14"
   }
 }
