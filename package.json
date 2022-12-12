@@ -53,7 +53,7 @@
     "@sentry/node": "5.15.4",
     "apollo-server-express": "^2.11.0",
     "cors": "^2.8.5",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "faker": "^4.1.0",
     "nexus": "^0.12.0"
   },
