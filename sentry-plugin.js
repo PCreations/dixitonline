@@ -5,6 +5,7 @@ Sentry.init({
   environment: process.env.NODE_ENV,
   release: version,
   dsn: 'https://980697340f06423f918bf1c3b942845d@o377168.ingest.sentry.io/5198886',
+  org: 'pierre-criulanscy-sasu',
 });
 
 export const SentryPlugin = {

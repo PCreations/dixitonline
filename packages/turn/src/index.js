@@ -6,6 +6,7 @@ import { makeTurnRepository } from './repos';
 import { initialize as initializeSubscribers } from './subscribers';
 import { makeGetDataSources } from './infra/graphql/get-data-sources';
 import { makeGetContext } from './infra/graphql/get-context';
+import { makeTurnPhaseViewRepository } from './repos/turn-phase-view.repository';
 
 export const initialize = ({
   firestore,
@@ -15,10 +16,17 @@ export const initialize = ({
   subscribeToDomainEvent,
 }) => {
   const turnRepository = makeTurnRepository({ firestore });
+  const turnPhaseViewRepository = makeTurnPhaseViewRepository({ firestore });
   const userRepository = makeUserRepository({ firebaseAuth });
-  const getDataSources = makeGetDataSources({ turnRepository });
+  const getDataSources = makeGetDataSources({ turnRepository, turnPhaseViewRepository });
   const getContext = makeGetContext({ dispatchDomainEvents, authorizationService });
-  initializeSubscribers({ subscribeToDomainEvent, dispatchDomainEvents, turnRepository, userRepository });
+  initializeSubscribers({
+    subscribeToDomainEvent,
+    dispatchDomainEvents,
+    turnRepository,
+    turnPhaseViewRepository,
+    userRepository,
+  });
 
   return {
     getDataSources,

@@ -8,6 +8,7 @@ import { makeNullTurnRepository } from '../../repos/turn-repository';
 import { makeGetDataSources } from '../../infra/graphql/get-data-sources';
 import { makeTestServer } from '../../__tests__/test-server';
 import { buildTestHand } from '../../__tests__/dataBuilders/hand';
+import { makeNullTurnPhaseViewRepository } from '../../repos/turn-phase-view.repository';
 
 describe('getTurnPhase', () => {
   test('correctly get the current phase', async () => {
@@ -39,9 +40,11 @@ describe('getTurnPhase', () => {
         t1: [turnStarted],
       },
     });
+    const turnPhaseViewRepository = makeNullTurnPhaseViewRepository();
     const server = makeTestServer({
       getDataSources: makeGetDataSources({
         turnRepository,
+        turnPhaseViewRepository,
       }),
       currentUserId: players[0].id,
       currentUserUsername: players[0].name,

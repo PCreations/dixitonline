@@ -9,6 +9,7 @@ import { makeTestServer } from '../../__tests__/test-server';
 import { buildTestHand } from '../../__tests__/dataBuilders/hand';
 import { mapPhaseStateToGraphQL } from '../../infra/graphql/schema/phase';
 import { TurnError } from '../../domain/errors';
+import { makeNullTurnPhaseViewRepository } from '../../repos/turn-phase-view.repository';
 
 describe('define clue', () => {
   test('storyteller can define its clue when in storyteller phase thus making the turn to be in players card choice phase', async () => {
@@ -40,9 +41,11 @@ describe('define clue', () => {
         t1: [turnStarted],
       },
     });
+    const turnPhaseViewRepository = makeNullTurnPhaseViewRepository();
     const server = makeTestServer({
       getDataSources: makeGetDataSources({
         turnRepository,
+        turnPhaseViewRepository,
       }),
       currentUserId: players[0].id,
       currentUserUsername: players[0].name,
@@ -107,9 +110,11 @@ describe('define clue', () => {
         t1: [turnStarted],
       },
     });
+    const turnPhaseViewRepository = makeNullTurnPhaseViewRepository();
     const server = makeTestServer({
       getDataSources: makeGetDataSources({
         turnRepository,
+        turnPhaseViewRepository,
       }),
       currentUserId: players[1].id,
       currentUserUsername: players[1].name,

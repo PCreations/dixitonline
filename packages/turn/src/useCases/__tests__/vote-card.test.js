@@ -8,6 +8,7 @@ import { makeTestServer } from '../../__tests__/test-server';
 import { buildTestHand } from '../../__tests__/dataBuilders/hand';
 import { buildTestTurn } from '../../__tests__/dataBuilders/turn';
 import { mapPhaseStateToGraphQL } from '../../infra/graphql/schema/phase';
+import { makeNullTurnPhaseViewRepository } from '../../repos/turn-phase-view.repository';
 
 describe('vote card', () => {
   test('a player can vote on one of the card in the board', async () => {
@@ -40,9 +41,11 @@ describe('vote card', () => {
         t1: turnHistory,
       },
     });
+    const turnPhaseViewRepository = makeNullTurnPhaseViewRepository();
     const server = makeTestServer({
       getDataSources: makeGetDataSources({
         turnRepository,
+        turnPhaseViewRepository,
       }),
       currentUserId: players[1].id,
       currentUserUsername: players[1].name,
