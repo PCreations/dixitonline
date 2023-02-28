@@ -3,19 +3,21 @@ import { makeResult, makeErrorResult } from './result';
 import { turnReducer, TurnPhase } from './reducer';
 import { TurnError } from './errors';
 
+const createTurnUpdatedEvent = id => events.turnUpdated({ id });
+
 export const defineClue = (turnState, { playerId, text, cardId }) => {
   if (turnState.turn.storytellerId !== playerId) {
     return makeErrorResult(TurnError.NOT_AUTHORIZED);
   }
   const clueDefinedEvent = events.clueDefined({ text, cardId });
   const newTurnState = turnReducer(turnState, clueDefinedEvent);
-  return makeResult(newTurnState, [clueDefinedEvent]);
+  return makeResult(newTurnState, [clueDefinedEvent, createTurnUpdatedEvent(newTurnState.turn.id)]);
 };
 
 export const choseCard = (turnState, { playerId, cardId }) => {
   const playerCardChosenEvent = events.playerCardChosen({ playerId, cardId });
   const newTurnState = turnReducer(turnState, playerCardChosenEvent);
-  return makeResult(newTurnState, [playerCardChosenEvent]);
+  return makeResult(newTurnState, [playerCardChosenEvent, createTurnUpdatedEvent(newTurnState.turn.id)]);
 };
 
 export const vote = (turnState, { playerId, cardId }) => {
@@ -27,7 +29,7 @@ export const vote = (turnState, { playerId, cardId }) => {
   }
   const playerVotedEvent = events.playerVoted({ playerId, cardId });
   const newTurnState = turnReducer(turnState, playerVotedEvent);
-  const resultEvents = [playerVotedEvent];
+  const resultEvents = [playerVotedEvent, createTurnUpdatedEvent(newTurnState.turn.id)];
   if (newTurnState.turn.phase === TurnPhase.SCORING) {
     const playersWithHandAndScore = Object.entries(newTurnState.turn.handByPlayerId).map(([handPlayerId, hand]) => ({
       playerId: handPlayerId,

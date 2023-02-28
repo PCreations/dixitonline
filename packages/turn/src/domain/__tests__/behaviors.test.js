@@ -24,6 +24,9 @@ describe('behaviors', () => {
         text: 'some clue text',
         cardId: storytellerHand[0].id,
       });
+      const expectedTurnUpdatedEvent = events.turnUpdated({
+        id: turnState.turn.id,
+      });
 
       // act
       const result = defineClue(turnState, {
@@ -33,7 +36,7 @@ describe('behaviors', () => {
       });
 
       // assert
-      expect(result.events).toEqual([expectedClueDefinedEvent]);
+      expect(result.events).toEqual([expectedClueDefinedEvent, expectedTurnUpdatedEvent]);
       expect(turnReducer).toHaveBeenCalledWith(turnState, expectedClueDefinedEvent);
     });
     it('returns an error when the player is not the storyteller', () => {
@@ -69,6 +72,9 @@ describe('behaviors', () => {
       playerId: activePlayer.id,
       cardId: chosenCard.id,
     });
+    const expectedTurnUpdatedEvent = events.turnUpdated({
+      id: turnState.turn.id,
+    });
 
     // act
     const result = choseCard(turnState, {
@@ -77,7 +83,7 @@ describe('behaviors', () => {
     });
 
     // assert
-    expect(result.events).toEqual([expectedPlayerCardChosenEvent]);
+    expect(result.events).toEqual([expectedPlayerCardChosenEvent, expectedTurnUpdatedEvent]);
     expect(turnReducer).toHaveBeenCalledWith(turnState, expectedPlayerCardChosenEvent);
   });
   describe('vote', () => {
@@ -97,6 +103,9 @@ describe('behaviors', () => {
         playerId: activePlayer.id,
         cardId: storytellerCardOnBoard.id,
       });
+      const expectedTurnUpdatedEvent = events.turnUpdated({
+        id: turnState.turn.id,
+      });
 
       // act
       const result = vote(turnState, {
@@ -105,7 +114,7 @@ describe('behaviors', () => {
       });
 
       // assert
-      expect(result.events).toEqual([expectedPlayerVotedEvent]);
+      expect(result.events).toEqual([expectedPlayerVotedEvent, expectedTurnUpdatedEvent]);
       expect(turnReducer).toHaveBeenCalledWith(turnState, expectedPlayerVotedEvent);
     });
     test('when the last player has voted, it should return a turnEnded event with discarded cards', () => {
@@ -134,6 +143,9 @@ describe('behaviors', () => {
         discardedCards: turnState.turn.board.map(({ id, url }) => ({ id, url })),
         gameId: 'g1',
       });
+      const expectedTurnUpdatedEvent = events.turnUpdated({
+        id: turnState.turn.id,
+      });
 
       // act
       const result = vote(turnState, {
@@ -142,7 +154,8 @@ describe('behaviors', () => {
       });
 
       // assert
-      expect(result.events[1]).toEqual(expectedTurnEndedEvent);
+      expect(result.events[1]).toEqual(expectedTurnUpdatedEvent);
+      expect(result.events[2]).toEqual(expectedTurnEndedEvent);
     });
     test("can't vote for her own card", () => {
       // arrange

@@ -5,6 +5,7 @@ export const events = {
     CLUE_DEFINED: '[turn] - the clue has been defined',
     PLAYER_CARD_CHOSEN: '[turn] - a player has chosen a card',
     PLAYER_VOTED: '[turn] - a player has voted on a card',
+    TURN_UPDATED: '[turn] - a turn has been updated',
   },
   turnStarted({ id, gameId, storytellerId, players }) {
     return {
@@ -27,6 +28,12 @@ export const events = {
         playersWithHandAndScore,
         discardedCards,
       },
+    };
+  },
+  turnUpdated({ id }) {
+    return {
+      type: events.types.TURN_UPDATED,
+      payload: { id },
     };
   },
   clueDefined({ text, cardId }) {
