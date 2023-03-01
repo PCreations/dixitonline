@@ -16,7 +16,10 @@ export const makeStartNewTurn = ({ turnRepository, dispatchDomainEvents }) => as
     }
   }
   const turnId = turnRepository.getNextTurnId();
-  const events = [turnEvents.turnStarted({ id: turnId, gameId, players, storytellerId })];
+  const events = [
+    turnEvents.turnStarted({ id: turnId, gameId, players, storytellerId }),
+    turnEvents.turnUpdated({ id: turnId }),
+  ];
   const turn = await turnRepository.saveTurn(turnId, events);
   dispatchDomainEvents(events);
   return turn;

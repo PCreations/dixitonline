@@ -50,6 +50,9 @@ describe('start new turn', () => {
         storytellerId: turn.turn.storytellerId,
         players,
       }),
+      turnEvents.turnUpdated({
+        id: turn.turn.id,
+      }),
     ]);
   });
   it('starts a new turn by setting the next player as the storyteller if there was a previous turn', async () => {
