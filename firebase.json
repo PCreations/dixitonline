@@ -1,4 +1,7 @@
 {
+  "functions": {
+    "runtime": "nodejs14"
+  },
   "database": {
     "rules": "database.rules.json"
   },
@@ -8,11 +11,7 @@
   },
   "hosting": {
     "public": "public",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ],
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "rewrites": [
       {
         "source": "**",
