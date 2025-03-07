@@ -1,6 +1,6 @@
 import { events } from '../events';
 
-const CARDS_IN_DECK = 372;
+const CARDS_IN_DECK = 613;
 const MINIMUM_NUMBER_OF_CARDS_FOR_GAME_DECK = 84;
 const CARDS_PER_PLAYER = MINIMUM_NUMBER_OF_CARDS_FOR_GAME_DECK / 6;
 
