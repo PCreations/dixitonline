@@ -8,7 +8,7 @@
   "private": true,
   "scripts": {
     "build": "yarn workspaces run build && yarn workspaces run hoist-build",
-    "deploy": "webpack --config webpack.config.js --mode production --progress && cd functions && npm run deploy",
+    "deploy": "NODE_OPTIONS=--openssl-legacy-provider webpack --config webpack.config.js --mode production --progress && cd functions && npm run deploy",
     "serve": "yarn webpack --config webpack.config.js --mode development --progress && cd functions && npm run serve"
   },
   "workspaces": [
