@@ -3,7 +3,7 @@ import { makeStartNewTurn } from '../useCases/start-new-turn';
 import { makeUpdateTurnPhaseForPlayers } from '../useCases/update-turn-phase-for-players';
 import { makeOnTurnUpdatedSubscriber } from './on-turn-updated';
 
-export const initialize = ({
+export const initialize = async ({
   subscribeToDomainEvent,
   dispatchDomainEvents,
   turnRepository,
@@ -14,6 +14,6 @@ export const initialize = ({
   const updateTurnPhaseForPlayers = makeUpdateTurnPhaseForPlayers({ turnRepository, turnPhaseViewRepository });
 
   // initialize subscribers
-  makeAfterHandsCompletedSubscriber({ subscribeToDomainEvent, userRepository, startTurn: startTurnUseCase });
-  makeOnTurnUpdatedSubscriber({ subscribeToDomainEvent, updateTurnPhaseForPlayers });
+  await makeAfterHandsCompletedSubscriber({ subscribeToDomainEvent, userRepository, startTurn: startTurnUseCase });
+  await makeOnTurnUpdatedSubscriber({ subscribeToDomainEvent, updateTurnPhaseForPlayers });
 };

@@ -5,13 +5,13 @@ import { makeCompleteHands } from '../useCases/complete-hands';
 import { makeHandleTurnEnded } from '../useCases/handle-turn-ended';
 import { makeSetCurrentTurn } from '../useCases/set-current-turn';
 
-export const initialize = ({ subscribeToDomainEvent, dispatchDomainEvents, gameRepository }) => {
+export const initialize = async ({ subscribeToDomainEvent, dispatchDomainEvents, gameRepository }) => {
   const completeHandsUseCase = makeCompleteHands({ dispatchDomainEvents, gameRepository });
   const handleTurnEndedUseCase = makeHandleTurnEnded({ dispatchDomainEvents, gameRepository });
   const setCurrentTurnUseCase = makeSetCurrentTurn({ gameRepository });
 
   // initialize subscribers
-  makeAfterDeckShuffledSubscriber({ subscribeToDomainEvent, completeHands: completeHandsUseCase });
-  makeAfterTurnEndedSubscriber({ subscribeToDomainEvent, handleTurnEnded: handleTurnEndedUseCase });
-  makeAfterTurnStartedSubscriber({ subscribeToDomainEvent, setCurrentTurn: setCurrentTurnUseCase });
+  await makeAfterDeckShuffledSubscriber({ subscribeToDomainEvent, completeHands: completeHandsUseCase });
+  await makeAfterTurnEndedSubscriber({ subscribeToDomainEvent, handleTurnEnded: handleTurnEndedUseCase });
+  await makeAfterTurnStartedSubscriber({ subscribeToDomainEvent, setCurrentTurn: setCurrentTurnUseCase });
 };

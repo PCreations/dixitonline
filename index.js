@@ -18,25 +18,39 @@ const Mutation = mutationType({
   definition() {},
 });
 
-export default ({ firestore, firebaseAuth, dispatchDomainEvents, subscribeToDomainEvent }) => {
+export default async ({
+  firestore,
+  firebaseAuth,
+  dispatchDomainEvents,
+  subscribeToDomainEvent,
+  onlySubscribers = false,
+}) => {
   const gameRepository = makeGameRepository({ firestore });
   const removeInactivePlayers = makeRemoveInactivePlayersUseCase({ gameRepository });
 
   const authorizationService = makeGraphqlExpressAuthorizationService({ firebaseAuth });
-  initializeDecks({ firestore, dispatchDomainEvents, subscribeToDomainEvent });
-  const { getContext: getGameContext, getDataSources: getGameDataSources } = initializeGame({
+  await initializeDecks({ firestore, dispatchDomainEvents, subscribeToDomainEvent });
+  const { getContext: getGameContext, getDataSources: getGameDataSources } = await initializeGame({
     firestore,
     dispatchDomainEvents,
     subscribeToDomainEvent,
     authorizationService,
   });
-  const { getContext: getTurnContext, getDataSources: getTurnDataSources } = initializeTurn({
+  const { getContext: getTurnContext, getDataSources: getTurnDataSources } = await initializeTurn({
     firestore,
     firebaseAuth,
     authorizationService,
     dispatchDomainEvents,
     subscribeToDomainEvent,
   });
+
+  if (onlySubscribers) {
+    return {
+      turnReducer,
+      app: null,
+      removeInactivePlayers,
+    };
+  }
 
   const schema = makeSchema({
     types: { Query, Mutation, ...GameTypes, ...TurnTypes },

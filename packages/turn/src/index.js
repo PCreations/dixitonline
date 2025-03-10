@@ -8,7 +8,7 @@ import { makeGetDataSources } from './infra/graphql/get-data-sources';
 import { makeGetContext } from './infra/graphql/get-context';
 import { makeTurnPhaseViewRepository } from './repos/turn-phase-view.repository';
 
-export const initialize = ({
+export const initialize = async ({
   firestore,
   firebaseAuth,
   authorizationService,
@@ -20,7 +20,7 @@ export const initialize = ({
   const userRepository = makeUserRepository({ firebaseAuth });
   const getDataSources = makeGetDataSources({ turnRepository, turnPhaseViewRepository });
   const getContext = makeGetContext({ dispatchDomainEvents, authorizationService });
-  initializeSubscribers({
+  await initializeSubscribers({
     subscribeToDomainEvent,
     dispatchDomainEvents,
     turnRepository,
