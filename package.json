@@ -37,7 +37,7 @@
     "firebase-admin": "^9.6.0",
     "firebase-tools": "^11.24.0",
     "jest": "25.2.4",
-    "json": "^9.0.6",
+    "json": "^10.0.0",
     "nodemon": "^2.0.2",
     "parcel-bundler": "^1.12.4",
     "prettier": "^1.19.1",
