@@ -19,6 +19,7 @@ const dispatchDomainEvents = events => {
   events.forEach(async event => {
     const dataBuffer = Buffer.from(JSON.stringify(event));
     try {
+      console.log('Publishing event:', event);
       await pubsub.topic(TOPIC_NAME).publish(dataBuffer);
     } catch (err) {
       console.error('Erreur lors de la publication de l’événement:', err);
@@ -32,6 +33,7 @@ exports.api = functions
   .runWith({
     timeoutSeconds: 60,
     memory: '1GB',
+    minInstances: 1,
   })
   .https.onRequest(async (...args) => {
     const { app } = await dixit({
@@ -44,24 +46,38 @@ exports.api = functions
     return app(...args);
   });
 
+const alreadySeenEventsIds = new Set();
+
 exports.processEvent = functions
   .runWith({
     timeoutSeconds: 60,
     memory: '1GB',
+    minInstances: 1,
   })
   .pubsub.topic(TOPIC_NAME)
   .onPublish(async message => {
+    if (alreadySeenEventsIds.has(message.data)) {
+      console.log('Already seen event:', JSON.parse(Buffer.from(message.data, 'base64').toString()));
+      return;
+    }
+
+    alreadySeenEventsIds.add(message.messageId);
+
     const eventEmitter = new EventEmitter();
     // Décodage du message Pub/Sub
     const pubsubEvent = JSON.parse(Buffer.from(message.data, 'base64').toString());
 
+    console.log('Received event:', pubsubEvent);
+
     const localDispatchDomainEvents = events =>
       events.map(event => {
-        eventEmitter.emit(event.type, event);
+        console.log('Localling dispatching event:', event);
+        return eventEmitter.emit(event.type, event);
       });
 
     const localSubscribeToDomainEvent = (type, callback) => {
       eventEmitter.on(type, event => {
+        console.log('Localling calling subscriber to event:', event);
         return callback(event);
       });
     };
