@@ -1,68 +1,78 @@
 {
-  "name": "dixitonline",
-  "version": "1.2.0",
-  "main": "index.js",
-  "repository": "https://github.com/PCreations/dixitonline.git",
-  "author": "Pierre Criulanscy <pcriulan@gmail.com>",
+  "name": "tixid-online",
+  "version": "2.0.0",
+  "type": "module",
+  "packageManager": "pnpm@10.13.1+sha512.37ebf1a5c7a30d5fabe0c5df44ee8da4c965ca0c5af3dbab28c3a1681b70a256218d05c81c9c0dcf767ef6b8551eb5b960042b9ed4300c59242336377e01cfad",
   "license": "MIT",
-  "private": true,
-  "scripts": {
-    "build": "yarn workspaces run build && yarn workspaces run hoist-build",
-    "deploy": "NODE_OPTIONS=--openssl-legacy-provider webpack --config webpack.config.js --mode production --progress && cd functions && npm run deploy",
-    "serve": "yarn webpack --config webpack.config.js --mode development --progress && cd functions && npm run serve"
+  "description": "Tixid is an online version of the Dixit card game.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/PCreations/dixitonline.git"
   },
-  "workspaces": [
-    "packages/*"
-  ],
-  "devDependencies": {
-    "@babel/cli": "^7.8.4",
-    "@babel/core": "^7.9.0",
-    "@babel/node": "^7.8.7",
-    "@babel/plugin-proposal-nullish-coalescing-operator": "^7.8.3",
-    "@babel/plugin-proposal-optional-chaining": "^7.9.0",
-    "@babel/preset-env": "^7.9.0",
-    "@babel/register": "^7.9.0",
-    "@rollup/plugin-node-resolve": "^7.1.1",
-    "@sentry/webpack-plugin": "^1.10.0",
-    "babel-core": "^6.26.3",
-    "babel-eslint": "^10.1.0",
-    "babel-jest": "^25.1.0",
-    "babel-loader": "^8.1.0",
-    "eslint": "^6.8.0",
-    "eslint-config-airbnb": "^18.1.0",
-    "eslint-config-airbnb-base": "^14.1.0",
-    "eslint-config-prettier": "^6.10.0",
-    "eslint-plugin-import": "^2.20.1",
-    "eslint-plugin-prettier": "^3.1.2",
-    "firebase-admin": "^9.6.0",
-    "firebase-tools": "^11.24.0",
-    "jest": "25.2.4",
-    "json": "^9.0.6",
-    "nodemon": "^2.0.2",
-    "parcel-bundler": "^1.12.4",
-    "prettier": "^1.19.1",
-    "regenerator-runtime": "^0.13.5",
-    "webpack": "^4.42.1",
-    "webpack-cli": "^3.3.11"
+  "publishConfig": {
+    "access": "public",
+    "directory": "dist"
+  },
+  "scripts": {
+    "codegen": "build-utils prepare-v2",
+    "build": "pnpm build-esm && pnpm build-annotate && pnpm build-cjs && build-utils pack-v2",
+    "build-esm": "tsc -b tsconfig.build.json",
+    "build-cjs": "babel build/esm --plugins @babel/transform-export-namespace-from --plugins @babel/transform-modules-commonjs --out-dir build/cjs --source-maps",
+    "build-annotate": "babel build/esm --plugins annotate-pure-calls --out-dir build/esm --source-maps",
+    "check": "tsc -b tsconfig.json",
+    "lint": "eslint \"**/{src,test,examples,scripts,dtslint}/**/*.{ts,mjs}\"",
+    "lint-fix": "pnpm lint --fix",
+    "test": "vitest",
+    "coverage": "vitest --coverage"
   },
   "dependencies": {
-    "@dixit/decks": "1.0.0",
-    "@dixit/game": "1.0.0",
-    "@dixit/turn": "1.0.0",
-    "@dixit/users": "1.0.0",
-    "@sentry/node": "5.15.4",
-    "apollo-server-express": "^2.11.0",
-    "cors": "^2.8.5",
-    "express": "^4.17.1",
-    "faker": "^4.1.0",
-    "nexus": "^0.12.0"
+    "effect": "latest"
   },
-  "jest": {
-    "testPathIgnorePatterns": [
-      "<rootDir>/packages/*/index.js"
-    ],
-    "testMatch": [
-      "**/__tests__/**/*.test.js"
+  "devDependencies": {
+    "@babel/cli": "^7.24.8",
+    "@babel/core": "^7.25.2",
+    "@babel/plugin-transform-export-namespace-from": "^7.24.7",
+    "@babel/plugin-transform-modules-commonjs": "^7.24.8",
+    "@effect/build-utils": "^0.7.7",
+    "@effect/eslint-plugin": "^0.2.0",
+    "@effect/language-service": "^0.1.0",
+    "@effect/vitest": "latest",
+    "@eslint/compat": "1.1.1",
+    "@eslint/eslintrc": "3.1.0",
+    "@eslint/js": "9.10.0",
+    "@types/node": "^22.5.2",
+    "@typescript-eslint/eslint-plugin": "^8.4.0",
+    "@typescript-eslint/parser": "^8.4.0",
+    "babel-plugin-annotate-pure-calls": "^0.4.0",
+    "eslint": "^9.10.0",
+    "eslint-import-resolver-typescript": "^3.6.3",
+    "eslint-plugin-codegen": "^0.28.0",
+    "eslint-plugin-import": "^2.30.0",
+    "eslint-plugin-simple-import-sort": "^12.1.1",
+    "eslint-plugin-sort-destructure-keys": "^2.0.0",
+    "tsx": "^4.17.0",
+    "typescript": "^5.6.2",
+    "vitest": "^2.0.5"
+  },
+  "effect": {
+    "generateExports": {
+      "include": [
+        "**/*.ts"
+      ]
+    },
+    "generateIndex": {
+      "include": [
+        "**/*.ts"
+      ]
+    }
+  },
+  "pnpm": {
+    "patchedDependencies": {
+      "babel-plugin-annotate-pure-calls@0.4.0": "patches/babel-plugin-annotate-pure-calls@0.4.0.patch"
+    },
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "unrs-resolver"
     ]
   }
 }

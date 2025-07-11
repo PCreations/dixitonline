@@ -1,35 +1,17 @@
-# Created by https://www.gitignore.io/api/osx,visualstudiocode
-# Edit at https://www.gitignore.io/?templates=osx,visualstudiocode
-
-node_modules
-build
-
-__scaffoldedPackage__
-firebase-debug.log
-firestore-debug.log
-
-### OSX ###
-# General
+coverage/
+*.tsbuildinfo
+node_modules/
 .DS_Store
-.AppleDouble
-.LSOverride
-
-### VisualStudioCode ###
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-
-### VisualStudioCode Patch ###
-# Ignore all local history of files
-.history
-
-# End of https://www.gitignore.io/api/osx,visualstudiocode
+tmp/
+dist/
+build/
+docs/
+scratchpad/*
+!scratchpad/tsconfig.json
+.direnv/
+.idea/
 .env
-sentry.properties
-
-worklog.md
-
-dixit-af060-firebase-adminsdk-xvr2z-30721315c0.json
-firestore.js
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
