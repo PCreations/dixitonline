@@ -1,12 +1,8 @@
 import { expect } from '@effect/vitest';
 import { Context, Effect, Layer, Option } from 'effect';
-import {
-	CreateGameUseCase,
-	DeckRepository,
-	GameRepository,
-	InMemoryDeckRepository,
-	InMemoryGameRepository,
-} from '../create-game.usecase.js';
+import { CreateGameUseCase } from '../create-game.usecase.js';
+import { DeckRepository, InMemoryDeckRepository } from '../deck.repository.js';
+import { GameRepository, InMemoryGameRepository } from '../game.repository.js';
 
 interface GameDriverDSL {
 	readonly given: {
