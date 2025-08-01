@@ -7,6 +7,10 @@ export class GameRepository extends Effect.Tag('game/GameRepository')<
 			id: string;
 			createdBy: string;
 			deckId: string;
+			endCondition: {
+				type: 'number-of-times-being-storyteller';
+				numberOfTimes: number;
+			};
 		}) => Effect.Effect<void>;
 		findById: (
 			id: string,
@@ -25,7 +29,15 @@ export const InMemoryGameRepository = Layer.effect(
 		>();
 
 		return {
-			save: (props: { id: string; createdBy: string; deckId: string }) =>
+			save: (props: {
+				id: string;
+				createdBy: string;
+				deckId: string;
+				endCondition: {
+					type: 'number-of-times-being-storyteller';
+					numberOfTimes: number;
+				};
+			}) =>
 				Effect.gen(function* () {
 					games.set(props.id, props);
 

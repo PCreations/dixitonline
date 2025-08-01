@@ -46,4 +46,36 @@ describe('Feature: Creating a new game', () => {
 			});
 		}).pipe(Effect.provide(GameDriverUnitTestLayer));
 	});
+
+	it.effect(
+		'Example: Creating a new game where end condition is "number of time being storyteller"',
+		() => {
+			return Effect.gen(function* () {
+				const gameDriver = yield* GameDriver;
+
+				yield* gameDriver.given.defaultDeck({
+					id: 'id-deck-1',
+				});
+
+				yield* gameDriver.useCases.createGame({
+					gameId: 'id-game-1',
+					playerId: 'id-player-1',
+					endCondition: {
+						type: 'number-of-times-being-storyteller',
+						numberOfTimes: 2,
+					},
+				});
+
+				yield* gameDriver.assert.createdGameToEqual({
+					id: 'id-game-1',
+					createdBy: 'id-player-1',
+					deckId: 'id-deck-1',
+					endCondition: {
+						type: 'number-of-times-being-storyteller',
+						numberOfTimes: 2,
+					},
+				});
+			}).pipe(Effect.provide(GameDriverUnitTestLayer));
+		},
+	);
 });

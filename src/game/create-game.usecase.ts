@@ -14,6 +14,10 @@ export class CreateGameUseCase extends Effect.Service<CreateGameUseCase>()(
 					gameId: string;
 					playerId: string;
 					deckId: Option.Option<string>;
+					endCondition: Option.Option<{
+						type: 'number-of-times-being-storyteller';
+						numberOfTimes: number;
+					}>;
 				}) =>
 					Effect.gen(function* () {
 						const defaultDeckId = yield* deckRepository.getDefaultDeckId();
@@ -24,6 +28,10 @@ export class CreateGameUseCase extends Effect.Service<CreateGameUseCase>()(
 							deckId: Option.getOrElse(props.deckId, () =>
 								Option.getOrThrow(defaultDeckId),
 							),
+							endCondition: Option.getOrElse(props.endCondition, () => ({
+								type: 'number-of-times-being-storyteller',
+								numberOfTimes: 3,
+							})),
 						});
 					}),
 			};

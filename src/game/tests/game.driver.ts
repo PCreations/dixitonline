@@ -14,6 +14,10 @@ interface GameDriverDSL {
 			gameId: string;
 			playerId: string;
 			deckId?: string;
+			endCondition?: {
+				type: 'number-of-times-being-storyteller';
+				numberOfTimes: number;
+			};
 		}) => Effect.Effect<void>;
 	};
 	readonly assert: {
@@ -21,6 +25,10 @@ interface GameDriverDSL {
 			id: string;
 			createdBy: string;
 			deckId: string;
+			endCondition?: {
+				type: 'number-of-times-being-storyteller';
+				numberOfTimes: number;
+			};
 		}) => Effect.Effect<void, never, never>;
 	};
 }
@@ -49,11 +57,16 @@ export const GameDriverUnitTestLayer = Layer.effect(
 					gameId: string;
 					playerId: string;
 					deckId?: string;
+					endCondition?: {
+						type: 'number-of-times-being-storyteller';
+						numberOfTimes: number;
+					};
 				}) =>
 					createGameUseCase.createGame({
 						gameId: props.gameId,
 						playerId: props.playerId,
 						deckId: Option.fromNullable(props.deckId),
+						endCondition: Option.fromNullable(props.endCondition),
 					}),
 			},
 			assert: {
@@ -61,11 +74,24 @@ export const GameDriverUnitTestLayer = Layer.effect(
 					id: string;
 					createdBy: string;
 					deckId: string;
+					endCondition?: {
+						type: 'number-of-times-being-storyteller';
+						numberOfTimes: number;
+					};
 				}) =>
 					Effect.gen(function* () {
 						const createdGame = yield* gameRepository.findById(game.id);
 
-						expect(createdGame).toEqual(Option.some(game));
+						expect(createdGame).toEqual(
+							Option.some({
+								...game,
+								endCondition: {
+									type: 'number-of-times-being-storyteller',
+									numberOfTimes: 3,
+									...game.endCondition,
+								},
+							}),
+						);
 					}),
 			},
 		};
