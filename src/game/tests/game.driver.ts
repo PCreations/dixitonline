@@ -3,7 +3,6 @@ import { Context, Effect, Layer, Option } from 'effect';
 import { CreateGameUseCase } from '../create-game.usecase.js';
 import { DeckEntity, DeckId } from '../deck.entity.js';
 import { DeckRepository, InMemoryDeckRepository } from '../deck.repository.js';
-import { GameEntity, GameId } from '../game.entity.js';
 import { GameRepository, InMemoryGameRepository } from '../game.repository.js';
 
 interface GameDriverDSL {
@@ -72,7 +71,12 @@ export const GameDriverUnitTestLayer = Layer.effect(
 						gameId: props.gameId,
 						playerId: props.playerId,
 						deckId: Option.fromNullable(props.deckId),
-						endCondition: Option.fromNullable(props.endCondition),
+						endCondition: Option.fromNullable(props.endCondition).pipe(
+							Option.map((endCondition) => ({
+								type: endCondition.type,
+								numberOfTimes: Option.some(endCondition.numberOfTimes),
+							})),
+						),
 					}),
 			},
 			assert: {
@@ -88,20 +92,19 @@ export const GameDriverUnitTestLayer = Layer.effect(
 					Effect.gen(function* () {
 						const createdGame = yield* gameRepository.findById(game.id);
 
-						expect(createdGame).toEqual(
-							Option.some(
-								GameEntity.create({
-									id: GameId(game.id),
+						Option.match(createdGame, {
+							onNone: () => expect.fail('Game not found'),
+							onSome: (gameEntity) =>
+								expect(gameEntity.toSnapshot()).toEqual({
+									id: game.id,
 									createdBy: game.createdBy,
-									deckId: DeckId(game.deckId),
-									endCondition: {
+									deckId: game.deckId,
+									endCondition: game.endCondition ?? {
 										type: 'number-of-times-being-storyteller',
 										numberOfTimes: 3,
-										...game.endCondition,
 									},
 								}),
-							),
-						);
+						});
 					}),
 			},
 		};

@@ -1,8 +1,9 @@
 import { Effect, Option } from 'effect';
 import { DeckId } from './deck.entity.js';
 import { DeckRepository, InMemoryDeckRepository } from './deck.repository.js';
-import { GameEntity, GameId } from './game.entity.js';
+import { EndCondition, GameEntity, GameId } from './game.entity.js';
 import { GameRepository, InMemoryGameRepository } from './game.repository.js';
+import { PlayerId } from './player.entity.js';
 
 export type CreateGameCommand = {
 	gameId: string;
@@ -10,7 +11,7 @@ export type CreateGameCommand = {
 	deckId: Option.Option<string>;
 	endCondition: Option.Option<{
 		type: 'number-of-times-being-storyteller';
-		numberOfTimes: number;
+		numberOfTimes: Option.Option<number>;
 	}>;
 };
 
@@ -26,18 +27,23 @@ export class CreateGameUseCase extends Effect.Service<CreateGameUseCase>()(
 					Effect.gen(function* () {
 						const defaultDeckId = yield* deckRepository.getDefaultDeckId();
 
+						const endCondition =
+							EndCondition.createNumberOfTimesBeingStoryteller({
+								numberOfTimes: Option.flatMap(
+									props.endCondition,
+									(endCondition) => endCondition.numberOfTimes,
+								),
+							});
+
 						const game = GameEntity.create({
 							id: GameId(props.gameId),
-							createdBy: props.playerId,
+							createdBy: PlayerId(props.playerId),
 							deckId: DeckId(
 								Option.getOrElse(props.deckId, () =>
 									Option.getOrThrow(defaultDeckId),
 								),
 							),
-							endCondition: Option.getOrElse(props.endCondition, () => ({
-								type: 'number-of-times-being-storyteller',
-								numberOfTimes: 3,
-							})),
+							endCondition,
 						});
 
 						yield* gameRepository.save(game);
