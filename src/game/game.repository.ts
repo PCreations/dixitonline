@@ -1,45 +1,23 @@
 import { Effect, Layer, Option } from 'effect';
+import { GameEntity } from './game.entity.js';
 
 export class GameRepository extends Effect.Tag('game/GameRepository')<
 	GameRepository,
 	{
-		save: (props: {
-			id: string;
-			createdBy: string;
-			deckId: string;
-			endCondition: {
-				type: 'number-of-times-being-storyteller';
-				numberOfTimes: number;
-			};
-		}) => Effect.Effect<void>;
-		findById: (
-			id: string,
-		) => Effect.Effect<
-			Option.Option<{ id: string; createdBy: string; deckId: string }>
-		>;
+		save: (game: GameEntity) => Effect.Effect<void>;
+		findById: (id: string) => Effect.Effect<Option.Option<GameEntity>>;
 	}
 >() {}
 
 export const InMemoryGameRepository = Layer.effect(
 	GameRepository,
 	Effect.gen(function* () {
-		const games = new Map<
-			string,
-			{ id: string; createdBy: string; deckId: string }
-		>();
+		const games = new Map<string, GameEntity>();
 
 		return {
-			save: (props: {
-				id: string;
-				createdBy: string;
-				deckId: string;
-				endCondition: {
-					type: 'number-of-times-being-storyteller';
-					numberOfTimes: number;
-				};
-			}) =>
+			save: (game: GameEntity) =>
 				Effect.gen(function* () {
-					games.set(props.id, props);
+					games.set(game.props.id, game);
 
 					yield* Effect.succeed(void 0);
 				}),

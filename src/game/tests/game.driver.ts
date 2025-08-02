@@ -2,6 +2,7 @@ import { expect } from '@effect/vitest';
 import { Context, Effect, Layer, Option } from 'effect';
 import { CreateGameUseCase } from '../create-game.usecase.js';
 import { DeckRepository, InMemoryDeckRepository } from '../deck.repository.js';
+import { GameEntity } from '../game.entity.js';
 import { GameRepository, InMemoryGameRepository } from '../game.repository.js';
 
 interface GameDriverDSL {
@@ -83,14 +84,16 @@ export const GameDriverUnitTestLayer = Layer.effect(
 						const createdGame = yield* gameRepository.findById(game.id);
 
 						expect(createdGame).toEqual(
-							Option.some({
-								...game,
-								endCondition: {
-									type: 'number-of-times-being-storyteller',
-									numberOfTimes: 3,
-									...game.endCondition,
-								},
-							}),
+							Option.some(
+								GameEntity.create({
+									...game,
+									endCondition: {
+										type: 'number-of-times-being-storyteller',
+										numberOfTimes: 3,
+										...game.endCondition,
+									},
+								}),
+							),
 						);
 					}),
 			},
