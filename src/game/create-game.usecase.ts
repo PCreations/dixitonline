@@ -1,6 +1,7 @@
 import { Effect, Option } from 'effect';
+import { DeckId } from './deck.entity.js';
 import { DeckRepository, InMemoryDeckRepository } from './deck.repository.js';
-import { GameEntity } from './game.entity.js';
+import { GameEntity, GameId } from './game.entity.js';
 import { GameRepository, InMemoryGameRepository } from './game.repository.js';
 
 export type CreateGameCommand = {
@@ -26,10 +27,12 @@ export class CreateGameUseCase extends Effect.Service<CreateGameUseCase>()(
 						const defaultDeckId = yield* deckRepository.getDefaultDeckId();
 
 						const game = GameEntity.create({
-							id: props.gameId,
+							id: GameId(props.gameId),
 							createdBy: props.playerId,
-							deckId: Option.getOrElse(props.deckId, () =>
-								Option.getOrThrow(defaultDeckId),
+							deckId: DeckId(
+								Option.getOrElse(props.deckId, () =>
+									Option.getOrThrow(defaultDeckId),
+								),
 							),
 							endCondition: Option.getOrElse(props.endCondition, () => ({
 								type: 'number-of-times-being-storyteller',

@@ -1,26 +1,27 @@
 import { Effect, Layer, Option } from 'effect';
+import { DeckEntity, DeckId } from './deck.entity.js';
 
 export class DeckRepository extends Effect.Tag('game/DeckRepository')<
 	DeckRepository,
 	{
-		save: (props: { id: string; isDefault: boolean }) => Effect.Effect<void>;
-		getDefaultDeckId: () => Effect.Effect<Option.Option<string>>;
+		save: (props: DeckEntity) => Effect.Effect<void>;
+		getDefaultDeckId: () => Effect.Effect<Option.Option<DeckId>>;
 	}
 >() {}
 
 export const InMemoryDeckRepository = Layer.effect(
 	DeckRepository,
 	Effect.gen(function* () {
-		const decks = new Map<string, { id: string; isDefault: boolean }>();
-		let defaultDeckId: Option.Option<string> = Option.none();
+		const decks = new Map<DeckId, DeckEntity>();
+		let defaultDeckId: Option.Option<DeckId> = Option.none();
 
 		return {
-			save: (props: { id: string; isDefault: boolean }) =>
+			save: (deck: DeckEntity) =>
 				Effect.gen(function* () {
-					decks.set(props.id, props);
+					decks.set(deck.props.id, deck);
 
-					if (props.isDefault) {
-						defaultDeckId = Option.some(props.id);
+					if (deck.props.isDefault) {
+						defaultDeckId = Option.some(deck.props.id);
 					}
 
 					yield* Effect.succeed(void 0);

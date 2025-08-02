@@ -1,8 +1,9 @@
 import { expect } from '@effect/vitest';
 import { Context, Effect, Layer, Option } from 'effect';
 import { CreateGameUseCase } from '../create-game.usecase.js';
+import { DeckEntity, DeckId } from '../deck.entity.js';
 import { DeckRepository, InMemoryDeckRepository } from '../deck.repository.js';
-import { GameEntity } from '../game.entity.js';
+import { GameEntity, GameId } from '../game.entity.js';
 import { GameRepository, InMemoryGameRepository } from '../game.repository.js';
 
 interface GameDriverDSL {
@@ -49,9 +50,13 @@ export const GameDriverUnitTestLayer = Layer.effect(
 		return {
 			given: {
 				defaultDeck: (props: { id: string }) =>
-					deckRepository.save({ id: props.id, isDefault: true }),
+					deckRepository.save(
+						DeckEntity.createDefault({ id: DeckId(props.id) }),
+					),
 				existingDeck: (props: { id: string }) =>
-					deckRepository.save({ id: props.id, isDefault: false }),
+					deckRepository.save(
+						DeckEntity.create({ id: DeckId(props.id), isDefault: false }),
+					),
 			},
 			useCases: {
 				createGame: (props: {
@@ -86,7 +91,9 @@ export const GameDriverUnitTestLayer = Layer.effect(
 						expect(createdGame).toEqual(
 							Option.some(
 								GameEntity.create({
-									...game,
+									id: GameId(game.id),
+									createdBy: game.createdBy,
+									deckId: DeckId(game.deckId),
 									endCondition: {
 										type: 'number-of-times-being-storyteller',
 										numberOfTimes: 3,
