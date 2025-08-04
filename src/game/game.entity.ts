@@ -8,41 +8,56 @@ export const GameId = Brand.nominal<GameId>();
 
 export enum EndConditionType {
 	NumberOfTimesBeingStoryteller = 'number-of-times-being-storyteller',
+	LimitOfPoints = 'limit-of-points',
 }
 
+const DEFAULT_NUMBER_OF_TIMES_BEING_STORYTELLER = 3;
+
 export type NumberOfTimesBeingStorytellerEndCondition = {
-	readonly type: EndConditionType.NumberOfTimesBeingStoryteller;
 	readonly numberOfTimes: number;
 };
 
-export class EndCondition extends Data.Class<NumberOfTimesBeingStorytellerEndCondition> {
-	private static readonly DEFAULT_NUMBER_OF_TIMES_BEING_STORYTELLER = 3;
+export type LimitOfPointsEndCondition = {
+	readonly limit: number;
+};
 
-	private constructor(
-		readonly props: NumberOfTimesBeingStorytellerEndCondition,
-	) {
-		super(props);
-	}
+export type EndCondition = Data.TaggedEnum<{
+	NumberOfTimesBeingStoryteller: NumberOfTimesBeingStorytellerEndCondition;
+	LimitOfPoints: LimitOfPointsEndCondition;
+}>;
 
-	static createNumberOfTimesBeingStoryteller(props: {
-		numberOfTimes: Option.Option<number>;
-	}) {
-		return new EndCondition({
-			type: EndConditionType.NumberOfTimesBeingStoryteller,
-			numberOfTimes: Option.getOrElse(
-				props.numberOfTimes,
-				() => EndCondition.DEFAULT_NUMBER_OF_TIMES_BEING_STORYTELLER,
-			),
-		});
-	}
+const {
+	$match: $matchEndCondition,
+	NumberOfTimesBeingStoryteller: NumberOfTimesBeingStorytellerEndCondition,
+	LimitOfPoints: LimitOfPointsEndCondition,
+} = Data.taggedEnum<EndCondition>();
 
-	toSnapshot() {
-		return {
-			type: this.props.type as string,
-			numberOfTimes: this.props.numberOfTimes,
-		};
-	}
-}
+const endConditionToSnapshot = (endCondition: EndCondition) =>
+	$matchEndCondition(endCondition, {
+		NumberOfTimesBeingStoryteller: (endCondition) => ({
+			type: endCondition._tag,
+			numberOfTimes: endCondition.numberOfTimes,
+		}),
+		LimitOfPoints: (endCondition) => ({
+			type: endCondition._tag,
+			limit: endCondition.limit,
+		}),
+	});
+
+export const createNumberOfTimesBeingStorytellerEndCondition = (props: {
+	numberOfTimes: Option.Option<number>;
+}) =>
+	NumberOfTimesBeingStorytellerEndCondition({
+		numberOfTimes: Option.getOrElse(
+			props.numberOfTimes,
+			() => DEFAULT_NUMBER_OF_TIMES_BEING_STORYTELLER,
+		),
+	});
+
+export const createLimitOfPointsEndCondition = (props: { limit: number }) =>
+	LimitOfPointsEndCondition({
+		limit: props.limit,
+	});
 
 export class GameEntity {
 	private constructor(
@@ -68,7 +83,7 @@ export class GameEntity {
 			id: this.props.id as string,
 			createdBy: this.props.createdBy,
 			deckId: this.props.deckId as string,
-			endCondition: this.props.endCondition.toSnapshot(),
+			endCondition: endConditionToSnapshot(this.props.endCondition),
 		};
 	}
 }

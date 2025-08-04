@@ -1,18 +1,50 @@
-import { Effect, Option } from 'effect';
+import { Effect, Match, Option } from 'effect';
 import { DeckId } from './deck.entity.js';
 import { DeckRepository, InMemoryDeckRepository } from './deck.repository.js';
-import { EndCondition, GameEntity, GameId } from './game.entity.js';
+import {
+	createLimitOfPointsEndCondition,
+	createNumberOfTimesBeingStorytellerEndCondition,
+	EndCondition,
+	GameEntity,
+	GameId,
+} from './game.entity.js';
 import { GameRepository, InMemoryGameRepository } from './game.repository.js';
 import { PlayerId } from './player.entity.js';
 
+type EndConditionDto =
+	| {
+			type: 'NumberOfTimesBeingStoryteller';
+			numberOfTimes: Option.Option<number>;
+	  }
+	| {
+			type: 'LimitOfPoints';
+			limit: number;
+	  };
+
 export type CreateGameCommand = {
 	gameId: string;
-	playerId: string;
+	hostId: string;
 	deckId: Option.Option<string>;
-	endCondition: Option.Option<{
-		type: 'number-of-times-being-storyteller';
-		numberOfTimes: Option.Option<number>;
-	}>;
+	endCondition: Option.Option<EndConditionDto>;
+};
+
+const endConditionDtoToDomain = (
+	endCondition: EndConditionDto,
+): EndCondition => {
+	return Match.value(endCondition).pipe(
+		Match.withReturnType<EndCondition>(),
+		Match.when({ type: 'NumberOfTimesBeingStoryteller' }, (endCondition) =>
+			createNumberOfTimesBeingStorytellerEndCondition({
+				numberOfTimes: endCondition.numberOfTimes,
+			}),
+		),
+		Match.when({ type: 'LimitOfPoints' }, (endCondition) =>
+			createLimitOfPointsEndCondition({
+				limit: endCondition.limit,
+			}),
+		),
+		Match.exhaustive,
+	);
 };
 
 export class CreateGameUseCase extends Effect.Service<CreateGameUseCase>()(
@@ -27,17 +59,19 @@ export class CreateGameUseCase extends Effect.Service<CreateGameUseCase>()(
 					Effect.gen(function* () {
 						const defaultDeckId = yield* deckRepository.getDefaultDeckId();
 
-						const endCondition =
-							EndCondition.createNumberOfTimesBeingStoryteller({
-								numberOfTimes: Option.flatMap(
-									props.endCondition,
-									(endCondition) => endCondition.numberOfTimes,
-								),
-							});
+						const endCondition = Option.match(props.endCondition, {
+							onNone: () =>
+								createNumberOfTimesBeingStorytellerEndCondition({
+									numberOfTimes: Option.none(),
+								}),
+							onSome: (endCondition) => {
+								return endConditionDtoToDomain(endCondition);
+							},
+						});
 
 						const game = GameEntity.create({
 							id: GameId(props.gameId),
-							createdBy: PlayerId(props.playerId),
+							createdBy: PlayerId(props.hostId),
 							deckId: DeckId(
 								Option.getOrElse(props.deckId, () =>
 									Option.getOrThrow(defaultDeckId),

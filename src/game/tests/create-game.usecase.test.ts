@@ -14,7 +14,7 @@ describe('Feature: Creating a new game', () => {
 
 				yield* gameDriver.useCases.createGame({
 					gameId: 'id-game-1',
-					playerId: 'id-player-1',
+					hostId: 'id-player-1',
 				});
 
 				yield* gameDriver.assert.createdGameToEqual({
@@ -35,7 +35,7 @@ describe('Feature: Creating a new game', () => {
 
 			yield* gameDriver.useCases.createGame({
 				gameId: 'id-game-1',
-				playerId: 'id-player-1',
+				hostId: 'id-player-1',
 				deckId: 'id-deck-2',
 			});
 
@@ -59,9 +59,9 @@ describe('Feature: Creating a new game', () => {
 
 				yield* gameDriver.useCases.createGame({
 					gameId: 'id-game-1',
-					playerId: 'id-player-1',
+					hostId: 'id-player-1',
 					endCondition: {
-						type: 'number-of-times-being-storyteller',
+						type: 'NumberOfTimesBeingStoryteller',
 						numberOfTimes: 2,
 					},
 				});
@@ -71,8 +71,40 @@ describe('Feature: Creating a new game', () => {
 					createdBy: 'id-player-1',
 					deckId: 'id-deck-1',
 					endCondition: {
-						type: 'number-of-times-being-storyteller',
+						type: 'NumberOfTimesBeingStoryteller',
 						numberOfTimes: 2,
+					},
+				});
+			}).pipe(Effect.provide(GameDriverUnitTestLayer));
+		},
+	);
+
+	it.effect(
+		'Example: Creating a new game where end condition is "limit of points"',
+		() => {
+			return Effect.gen(function* () {
+				const gameDriver = yield* GameDriver;
+
+				yield* gameDriver.given.defaultDeck({
+					id: 'id-deck-1',
+				});
+
+				yield* gameDriver.useCases.createGame({
+					gameId: 'id-game-1',
+					hostId: 'id-player-1',
+					endCondition: {
+						type: 'LimitOfPoints',
+						limit: 10,
+					},
+				});
+
+				yield* gameDriver.assert.createdGameToEqual({
+					id: 'id-game-1',
+					createdBy: 'id-player-1',
+					deckId: 'id-deck-1',
+					endCondition: {
+						type: 'LimitOfPoints',
+						limit: 10,
 					},
 				});
 			}).pipe(Effect.provide(GameDriverUnitTestLayer));
