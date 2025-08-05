@@ -6,6 +6,10 @@ export class GameRepository extends Effect.Tag('game/GameRepository')<
 	{
 		save: (game: GameEntity) => Effect.Effect<void>;
 		findById: (id: string) => Effect.Effect<Option.Option<GameEntity>>;
+		isPlayerInGame: (
+			gameId: string,
+			playerId: string,
+		) => Effect.Effect<boolean>;
 	}
 >() {}
 
@@ -23,6 +27,8 @@ export const InMemoryGameRepository = Layer.effect(
 				}),
 			findById: (id: string) =>
 				Effect.succeed(Option.fromNullable(games.get(id))),
+			isPlayerInGame: (gameId: string, playerId: string) =>
+				Effect.succeed(true),
 		};
 	}),
 );

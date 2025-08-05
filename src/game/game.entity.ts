@@ -69,6 +69,8 @@ export class GameEntity {
 		},
 	) {}
 
+	addPlayer(playerId: PlayerId) {}
+
 	static create(props: {
 		id: GameId;
 		createdBy: PlayerId;
