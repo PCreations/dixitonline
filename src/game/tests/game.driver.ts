@@ -49,6 +49,7 @@ interface GameDriverDSL {
 			createdBy: string;
 			deckId: string;
 			endCondition?: EndConditionDto;
+			players: ReadonlyArray<string>;
 		}) => Effect.Effect<void, never, never>;
 		readonly playerToHaveJoinedGame: (props: {
 			gameId: string;
@@ -142,6 +143,7 @@ const makeUnitTestGameDriver = ({
 							createdBy: game.createdBy,
 							deckId: game.deckId,
 							endCondition: game.endCondition ?? defaultEndCondition,
+							players: game.players,
 						}),
 					);
 				}),

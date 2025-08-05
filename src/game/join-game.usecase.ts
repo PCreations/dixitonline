@@ -22,8 +22,10 @@ export class JoinGameUseCase extends Effect.Service<JoinGameUseCase>()(
 							onNone: () => Effect.succeed(void 0),
 							onSome: (gameEntity) =>
 								Effect.gen(function* () {
-									gameEntity.addPlayer(PlayerId(props.playerId));
-									yield* gameRepository.save(gameEntity);
+									const updatedGame = gameEntity.addPlayer(
+										PlayerId(props.playerId),
+									);
+									yield* gameRepository.save(updatedGame);
 								}),
 						});
 					}),

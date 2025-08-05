@@ -66,10 +66,16 @@ export class GameEntity {
 			readonly createdBy: PlayerId;
 			readonly deckId: DeckId;
 			readonly endCondition: EndCondition;
+			readonly players: ReadonlyArray<PlayerId>;
 		},
 	) {}
 
-	addPlayer(playerId: PlayerId) {}
+	addPlayer(playerId: PlayerId) {
+		return new GameEntity({
+			...this.props,
+			players: [playerId],
+		});
+	}
 
 	static create(props: {
 		id: GameId;
@@ -77,7 +83,10 @@ export class GameEntity {
 		deckId: DeckId;
 		endCondition: EndCondition;
 	}) {
-		return new GameEntity(props);
+		return new GameEntity({
+			...props,
+			players: [props.createdBy],
+		});
 	}
 
 	toSnapshot() {
@@ -86,6 +95,7 @@ export class GameEntity {
 			createdBy: this.props.createdBy,
 			deckId: this.props.deckId as string,
 			endCondition: endConditionToSnapshot(this.props.endCondition),
+			players: this.props.players,
 		};
 	}
 }

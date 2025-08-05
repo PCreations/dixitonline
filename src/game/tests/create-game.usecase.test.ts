@@ -21,6 +21,7 @@ describe('Feature: Creating a new game', () => {
 					id: 'id-game-1',
 					createdBy: 'id-player-1',
 					deckId: 'id-deck-1',
+					players: ['id-player-1'],
 				});
 			}).pipe(Effect.provide(GameDriverUnitTestLayer));
 		},
@@ -43,6 +44,7 @@ describe('Feature: Creating a new game', () => {
 				id: 'id-game-1',
 				createdBy: 'id-player-1',
 				deckId: 'id-deck-2',
+				players: ['id-player-1'],
 			});
 		}).pipe(Effect.provide(GameDriverUnitTestLayer));
 	});
@@ -74,6 +76,7 @@ describe('Feature: Creating a new game', () => {
 						type: 'NumberOfTimesBeingStoryteller',
 						numberOfTimes: 2,
 					},
+					players: ['id-player-1'],
 				});
 			}).pipe(Effect.provide(GameDriverUnitTestLayer));
 		},
@@ -106,6 +109,7 @@ describe('Feature: Creating a new game', () => {
 						type: 'LimitOfPoints',
 						limit: 10,
 					},
+					players: ['id-player-1'],
 				});
 			}).pipe(Effect.provide(GameDriverUnitTestLayer));
 		},
