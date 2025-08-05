@@ -45,6 +45,18 @@ const endConditionToSnapshot = (endCondition: EndCondition) =>
 		}),
 	});
 
+const endConditionFromSnapshot = (
+	snapshot: ReturnType<typeof endConditionToSnapshot>,
+) => {
+	return snapshot.type === 'NumberOfTimesBeingStoryteller'
+		? NumberOfTimesBeingStorytellerEndCondition({
+				numberOfTimes: snapshot.numberOfTimes,
+			})
+		: LimitOfPointsEndCondition({
+				limit: snapshot.limit,
+			});
+};
+
 export const createNumberOfTimesBeingStorytellerEndCondition = (props: {
 	numberOfTimes: Option.Option<number>;
 }) =>
@@ -114,20 +126,14 @@ export class GameEntity {
 	toSnapshot() {
 		return {
 			id: this.props.id as string,
-			createdBy: this.props.createdBy,
+			createdBy: this.props.createdBy as string,
 			deckId: this.props.deckId as string,
 			endCondition: endConditionToSnapshot(this.props.endCondition),
-			players: this.props.players,
+			players: this.props.players as ReadonlyArray<string>,
 		};
 	}
 
-	static fromSnapshot(snapshot: {
-		id: string;
-		createdBy: string;
-		deckId: string;
-		endCondition: EndCondition;
-		players: ReadonlyArray<string>;
-	}) {
+	static fromSnapshot(snapshot: ReturnType<GameEntity['toSnapshot']>) {
 		const createdBy = PlayerId(snapshot.createdBy);
 		const playerIds = snapshot.players.map((playerId) => PlayerId(playerId));
 
@@ -135,7 +141,7 @@ export class GameEntity {
 			id: GameId(snapshot.id),
 			createdBy,
 			deckId: DeckId(snapshot.deckId),
-			endCondition: snapshot.endCondition,
+			endCondition: endConditionFromSnapshot(snapshot.endCondition),
 			players: GameEntity.ensurePlayersIncludeCreator(playerIds, createdBy),
 		});
 	}

@@ -3,11 +3,7 @@ import { Context, Effect, Layer, Option } from 'effect';
 import { CreateGameUseCase } from '../create-game.usecase.js';
 import { DeckEntity, DeckId } from '../deck.entity.js';
 import { DeckRepository, InMemoryDeckRepository } from '../deck.repository.js';
-import {
-	createNumberOfTimesBeingStorytellerEndCondition,
-	GameEntity,
-	MAX_PLAYERS,
-} from '../game.entity.js';
+import { GameEntity, MAX_PLAYERS } from '../game.entity.js';
 import { GameRepository, InMemoryGameRepository } from '../game.repository.js';
 import { JoinGameUseCase } from '../join-game.usecase.js';
 
@@ -32,6 +28,10 @@ interface GameDriverDSL {
 		}) => Effect.Effect<void>;
 		readonly existingFullGame: (props: {
 			gameId: string;
+		}) => Effect.Effect<void>;
+		readonly otherPlayerJustJoinedInBetween: (props: {
+			gameId: string;
+			playerId: string;
 		}) => Effect.Effect<void>;
 	};
 	readonly useCases: {
@@ -102,9 +102,10 @@ const makeUnitTestGameDriver = ({
 						id: props.gameId,
 						deckId: defaultDeckId,
 						createdBy: props.hostId,
-						endCondition: createNumberOfTimesBeingStorytellerEndCondition({
-							numberOfTimes: Option.none(),
-						}),
+						endCondition: {
+							type: 'NumberOfTimesBeingStoryteller',
+							numberOfTimes: 3,
+						},
 						players: props.players ?? [],
 					}),
 				);
@@ -120,6 +121,22 @@ const makeUnitTestGameDriver = ({
 						(_, i) => `id-player-${i + 1}`,
 					),
 				});
+			});
+		},
+		otherPlayerJustJoinedInBetween: (props) => {
+			return Effect.gen(function* () {
+				const game = Option.getOrThrow(
+					yield* gameRepository.findById(props.gameId),
+				);
+
+				const newGameEntity = GameEntity.fromSnapshot({
+					...game.toSnapshot(),
+					players: [...game.toSnapshot().players, props.playerId],
+				});
+
+				yield* gameRepository.save(newGameEntity);
+
+				yield* gameRepository.simulateStaleRead(game);
 			});
 		},
 	};

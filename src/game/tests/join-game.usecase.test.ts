@@ -78,4 +78,38 @@ describe('Feature: Joining a game as a player', () => {
 			});
 		}).pipe(Effect.provide(GameDriverUnitTestLayer));
 	});
+
+	it.effect(
+		'Example: Optimistic concurrency: A player cannot join a game that is already full at the time of joining if other player just joined',
+		() => {
+			return Effect.gen(function* () {
+				const gameDriver = yield* GameDriver;
+
+				yield* gameDriver.given.existingGame({
+					gameId: 'id-game-1',
+					hostId: 'id-player-1',
+					players: [
+						'id-player-1',
+						'id-player-2',
+						'id-player-3',
+						'id-player-4',
+						'id-player-5',
+					],
+				});
+				yield* gameDriver.given.otherPlayerJustJoinedInBetween({
+					gameId: 'id-game-1',
+					playerId: 'id-player-6',
+				});
+
+				yield* gameDriver.useCases.joinGame({
+					gameId: 'id-game-1',
+					playerId: 'id-player-7',
+				});
+
+				yield* gameDriver.assert.playerToNotHaveBeenAbleToJoinGame({
+					error: 'Game is full',
+				});
+			}).pipe(Effect.provide(GameDriverUnitTestLayer));
+		},
+	);
 });
