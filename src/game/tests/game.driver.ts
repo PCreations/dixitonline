@@ -54,9 +54,8 @@ interface GameDriverDSL {
 			gameId: string;
 			playerId: string;
 		}) => Effect.Effect<void, never, never>;
-		readonly playerToNotHaveBeenAbleToJoinGame: (props: {
-			gameId: string;
-			playerId: string;
+		readonly playerToNotHaveBeenAbleToJoinGame: (props?: {
+			error?: string;
 		}) => Effect.Effect<void, never, never>;
 	};
 }
@@ -170,10 +169,10 @@ const makeUnitTestGameDriver = ({
 					);
 					expect(isPlayerInGame).toBe(true);
 				}),
-			playerToNotHaveBeenAbleToJoinGame: () =>
+			playerToNotHaveBeenAbleToJoinGame: (props) =>
 				Effect.sync(() => {
 					expect(testState.currentError).toEqual(
-						Option.some(new Error('Player already in game')),
+						Option.some(new Error(props?.error)),
 					);
 				}),
 		},

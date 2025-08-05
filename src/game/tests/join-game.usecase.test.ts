@@ -40,8 +40,22 @@ describe('Feature: Joining a game as a player', () => {
 			});
 
 			yield* gameDriver.assert.playerToNotHaveBeenAbleToJoinGame({
-				gameId: 'id-game-1',
+				error: 'Player already in game',
+			});
+		}).pipe(Effect.provide(GameDriverUnitTestLayer));
+	});
+
+	it.effect('Example: A player cannot join a game that does not exist', () => {
+		return Effect.gen(function* () {
+			const gameDriver = yield* GameDriver;
+
+			yield* gameDriver.useCases.joinGame({
+				gameId: 'id-game-does-not-exist',
 				playerId: 'id-player-2',
+			});
+
+			yield* gameDriver.assert.playerToNotHaveBeenAbleToJoinGame({
+				error: 'Game not found',
 			});
 		}).pipe(Effect.provide(GameDriverUnitTestLayer));
 	});

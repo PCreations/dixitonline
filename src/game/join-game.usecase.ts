@@ -19,7 +19,7 @@ export class JoinGameUseCase extends Effect.Service<JoinGameUseCase>()(
 						const game = yield* gameRepository.findById(props.gameId);
 
 						return yield* Option.match(game, {
-							onNone: () => Effect.succeed(void 0),
+							onNone: () => Effect.fail(new Error('Game not found')),
 							onSome: (gameEntity) =>
 								Effect.gen(function* () {
 									const updatedGame = yield* gameEntity.addPlayer(
