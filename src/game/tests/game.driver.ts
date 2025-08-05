@@ -6,6 +6,7 @@ import { DeckRepository, InMemoryDeckRepository } from '../deck.repository.js';
 import {
 	createNumberOfTimesBeingStorytellerEndCondition,
 	GameEntity,
+	MAX_PLAYERS,
 } from '../game.entity.js';
 import { GameRepository, InMemoryGameRepository } from '../game.repository.js';
 import { JoinGameUseCase } from '../join-game.usecase.js';
@@ -28,6 +29,9 @@ interface GameDriverDSL {
 			gameId: string;
 			hostId: string;
 			players?: ReadonlyArray<string>;
+		}) => Effect.Effect<void>;
+		readonly existingFullGame: (props: {
+			gameId: string;
 		}) => Effect.Effect<void>;
 	};
 	readonly useCases: {
@@ -80,34 +84,48 @@ const makeUnitTestGameDriver = ({
 		currentError: Option.none<Error>(),
 	};
 
-	return {
-		given: {
-			defaultDeck: (props) =>
-				deckRepository.save(DeckEntity.createDefault({ id: DeckId(props.id) })),
-			existingDeck: (props) =>
-				deckRepository.save(
-					DeckEntity.create({ id: DeckId(props.id), isDefault: false }),
-				),
-			existingGame: (props) => {
-				return Effect.gen(function* () {
-					const defaultDeckId = DeckId('default-deck-id');
-					yield* deckRepository.save(
-						DeckEntity.create({ id: defaultDeckId, isDefault: true }),
-					);
-					yield* gameRepository.save(
-						GameEntity.fromSnapshot({
-							id: props.gameId,
-							deckId: defaultDeckId,
-							createdBy: props.hostId,
-							endCondition: createNumberOfTimesBeingStorytellerEndCondition({
-								numberOfTimes: Option.none(),
-							}),
-							players: props.players ?? [],
+	const given: GameDriverDSL['given'] = {
+		defaultDeck: (props) =>
+			deckRepository.save(DeckEntity.createDefault({ id: DeckId(props.id) })),
+		existingDeck: (props) =>
+			deckRepository.save(
+				DeckEntity.create({ id: DeckId(props.id), isDefault: false }),
+			),
+		existingGame: (props) => {
+			return Effect.gen(function* () {
+				const defaultDeckId = DeckId('default-deck-id');
+				yield* deckRepository.save(
+					DeckEntity.create({ id: defaultDeckId, isDefault: true }),
+				);
+				yield* gameRepository.save(
+					GameEntity.fromSnapshot({
+						id: props.gameId,
+						deckId: defaultDeckId,
+						createdBy: props.hostId,
+						endCondition: createNumberOfTimesBeingStorytellerEndCondition({
+							numberOfTimes: Option.none(),
 						}),
-					);
-				});
-			},
+						players: props.players ?? [],
+					}),
+				);
+			});
 		},
+		existingFullGame: (props) => {
+			return Effect.gen(function* () {
+				yield* given.existingGame({
+					gameId: props.gameId,
+					hostId: 'id-player-1',
+					players: Array.from(
+						{ length: MAX_PLAYERS },
+						(_, i) => `id-player-${i + 1}`,
+					),
+				});
+			});
+		},
+	};
+
+	return {
+		given,
 		useCases: {
 			createGame: (props) =>
 				createGameUseCase.createGame({

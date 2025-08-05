@@ -60,6 +60,8 @@ export const createLimitOfPointsEndCondition = (props: { limit: number }) =>
 		limit: props.limit,
 	});
 
+export const MAX_PLAYERS = 6;
+
 export class GameEntity {
 	private constructor(
 		readonly props: {
@@ -81,6 +83,10 @@ export class GameEntity {
 	addPlayer(playerId: PlayerId): Effect.Effect<GameEntity, Error, never> {
 		if (this.props.players.includes(playerId)) {
 			return Effect.fail(new Error('Player already in game'));
+		}
+
+		if (this.props.players.length >= MAX_PLAYERS) {
+			return Effect.fail(new Error('Game is full'));
 		}
 
 		const updatedPlayers = Arr.append(this.props.players, playerId);

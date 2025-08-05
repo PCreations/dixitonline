@@ -59,4 +59,23 @@ describe('Feature: Joining a game as a player', () => {
 			});
 		}).pipe(Effect.provide(GameDriverUnitTestLayer));
 	});
+
+	it.effect('Example: A player cannot join a game that is already full', () => {
+		return Effect.gen(function* () {
+			const gameDriver = yield* GameDriver;
+
+			yield* gameDriver.given.existingFullGame({
+				gameId: 'id-game-1',
+			});
+
+			yield* gameDriver.useCases.joinGame({
+				gameId: 'id-game-1',
+				playerId: 'id-player-not-in-game',
+			});
+
+			yield* gameDriver.assert.playerToNotHaveBeenAbleToJoinGame({
+				error: 'Game is full',
+			});
+		}).pipe(Effect.provide(GameDriverUnitTestLayer));
+	});
 });
