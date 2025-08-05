@@ -1,4 +1,5 @@
-import { Brand, Data, Option } from 'effect';
+import { Array as Arr, Brand, Data, Effect, Option } from 'effect';
+import { NonEmptyReadonlyArray } from 'effect/Array';
 import { DeckId } from './deck.entity.js';
 import { PlayerId } from './player.entity.js';
 
@@ -66,15 +67,30 @@ export class GameEntity {
 			readonly createdBy: PlayerId;
 			readonly deckId: DeckId;
 			readonly endCondition: EndCondition;
-			readonly players: ReadonlyArray<PlayerId>;
+			readonly players: NonEmptyReadonlyArray<PlayerId>;
 		},
 	) {}
 
-	addPlayer(playerId: PlayerId) {
-		return new GameEntity({
-			...this.props,
-			players: [playerId],
-		});
+	private static ensurePlayersIncludeCreator(
+		players: ReadonlyArray<PlayerId>,
+		createdBy: PlayerId,
+	): NonEmptyReadonlyArray<PlayerId> {
+		return Arr.isNonEmptyReadonlyArray(players) ? players : Arr.of(createdBy);
+	}
+
+	addPlayer(playerId: PlayerId): Effect.Effect<GameEntity, Error, never> {
+		if (this.props.players.includes(playerId)) {
+			return Effect.fail(new Error('Player already in game'));
+		}
+
+		const updatedPlayers = Arr.append(this.props.players, playerId);
+
+		return Effect.succeed(
+			new GameEntity({
+				...this.props,
+				players: updatedPlayers,
+			}),
+		);
 	}
 
 	static create(props: {
@@ -85,7 +101,7 @@ export class GameEntity {
 	}) {
 		return new GameEntity({
 			...props,
-			players: [props.createdBy],
+			players: GameEntity.ensurePlayersIncludeCreator([], props.createdBy),
 		});
 	}
 
@@ -97,5 +113,24 @@ export class GameEntity {
 			endCondition: endConditionToSnapshot(this.props.endCondition),
 			players: this.props.players,
 		};
+	}
+
+	static fromSnapshot(snapshot: {
+		id: string;
+		createdBy: string;
+		deckId: string;
+		endCondition: EndCondition;
+		players: ReadonlyArray<string>;
+	}) {
+		const createdBy = PlayerId(snapshot.createdBy);
+		const playerIds = snapshot.players.map((playerId) => PlayerId(playerId));
+
+		return new GameEntity({
+			id: GameId(snapshot.id),
+			createdBy,
+			deckId: DeckId(snapshot.deckId),
+			endCondition: snapshot.endCondition,
+			players: GameEntity.ensurePlayersIncludeCreator(playerIds, createdBy),
+		});
 	}
 }

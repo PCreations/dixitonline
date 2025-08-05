@@ -23,4 +23,26 @@ describe('Feature: Joining a game as a player', () => {
 			});
 		}).pipe(Effect.provide(GameDriverUnitTestLayer));
 	});
+
+	it.effect('Example: A player already in a game cannot join again', () => {
+		return Effect.gen(function* () {
+			const gameDriver = yield* GameDriver;
+
+			yield* gameDriver.given.existingGame({
+				gameId: 'id-game-1',
+				hostId: 'id-player-1',
+				players: ['id-player-1', 'id-player-2'],
+			});
+
+			yield* gameDriver.useCases.joinGame({
+				gameId: 'id-game-1',
+				playerId: 'id-player-2',
+			});
+
+			yield* gameDriver.assert.playerToNotHaveBeenAbleToJoinGame({
+				gameId: 'id-game-1',
+				playerId: 'id-player-2',
+			});
+		}).pipe(Effect.provide(GameDriverUnitTestLayer));
+	});
 });

@@ -6,11 +6,9 @@ import { DeckRepository, InMemoryDeckRepository } from '../deck.repository.js';
 import {
 	createNumberOfTimesBeingStorytellerEndCondition,
 	GameEntity,
-	GameId,
 } from '../game.entity.js';
 import { GameRepository, InMemoryGameRepository } from '../game.repository.js';
 import { JoinGameUseCase } from '../join-game.usecase.js';
-import { PlayerId } from '../player.entity.js';
 
 type EndConditionDto =
 	| {
@@ -29,6 +27,7 @@ interface GameDriverDSL {
 		readonly existingGame: (props: {
 			gameId: string;
 			hostId: string;
+			players?: ReadonlyArray<string>;
 		}) => Effect.Effect<void>;
 	};
 	readonly useCases: {
@@ -55,6 +54,10 @@ interface GameDriverDSL {
 			gameId: string;
 			playerId: string;
 		}) => Effect.Effect<void, never, never>;
+		readonly playerToNotHaveBeenAbleToJoinGame: (props: {
+			gameId: string;
+			playerId: string;
+		}) => Effect.Effect<void, never, never>;
 	};
 }
 
@@ -74,6 +77,10 @@ const makeUnitTestGameDriver = ({
 	gameRepository: Context.Tag.Service<GameRepository>;
 	deckRepository: Context.Tag.Service<DeckRepository>;
 }): GameDriverDSL => {
+	const testState = {
+		currentError: Option.none<Error>(),
+	};
+
 	return {
 		given: {
 			defaultDeck: (props) =>
@@ -89,13 +96,14 @@ const makeUnitTestGameDriver = ({
 						DeckEntity.create({ id: defaultDeckId, isDefault: true }),
 					);
 					yield* gameRepository.save(
-						GameEntity.create({
-							id: GameId(props.gameId),
+						GameEntity.fromSnapshot({
+							id: props.gameId,
 							deckId: defaultDeckId,
-							createdBy: PlayerId(props.hostId),
+							createdBy: props.hostId,
 							endCondition: createNumberOfTimesBeingStorytellerEndCondition({
 								numberOfTimes: Option.none(),
 							}),
+							players: props.players ?? [],
 						}),
 					);
 				});
@@ -122,10 +130,17 @@ const makeUnitTestGameDriver = ({
 					),
 				}),
 			joinGame: (props) =>
-				joinGameUseCase.joinGame({
-					gameId: props.gameId,
-					playerId: props.playerId,
-				}),
+				joinGameUseCase
+					.joinGame({
+						gameId: props.gameId,
+						playerId: props.playerId,
+					})
+					.pipe(
+						Effect.catchAll((error) => {
+							testState.currentError = Option.some(error);
+							return Effect.succeed(void 0);
+						}),
+					),
 		},
 		assert: {
 			createdGameToEqual: (game) =>
@@ -154,6 +169,12 @@ const makeUnitTestGameDriver = ({
 						props.playerId,
 					);
 					expect(isPlayerInGame).toBe(true);
+				}),
+			playerToNotHaveBeenAbleToJoinGame: () =>
+				Effect.sync(() => {
+					expect(testState.currentError).toEqual(
+						Option.some(new Error('Player already in game')),
+					);
 				}),
 		},
 	};
