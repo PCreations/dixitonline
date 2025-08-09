@@ -82,6 +82,7 @@ export class GameEntity {
 			readonly deckId: DeckId;
 			readonly endCondition: EndCondition;
 			readonly players: NonEmptyReadonlyArray<PlayerId>;
+			readonly version: number;
 		},
 	) {}
 
@@ -107,6 +108,7 @@ export class GameEntity {
 			new GameEntity({
 				...this.props,
 				players: updatedPlayers,
+				version: this.props.version + 1,
 			}),
 		);
 	}
@@ -120,6 +122,7 @@ export class GameEntity {
 		return new GameEntity({
 			...props,
 			players: GameEntity.ensurePlayersIncludeCreator([], props.createdBy),
+			version: 1,
 		});
 	}
 
@@ -130,6 +133,7 @@ export class GameEntity {
 			deckId: this.props.deckId as string,
 			endCondition: endConditionToSnapshot(this.props.endCondition),
 			players: this.props.players as ReadonlyArray<string>,
+			version: this.props.version,
 		};
 	}
 
@@ -143,6 +147,7 @@ export class GameEntity {
 			deckId: DeckId(snapshot.deckId),
 			endCondition: endConditionFromSnapshot(snapshot.endCondition),
 			players: GameEntity.ensurePlayersIncludeCreator(playerIds, createdBy),
+			version: snapshot.version,
 		});
 	}
 }

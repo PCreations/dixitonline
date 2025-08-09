@@ -107,6 +107,7 @@ const makeUnitTestGameDriver = ({
 							numberOfTimes: 3,
 						},
 						players: props.players ?? [],
+						version: 1,
 					}),
 				);
 			});
@@ -193,6 +194,7 @@ const makeUnitTestGameDriver = ({
 							deckId: game.deckId,
 							endCondition: game.endCondition ?? defaultEndCondition,
 							players: game.players,
+							version: 1,
 						}),
 					);
 				}),
