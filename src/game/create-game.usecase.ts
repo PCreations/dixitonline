@@ -80,7 +80,9 @@ export class CreateGameUseCase extends Effect.Service<CreateGameUseCase>()(
 							endCondition,
 						});
 
-						yield* gameRepository.save(game);
+						const result = yield* Effect.either(gameRepository.save(game));
+						
+						return yield* Effect.succeed(result);
 					}),
 			};
 		}),

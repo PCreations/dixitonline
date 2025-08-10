@@ -97,7 +97,7 @@ const makeUnitTestGameDriver = ({
 				yield* deckRepository.save(
 					DeckEntity.create({ id: defaultDeckId, isDefault: true }),
 				);
-				yield* gameRepository.save(
+				yield* Effect.either(gameRepository.save(
 					GameEntity.fromSnapshot({
 						id: props.gameId,
 						deckId: defaultDeckId,
@@ -109,7 +109,7 @@ const makeUnitTestGameDriver = ({
 						players: props.players ?? [],
 						version: 1,
 					}),
-				);
+				));
 			});
 		},
 		existingFullGame: (props) => {
@@ -135,7 +135,7 @@ const makeUnitTestGameDriver = ({
 					players: [...game.toSnapshot().players, props.playerId],
 				});
 
-				yield* gameRepository.save(newGameEntity);
+				yield* Effect.either(gameRepository.save(newGameEntity));
 
 				yield* gameRepository.simulateStaleRead(game);
 			});
