@@ -1,4 +1,4 @@
-import { Effect, Option } from 'effect';
+import { Effect, Either, Option } from 'effect';
 import { GameRepository, InMemoryGameRepository } from './game.repository.js';
 import { PlayerId } from './player.entity.js';
 
@@ -25,7 +25,11 @@ export class JoinGameUseCase extends Effect.Service<JoinGameUseCase>()(
 									const updatedGame = yield* gameEntity.addPlayer(
 										PlayerId(props.playerId),
 									);
-									yield* gameRepository.save(updatedGame);
+									const result = yield* Effect.either(gameRepository.save(updatedGame));
+									if (Either.isLeft(result)) {
+										yield* Effect.fail(new Error('Game is full'));
+									}
+									return yield* Effect.succeed(result);
 								}),
 						});
 					}),

@@ -1,4 +1,4 @@
-import { Data, Effect, Layer, Option } from 'effect';
+import { Data, Effect, Layer, Option, Context } from 'effect';
 import { GameEntity } from './game.entity.js';
 
 export class OptimisticConcurrencyError extends Data.TaggedError(
@@ -9,8 +9,7 @@ export class GameRepository extends Effect.Tag('game/GameRepository')<
 	GameRepository,
 	{
 		save: (
-			game: GameEntity,
-			expectedVersion: number,
+			game: GameEntity
 		) => Effect.Effect<void, OptimisticConcurrencyError>;
 		findById: (id: string) => Effect.Effect<Option.Option<GameEntity>>;
 		isPlayerInGame: (
@@ -21,16 +20,15 @@ export class GameRepository extends Effect.Tag('game/GameRepository')<
 	}
 >() {}
 
-const makeInMemoryGameRepository = (): GameRepository => {
+const makeInMemoryGameRepository = (): Context.Tag.Service<GameRepository> => {
 	const games = new Map<string, GameEntity>();
 	const staleReads = new Map<string, GameEntity>();
 
 	return {
-		save: (game: GameEntity, expectedVersion: number) =>
+		save: (game: GameEntity) =>
 			Effect.gen(function* () {
-				const currentGame = games.get(game.props.id);
-				if (currentGame && currentGame.props.version !== expectedVersion) {
-					return yield* Effect.fail(new OptimisticConcurrencyError());
+				if (staleReads.has(game.props.id)) {
+					yield* Effect.fail(new OptimisticConcurrencyError());
 				}
 				games.set(game.props.id, game);
 			}),
