@@ -34,16 +34,21 @@ interface GameDriverDSL {
 			playerId: string;
 		}) => Effect.Effect<void>;
 	};
-	readonly useCases: {
-		readonly createGame: (props: {
+	readonly when: {
+		readonly creatingGame: (props: {
 			gameId: string;
 			hostId: string;
 			deckId?: string;
 			endCondition?: EndConditionDto;
 		}) => Effect.Effect<void>;
-		readonly joinGame: (props: {
+		readonly joiningGame: (props: {
 			gameId: string;
 			playerId: string;
+		}) => Effect.Effect<void>;
+		readonly joiningFullGameWhileAnotherPlayerLeftInBetween: (props: {
+			gameId: string;
+			playerThatHasLeftInBetween: string;
+			playerThatIsJoining: string;
 		}) => Effect.Effect<void>;
 	};
 	readonly assert: {
@@ -136,16 +141,14 @@ const makeUnitTestGameDriver = ({
 				});
 
 				yield* Effect.either(gameRepository.save(newGameEntity));
-
-				yield* gameRepository.simulateStaleRead(game);
 			});
 		},
 	};
 
 	return {
 		given,
-		useCases: {
-			createGame: (props) =>
+		when: {
+			creatingGame: (props) =>
 				createGameUseCase.createGame({
 					gameId: props.gameId,
 					hostId: props.hostId,
@@ -164,7 +167,7 @@ const makeUnitTestGameDriver = ({
 						),
 					),
 				}),
-			joinGame: (props) =>
+			joiningGame: (props) =>
 				joinGameUseCase
 					.joinGame({
 						gameId: props.gameId,
@@ -176,6 +179,32 @@ const makeUnitTestGameDriver = ({
 							return Effect.succeed(void 0);
 						}),
 					),
+			joiningFullGameWhileAnotherPlayerLeftInBetween: (props) => {
+				return Effect.gen(function* () {
+					const game = Option.getOrThrow(
+						yield* gameRepository.findById(props.gameId),
+					);
+
+					const newGameEntity = GameEntity.fromSnapshot({
+						...game.toSnapshot(),
+						players: [...game.toSnapshot().players].filter(
+							(player) => player !== props.playerThatHasLeftInBetween,
+						),
+					});
+
+					yield* Effect.either(gameRepository.save(newGameEntity));
+
+					yield* joinGameUseCase.joinGame({
+						gameId: props.gameId,
+						playerId: props.playerThatIsJoining,
+					}).pipe(
+						Effect.catchAll((error) => {
+							testState.currentError = Option.some(error);
+							return Effect.succeed(void 0);
+						}),
+					);
+				});
+			},
 		},
 		assert: {
 			createdGameToEqual: (game) =>

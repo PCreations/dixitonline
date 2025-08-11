@@ -1,5 +1,5 @@
-import { Effect, Either, Option } from 'effect';
-import { GameRepository, InMemoryGameRepository } from './game.repository.js';
+import { Effect, Either, Option, Schedule } from 'effect';
+import { GameRepository, InMemoryGameRepository, OptimisticConcurrencyError } from './game.repository.js';
 import { PlayerId } from './player.entity.js';
 
 export type JoinGameCommand = {
@@ -25,7 +25,17 @@ export class JoinGameUseCase extends Effect.Service<JoinGameUseCase>()(
 									const updatedGame = yield* gameEntity.addPlayer(
 										PlayerId(props.playerId),
 									);
-									const result = yield* Effect.either(gameRepository.save(updatedGame));
+									
+									const retryPolicy = Schedule.recurs(3).pipe(
+										Schedule.whileInput((error) => error instanceof OptimisticConcurrencyError)
+									);
+									
+									const saveWithRetry = Effect.retry(
+										gameRepository.save(updatedGame),
+										retryPolicy
+									);
+									
+									const result = yield* Effect.either(saveWithRetry);
 									if (Either.isLeft(result)) {
 										yield* Effect.fail(new Error('Game is full'));
 									}

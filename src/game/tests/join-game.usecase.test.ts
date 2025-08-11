@@ -12,7 +12,7 @@ describe('Feature: Joining a game as a player', () => {
 				hostId: 'id-player-1',
 			});
 
-			yield* gameDriver.useCases.joinGame({
+			yield* gameDriver.when.joiningGame({
 				gameId: 'id-game-1',
 				playerId: 'id-player-2',
 			});
@@ -34,7 +34,7 @@ describe('Feature: Joining a game as a player', () => {
 				players: ['id-player-1', 'id-player-2'],
 			});
 
-			yield* gameDriver.useCases.joinGame({
+			yield* gameDriver.when.joiningGame({
 				gameId: 'id-game-1',
 				playerId: 'id-player-2',
 			});
@@ -49,7 +49,7 @@ describe('Feature: Joining a game as a player', () => {
 		return Effect.gen(function* () {
 			const gameDriver = yield* GameDriver;
 
-			yield* gameDriver.useCases.joinGame({
+			yield* gameDriver.when.joiningGame({
 				gameId: 'id-game-does-not-exist',
 				playerId: 'id-player-2',
 			});
@@ -68,7 +68,7 @@ describe('Feature: Joining a game as a player', () => {
 				gameId: 'id-game-1',
 			});
 
-			yield* gameDriver.useCases.joinGame({
+			yield* gameDriver.when.joiningGame({
 				gameId: 'id-game-1',
 				playerId: 'id-player-not-in-game',
 			});
@@ -101,13 +101,46 @@ describe('Feature: Joining a game as a player', () => {
 					playerId: 'id-player-6',
 				});
 
-				yield* gameDriver.useCases.joinGame({
+				yield* gameDriver.when.joiningGame({
 					gameId: 'id-game-1',
 					playerId: 'id-player-7',
 				});
 
 				yield* gameDriver.assert.playerToNotHaveBeenAbleToJoinGame({
 					error: 'Game is full',
+				});
+			}).pipe(Effect.provide(GameDriverUnitTestLayer));
+		},
+	);
+
+	it.effect(
+		'Example: Optimistic concurrency: A player can eventually join a game that is already full at the time of joining if some player just left in between',
+		() => {
+			return Effect.gen(function* () {
+				const gameDriver = yield* GameDriver;
+
+				yield* gameDriver.given.existingGame({
+					gameId: 'id-game-1',
+					hostId: 'id-player-1',
+					players: [
+						'id-player-1',
+						'id-player-2',
+						'id-player-3',
+						'id-player-4',
+						'id-player-5',
+						'id-player-6',
+					],
+				});
+
+				yield* gameDriver.when.joiningFullGameWhileAnotherPlayerLeftInBetween({
+					gameId: 'id-game-1',
+					playerThatHasLeftInBetween: 'id-player-6',
+					playerThatIsJoining: 'id-player-7',
+				});
+
+				yield* gameDriver.assert.playerToHaveJoinedGame({
+					gameId: 'id-game-1',
+					playerId: 'id-player-7',
 				});
 			}).pipe(Effect.provide(GameDriverUnitTestLayer));
 		},

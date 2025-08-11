@@ -12,7 +12,7 @@ describe('Feature: Creating a new game', () => {
 					id: 'id-deck-1',
 				});
 
-				yield* gameDriver.useCases.createGame({
+				yield* gameDriver.when.creatingGame({
 					gameId: 'id-game-1',
 					hostId: 'id-player-1',
 				});
@@ -34,7 +34,7 @@ describe('Feature: Creating a new game', () => {
 				id: 'id-deck-2',
 			});
 
-			yield* gameDriver.useCases.createGame({
+			yield* gameDriver.when.creatingGame({
 				gameId: 'id-game-1',
 				hostId: 'id-player-1',
 				deckId: 'id-deck-2',
@@ -59,7 +59,7 @@ describe('Feature: Creating a new game', () => {
 					id: 'id-deck-1',
 				});
 
-				yield* gameDriver.useCases.createGame({
+				yield* gameDriver.when.creatingGame({
 					gameId: 'id-game-1',
 					hostId: 'id-player-1',
 					endCondition: {
@@ -92,7 +92,7 @@ describe('Feature: Creating a new game', () => {
 					id: 'id-deck-1',
 				});
 
-				yield* gameDriver.useCases.createGame({
+				yield* gameDriver.when.creatingGame({
 					gameId: 'id-game-1',
 					hostId: 'id-player-1',
 					endCondition: {

@@ -16,27 +16,39 @@ export class GameRepository extends Effect.Tag('game/GameRepository')<
 			gameId: string,
 			playerId: string,
 		) => Effect.Effect<boolean>;
-		simulateStaleRead: (game: GameEntity) => Effect.Effect<void>;
 	}
 >() {}
 
 const makeInMemoryGameRepository = (): Context.Tag.Service<GameRepository> => {
 	const games = new Map<string, GameEntity>();
-	const staleReads = new Map<string, GameEntity>();
 
 	return {
 		save: (game: GameEntity) =>
 			Effect.gen(function* () {
-				if (staleReads.has(game.props.id)) {
-					yield* Effect.fail(new OptimisticConcurrencyError());
-				}
+				const maybeGame = Option.fromNullable(games.get(game.props.id));
+				Option.map(maybeGame, (existingGame) => {
+					if (game.toSnapshot().version !== existingGame.toSnapshot().version + 1) {
+						return Effect.fail(new OptimisticConcurrencyError());
+					}
+					return Effect.succeed(void 0);
+				})
 				games.set(game.props.id, game);
 			}),
-		findById: (id: string) =>
-			Effect.succeed(Option.fromNullable(staleReads.get(id) ?? games.get(id))),
-		isPlayerInGame: (gameId: string, playerId: string) => Effect.succeed(true),
-		simulateStaleRead: (game: GameEntity) =>
-			Effect.sync(() => staleReads.set(game.props.id, game)),
+		findById: (id: string) => {
+			return Effect.gen(function* () {
+				const game = games.get(id);
+				return Option.fromNullable(game);
+			});
+		},
+		isPlayerInGame: (gameId: string, playerId: string) => {
+			return Effect.gen(function* () {
+				const maybeGame = Option.fromNullable(games.get(gameId));
+				if (Option.isNone(maybeGame)) {
+					return false;
+				}
+				return maybeGame.value.toSnapshot().players.includes(playerId);
+			});
+		}
 	};
 };
 
