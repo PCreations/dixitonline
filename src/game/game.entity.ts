@@ -74,6 +74,10 @@ export const createLimitOfPointsEndCondition = (props: { limit: number }) =>
 
 export const MAX_PLAYERS = 6;
 
+const isNonEmptyReadonlyArray = <T>(array: ReadonlyArray<T>): array is NonEmptyReadonlyArray<T> => {
+	return Arr.isNonEmptyReadonlyArray(array);
+};
+
 export class GameEntity {
 	private constructor(
 		readonly props: {
@@ -103,6 +107,30 @@ export class GameEntity {
 		}
 
 		const updatedPlayers = Arr.append(this.props.players, playerId);
+
+		return Effect.succeed(
+			new GameEntity({
+				...this.props,
+				players: updatedPlayers,
+				version: this.props.version + 1,
+			}),
+		);
+	}
+
+	removePlayer(playerId: PlayerId): Effect.Effect<GameEntity, Error, never> {
+		if (!this.props.players.includes(playerId)) {
+			return Effect.fail(new Error('Player not in game'));
+		}
+
+		if (playerId === this.props.createdBy) {
+			return Effect.fail(new Error('Host cannot leave the game'))
+		}
+		
+		const updatedPlayers = Arr.filter(this.props.players, (player) => player !== playerId);
+
+		if (!isNonEmptyReadonlyArray(updatedPlayers)) {
+			return Effect.fail(new Error('Game is empty'));
+		}
 
 		return Effect.succeed(
 			new GameEntity({

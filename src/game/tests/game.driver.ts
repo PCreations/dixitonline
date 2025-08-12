@@ -6,6 +6,7 @@ import { DeckRepository, InMemoryDeckRepository } from '../deck.repository.js';
 import { GameEntity, MAX_PLAYERS } from '../game.entity.js';
 import { GameRepository, InMemoryGameRepository } from '../game.repository.js';
 import { JoinGameUseCase } from '../join-game.usecase.js';
+import { LeaveGameUseCase } from '../leave-game.usecase.js';
 
 type EndConditionDto =
 	| {
@@ -50,6 +51,10 @@ interface GameDriverDSL {
 			playerThatHasLeftInBetween: string;
 			playerThatIsJoining: string;
 		}) => Effect.Effect<void>;
+		readonly leavingGame: (props: {
+			gameId: string;
+			playerId: string;
+		}) => Effect.Effect<void>;
 	};
 	readonly assert: {
 		readonly createdGameToEqual: (game: {
@@ -66,6 +71,13 @@ interface GameDriverDSL {
 		readonly playerToNotHaveBeenAbleToJoinGame: (props?: {
 			error?: string;
 		}) => Effect.Effect<void, never, never>;
+		readonly playerToNotHaveBeenAbleToLeaveGame: (props?: {
+			error?: string;
+		}) => Effect.Effect<void, never, never>;
+		readonly gameToEqual: (props: {
+			gameId: string;
+			players: ReadonlyArray<string>;
+		}) => Effect.Effect<void, never, never>;
 	};
 }
 
@@ -77,11 +89,13 @@ export class GameDriver extends Context.Tag('GameDriver')<
 const makeUnitTestGameDriver = ({
 	createGameUseCase,
 	joinGameUseCase,
+	leaveGameUseCase,
 	gameRepository,
 	deckRepository,
 }: {
 	createGameUseCase: CreateGameUseCase;
 	joinGameUseCase: JoinGameUseCase;
+	leaveGameUseCase: LeaveGameUseCase;
 	gameRepository: Context.Tag.Service<GameRepository>;
 	deckRepository: Context.Tag.Service<DeckRepository>;
 }): GameDriverDSL => {
@@ -205,6 +219,17 @@ const makeUnitTestGameDriver = ({
 					);
 				});
 			},
+			leavingGame: (props) => {
+				return leaveGameUseCase.leaveGame({
+					gameId: props.gameId,
+					playerId: props.playerId,
+				}).pipe(
+					Effect.catchAll((error) => {
+						testState.currentError = Option.some(error);
+						return Effect.succeed(void 0);
+					}),
+				);
+			},
 		},
 		assert: {
 			createdGameToEqual: (game) =>
@@ -241,6 +266,18 @@ const makeUnitTestGameDriver = ({
 						Option.some(new Error(props?.error)),
 					);
 				}),
+			playerToNotHaveBeenAbleToLeaveGame: (props) => 
+				Effect.sync(() => {
+					expect(testState.currentError).toEqual(
+						Option.some(new Error(props?.error)),
+					);
+			}),
+			gameToEqual: (props) => {
+				return Effect.gen(function* () {
+					const game = Option.getOrThrow(yield* gameRepository.findById(props.gameId));
+					expect(game.toSnapshot().players).toEqual(props.players);
+				});
+			},
 		},
 	};
 };
@@ -250,12 +287,14 @@ export const GameDriverUnitTestLayer = Layer.effect(
 	Effect.gen(function* () {
 		const createGameUseCase = yield* CreateGameUseCase;
 		const joinGameUseCase = yield* JoinGameUseCase;
+		const leaveGameUseCase = yield* LeaveGameUseCase;
 		const gameRepository = yield* GameRepository;
 		const deckRepository = yield* DeckRepository;
 
 		return makeUnitTestGameDriver({
 			createGameUseCase,
 			joinGameUseCase,
+			leaveGameUseCase,
 			gameRepository,
 			deckRepository,
 		});
@@ -267,6 +306,7 @@ export const GameDriverUnitTestLayer = Layer.effect(
 			InMemoryDeckRepository,
 			CreateGameUseCase.Default,
 			JoinGameUseCase.Default,
+			LeaveGameUseCase.Default,
 		),
 	),
 );

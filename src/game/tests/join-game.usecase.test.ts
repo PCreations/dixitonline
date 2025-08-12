@@ -113,7 +113,7 @@ describe('Feature: Joining a game as a player', () => {
 		},
 	);
 
-	it.effect(
+	it.effect(																																							
 		'Example: Optimistic concurrency: A player can eventually join a game that is already full at the time of joining if some player just left in between',
 		() => {
 			return Effect.gen(function* () {
