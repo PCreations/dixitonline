@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm run clean)",
+      "Bash(pnpm build)",
+      "Bash(pnpm dev)",
+      "Bash(pnpm check)",
+      "mcp__ide__getDiagnostics",
+      "WebFetch(domain:fastify.dev)",
+      "WebSearch",
+      "Bash(pnpm list pino)",
+      "Bash(pnpm add -D @types/pino)",
+      "Bash(curl -X POST http://localhost:3000/game/create -H \"Content-Type: application/json\" -d '{\"\"\"\"gameId\"\"\"\": \"\"\"\"test-game-1\"\"\"\", \"\"\"\"hostId\"\"\"\": \"\"\"\"player-1\"\"\"\"}' -s)"
+    ]
+  },
+  "enableAllProjectMcpServers": false
+}
