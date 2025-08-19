@@ -33,6 +33,7 @@ interface GameDriverDSL {
       gameId: string;
       hostId: string;
       players?: ReadonlyArray<string>;
+      status?: GameStatus;
     }) => Effect.Effect<void>;
     readonly existingFullGame: (props: {
       gameId: string;
@@ -40,6 +41,7 @@ interface GameDriverDSL {
     readonly existingGameWithMinimumNumberOfPlayers: (props: {
       gameId: string;
       hostId: string;
+      started?: boolean;
     }) => Effect.Effect<void>;
     readonly otherPlayerJustJoinedInBetween: (props: {
       gameId: string;
@@ -150,7 +152,7 @@ const makeUnitTestGameDriver = ({
                 numberOfTimes: 3,
               },
               players: props.players ?? [],
-              status: GameStatus.Created,
+              status: props.status ?? GameStatus.Created,
               version: 1,
             }),
           ),
@@ -174,6 +176,7 @@ const makeUnitTestGameDriver = ({
         yield* given.existingGame({
           gameId: props.gameId,
           hostId: props.hostId,
+          status: props.started ? GameStatus.Started : GameStatus.Created,
           players: Array.from(
             { length: MIN_PLAYERS },
             (_, i) => `id-player-${i + 1}`,

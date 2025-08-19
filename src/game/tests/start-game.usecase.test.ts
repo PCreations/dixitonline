@@ -23,7 +23,7 @@ describe("Feature: Starting a game", () => {
     }).pipe(Effect.provide(GameDriverUnitTestLayer));
   });
 
-  it.effect("Example: A player not in a game cannot start it", () => {
+  it.effect("Example: Only the host can start the game", () => {
     return Effect.gen(function* () {
       const gameDriver = yield* GameDriver;
 
@@ -38,7 +38,48 @@ describe("Feature: Starting a game", () => {
       });
 
       yield* gameDriver.assert.playerToNotHaveBeenAbleToStartGame({
+        error: "Only the host can start the game",
+      });
+    }).pipe(Effect.provide(GameDriverUnitTestLayer));
+  });
+
+  it.effect("Example: A player not in game cannot start it", () => {
+    return Effect.gen(function* () {
+      const gameDriver = yield* GameDriver;
+
+      yield* gameDriver.given.existingGameWithMinimumNumberOfPlayers({
+        gameId: "id-game-1",
+        hostId: "id-player-1",
+      });
+
+      yield* gameDriver.when.startingGame({
+        gameId: "id-game-1",
+        playerId: "id-player-not-in-game",
+      });
+
+      yield* gameDriver.assert.playerToNotHaveBeenAbleToStartGame({
         error: "Player not in game",
+      });
+    }).pipe(Effect.provide(GameDriverUnitTestLayer));
+  });
+
+  it.effect("Example: A player can not start the game if the game is already started", () => {
+    return Effect.gen(function* () {
+      const gameDriver = yield* GameDriver;
+
+      yield* gameDriver.given.existingGameWithMinimumNumberOfPlayers({
+        gameId: "id-game-1",
+        hostId: "id-player-1",
+        started: true,
+      });
+
+      yield* gameDriver.when.startingGame({
+        gameId: "id-game-1",
+        playerId: "id-player-1",
+      });
+
+      yield* gameDriver.assert.playerToNotHaveBeenAbleToStartGame({
+        error: "Game already started",
       });
     }).pipe(Effect.provide(GameDriverUnitTestLayer));
   });
