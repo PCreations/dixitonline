@@ -89,6 +89,9 @@ interface GameDriverDSL {
     readonly playerToNotHaveBeenAbleToLeaveGame: (props?: {
       error?: string;
     }) => Effect.Effect<void, never, never>;
+    readonly playerToNotHaveBeenAbleToStartGame: (props?: {
+      error?: string;
+    }) => Effect.Effect<void, never, never>;
     readonly gameToEqual: (props: {
       gameId: string;
       players: ReadonlyArray<string>;
@@ -273,7 +276,12 @@ const makeUnitTestGameDriver = ({
         return startGameUseCase.startGame({
           gameId: props.gameId,
           playerId: props.playerId,
-        });
+        }).pipe(
+          Effect.catchAll((error) => {
+            testState.currentError = Option.some(error);
+            return Effect.succeed(void 0);
+          }),
+        );
       },
     },
     assert: {
@@ -312,6 +320,12 @@ const makeUnitTestGameDriver = ({
           );
         }),
       playerToNotHaveBeenAbleToLeaveGame: (props) =>
+        Effect.sync(() => {
+          expect(testState.currentError).toEqual(
+            Option.some(new Error(props?.error)),
+          );
+        }),
+      playerToNotHaveBeenAbleToStartGame: (props) =>
         Effect.sync(() => {
           expect(testState.currentError).toEqual(
             Option.some(new Error(props?.error)),

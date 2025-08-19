@@ -1,5 +1,6 @@
 import { Effect, Option } from "effect";
 import { GameRepository, InMemoryGameRepository } from "./game.repository.js";
+import { PlayerId } from "./player.entity.js";
 
 export type StartGameCommand = {
   gameId: string;
@@ -21,7 +22,9 @@ export class StartGameUseCase extends Effect.Service<StartGameUseCase>()(
               onNone: () => Effect.fail(new Error("Game not found")),
               onSome: (gameEntity) =>
                 Effect.gen(function* () {
-                  const updatedGame = yield* gameEntity.start();
+                  const updatedGame = yield* gameEntity.start(
+                    PlayerId(props.playerId),
+                  );
 
                   yield* gameRepository.save(updatedGame);
                 }),

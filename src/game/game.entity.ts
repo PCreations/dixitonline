@@ -153,7 +153,19 @@ export class GameEntity {
     );
   }
 
-  start(): Effect.Effect<GameEntity, Error, never> {
+  start(playerId: PlayerId) {
+    // if (!this.props.players.includes(playerId)) {
+    //   return Effect.fail(new Error("Player not in game"));
+    // }
+
+    if (playerId !== this.props.createdBy) {
+      return Effect.fail(new Error("Only the host can start the game"));
+    }
+
+    if (this.props.status === GameStatus.Started) {
+      return Effect.fail(new Error("Game already started"));
+    }
+
     return Effect.succeed(
       new GameEntity({ ...this.props, status: GameStatus.Started }),
     );
