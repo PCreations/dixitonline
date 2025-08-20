@@ -106,6 +106,10 @@ export class GameEntity {
     return Arr.isNonEmptyReadonlyArray(players) ? players : Arr.of(createdBy);
   }
 
+  get version() {
+    return this.props.version;
+  }
+
   addPlayer(playerId: PlayerId): Effect.Effect<GameEntity, Error, never> {
     if (this.props.players.includes(playerId)) {
       return Effect.fail(new Error("Player already in game"));
@@ -154,6 +158,12 @@ export class GameEntity {
   }
 
   start(playerId: PlayerId) {
+    if (this.props.players.length < MIN_PLAYERS) {
+      return Effect.fail(
+        new Error("The game does not meet the minimum number of players"),
+      );
+    }
+
     if (this.props.status === GameStatus.Started) {
       return Effect.fail(new Error("Game already started"));
     }
@@ -167,7 +177,11 @@ export class GameEntity {
     }
 
     return Effect.succeed(
-      new GameEntity({ ...this.props, status: GameStatus.Started }),
+      new GameEntity({
+        ...this.props,
+        status: GameStatus.Started,
+        version: this.props.version + 1,
+      }),
     );
   }
 

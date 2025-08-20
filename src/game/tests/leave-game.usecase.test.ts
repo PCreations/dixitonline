@@ -1,88 +1,88 @@
-import { describe, it } from '@effect/vitest';
-import { Effect } from 'effect';
-import { GameDriver, GameDriverUnitTestLayer } from './game.driver.js';
+import { describe, it } from "@effect/vitest";
+import { Effect } from "effect";
+import { GameDriver, makeGameDriverUnitTestLayer } from "./game.driver.js";
 
-describe('Feature: Leaving a game as a player', () => {
-	it.effect('Example: Leaving a game as a player', () => {
-		return Effect.gen(function* () {
-			const gameDriver = yield* GameDriver;
+describe("Feature: Leaving a game as a player", () => {
+  it.effect("Example: Leaving a game as a player", () => {
+    return Effect.gen(function* () {
+      const gameDriver = yield* GameDriver;
 
-			yield* gameDriver.given.existingGame({
-				gameId: 'id-game-1',
-				hostId: 'id-player-1',
-				players: ['id-player-1', 'id-player-2'],
-			});
+      yield* gameDriver.given.existingGame({
+        gameId: "id-game-1",
+        hostId: "id-player-1",
+        players: ["id-player-1", "id-player-2"],
+      });
 
-			yield* gameDriver.when.leavingGame({
-				gameId: 'id-game-1',
-				playerId: 'id-player-2',
-			});
+      yield* gameDriver.when.leavingGame({
+        gameId: "id-game-1",
+        playerId: "id-player-2",
+      });
 
-			yield* gameDriver.assert.gameToEqual({
-				gameId: 'id-game-1',
-				players: ['id-player-1'],
-			});
-		}).pipe(Effect.provide(GameDriverUnitTestLayer));
-	});
+      yield* gameDriver.assert.gameToEqual({
+        gameId: "id-game-1",
+        players: ["id-player-1"],
+      });
+    }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+  });
 
-	it.effect('Example: A player not in a game cannot leave it', () => {
-		return Effect.gen(function* () {
-			const gameDriver = yield* GameDriver;
+  it.effect("Example: A player not in a game cannot leave it", () => {
+    return Effect.gen(function* () {
+      const gameDriver = yield* GameDriver;
 
-			yield* gameDriver.given.existingGame({
-				gameId: 'id-game-1',
-				hostId: 'id-player-1',
-				players: ['id-player-1', 'id-player-2'],
-			});
+      yield* gameDriver.given.existingGame({
+        gameId: "id-game-1",
+        hostId: "id-player-1",
+        players: ["id-player-1", "id-player-2"],
+      });
 
-			yield* gameDriver.when.leavingGame({
-				gameId: 'id-game-1',
-				playerId: 'id-player-3',
-			});
+      yield* gameDriver.when.leavingGame({
+        gameId: "id-game-1",
+        playerId: "id-player-3",
+      });
 
-			yield* gameDriver.assert.playerToNotHaveBeenAbleToLeaveGame({
-				error: 'Player not in game',
-			});
-		}).pipe(Effect.provide(GameDriverUnitTestLayer));
-	});
+      yield* gameDriver.assert.playerToNotHaveBeenAbleToLeaveGame({
+        error: "Player not in game",
+      });
+    }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+  });
 
-	it.effect('Example: A player cannot leave a game that does not exist', () => {
-		return Effect.gen(function* () {
-			const gameDriver = yield* GameDriver;
+  it.effect("Example: A player cannot leave a game that does not exist", () => {
+    return Effect.gen(function* () {
+      const gameDriver = yield* GameDriver;
 
-			yield* gameDriver.when.leavingGame({
-				gameId: 'id-game-does-not-exist',
-				playerId: 'id-player-2',
-			});
+      yield* gameDriver.when.leavingGame({
+        gameId: "id-game-does-not-exist",
+        playerId: "id-player-2",
+      });
 
-			yield* gameDriver.assert.playerToNotHaveBeenAbleToLeaveGame({
-				error: 'Game not found',
-			});
-		}).pipe(Effect.provide(GameDriverUnitTestLayer));
-	});
+      yield* gameDriver.assert.playerToNotHaveBeenAbleToLeaveGame({
+        error: "Game not found",
+      });
+    }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+  });
 
-	it.effect('Example: The host cannot leave the game', () => {
-		return Effect.gen(function* () {
-			const gameDriver = yield* GameDriver;
+  it.effect("Example: The host cannot leave the game", () => {
+    return Effect.gen(function* () {
+      const gameDriver = yield* GameDriver;
 
-			yield* gameDriver.given.existingGame({
-				gameId: 'id-game-1',
-				hostId: 'id-player-1',
-				players: ['id-player-1'],
-			});
+      yield* gameDriver.given.existingGame({
+        gameId: "id-game-1",
+        hostId: "id-player-1",
+        players: ["id-player-1"],
+      });
 
-			yield* gameDriver.when.leavingGame({
-				gameId: 'id-game-1',
-				playerId: 'id-player-1',
-			});
+      yield* gameDriver.when.leavingGame({
+        gameId: "id-game-1",
+        playerId: "id-player-1",
+      });
 
-			yield* gameDriver.assert.playerToNotHaveBeenAbleToLeaveGame({
-				error: 'Host cannot leave the game',
-			});
-		}).pipe(Effect.provide(GameDriverUnitTestLayer));
-	});
+      yield* gameDriver.assert.playerToNotHaveBeenAbleToLeaveGame({
+        error: "Host cannot leave the game",
+      });
+    }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+  });
 
-	it.todo(
-		'Example: A player cannot leave a game that has started'
-	);
+  it.todo(
+    "Example: A player cannot leave a game that has started",
+  );
 });

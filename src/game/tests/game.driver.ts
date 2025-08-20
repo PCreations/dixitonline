@@ -10,7 +10,7 @@ import {
   MIN_PLAYERS,
 } from "../game.entity.js";
 import { GameRepository, InMemoryGameRepository } from "../game.repository.js";
-import { GameLayerTest } from "../index.js";
+import { GameLayerWithoutDependencies } from "../index.js";
 import { JoinGameUseCase } from "../join-game.usecase.js";
 import { LeaveGameUseCase } from "../leave-game.usecase.js";
 import { StartGameUseCase } from "../start-game.usecase.js";
@@ -43,10 +43,6 @@ interface GameDriverDSL {
       hostId: string;
       started?: boolean;
     }) => Effect.Effect<void>;
-    readonly otherPlayerJustJoinedInBetween: (props: {
-      gameId: string;
-      playerId: string;
-    }) => Effect.Effect<void>;
   };
   readonly when: {
     readonly creatingGame: (props: {
@@ -59,10 +55,10 @@ interface GameDriverDSL {
       gameId: string;
       playerId: string;
     }) => Effect.Effect<void>;
-    readonly joiningFullGameWhileAnotherPlayerLeftInBetween: (props: {
+    readonly joiningGameWhileAnotherPlayerJustJoinedInBetween: (props: {
       gameId: string;
-      playerThatHasLeftInBetween: string;
-      playerThatIsJoining: string;
+      playerId: string;
+      playerThatHasJustJoinedInBetween: string;
     }) => Effect.Effect<void>;
     readonly leavingGame: (props: {
       gameId: string;
@@ -71,6 +67,11 @@ interface GameDriverDSL {
     readonly startingGame: (props: {
       gameId: string;
       playerId: string;
+    }) => Effect.Effect<void>;
+    readonly startingGameWhileAnotherPlayerLeftInBetween: (props: {
+      gameId: string;
+      playerId: string;
+      playerThatHasLeftInBetween: string;
     }) => Effect.Effect<void>;
   };
   readonly assert: {
@@ -124,6 +125,7 @@ const makeUnitTestGameDriver = ({
   gameRepository: Context.Tag.Service<GameRepository>;
   deckRepository: Context.Tag.Service<DeckRepository>;
 }): GameDriverDSL => {
+  console.log("makeUnitTestGameDriver");
   const testState = {
     currentError: Option.none<Error>(),
   };
@@ -184,20 +186,6 @@ const makeUnitTestGameDriver = ({
         });
       });
     },
-    otherPlayerJustJoinedInBetween: (props) => {
-      return Effect.gen(function* () {
-        const game = Option.getOrThrow(
-          yield* gameRepository.findById(props.gameId),
-        );
-
-        const newGameEntity = GameEntity.fromSnapshot({
-          ...game.toSnapshot(),
-          players: [...game.toSnapshot().players, props.playerId],
-        });
-
-        yield* Effect.either(gameRepository.save(newGameEntity));
-      });
-    },
   };
 
   return {
@@ -234,7 +222,7 @@ const makeUnitTestGameDriver = ({
               return Effect.succeed(void 0);
             }),
           ),
-      joiningFullGameWhileAnotherPlayerLeftInBetween: (props) => {
+      joiningGameWhileAnotherPlayerJustJoinedInBetween: (props) => {
         return Effect.gen(function* () {
           const game = Option.getOrThrow(
             yield* gameRepository.findById(props.gameId),
@@ -242,17 +230,20 @@ const makeUnitTestGameDriver = ({
 
           const newGameEntity = GameEntity.fromSnapshot({
             ...game.toSnapshot(),
-            players: [...game.toSnapshot().players].filter(
-              (player) => player !== props.playerThatHasLeftInBetween,
-            ),
+            players: [
+              ...game.toSnapshot().players,
+              props.playerThatHasJustJoinedInBetween,
+            ],
+            version: game.toSnapshot().version + 1,
           });
 
           yield* Effect.either(gameRepository.save(newGameEntity));
+          yield* gameRepository.simulateStaleRead(game);
 
           yield* joinGameUseCase
             .joinGame({
               gameId: props.gameId,
-              playerId: props.playerThatIsJoining,
+              playerId: props.playerId,
             })
             .pipe(
               Effect.catchAll((error) => {
@@ -285,6 +276,34 @@ const makeUnitTestGameDriver = ({
             return Effect.succeed(void 0);
           }),
         );
+      },
+      startingGameWhileAnotherPlayerLeftInBetween: (props) => {
+        return Effect.gen(function* () {
+          const game = Option.getOrThrow(
+            yield* gameRepository.findById(props.gameId),
+          );
+
+          const newGameEntity = GameEntity.fromSnapshot({
+            ...game.toSnapshot(),
+            players: [...game.toSnapshot().players].filter(
+              (player) => player !== props.playerThatHasLeftInBetween,
+            ),
+            version: game.toSnapshot().version + 1,
+          });
+          yield* Effect.either(gameRepository.save(newGameEntity));
+
+          yield* gameRepository.simulateStaleRead(game);
+
+          yield* startGameUseCase.startGame({
+            gameId: props.gameId,
+            playerId: props.playerId,
+          }).pipe(
+            Effect.catchAll((error) => {
+              testState.currentError = Option.some(error);
+              return Effect.succeed(void 0);
+            }),
+          );
+        });
       },
     },
     assert: {
@@ -354,26 +373,32 @@ const makeUnitTestGameDriver = ({
   };
 };
 
-export const GameDriverUnitTestLayer = Layer.effect(
-  GameDriver,
-  Effect.gen(function* () {
-    const createGameUseCase = yield* CreateGameUseCase;
-    const joinGameUseCase = yield* JoinGameUseCase;
-    const leaveGameUseCase = yield* LeaveGameUseCase;
-    const startGameUseCase = yield* StartGameUseCase;
-    const gameRepository = yield* GameRepository;
-    const deckRepository = yield* DeckRepository;
+export const makeGameDriverUnitTestLayer = () =>
+  Layer.effect(
+    GameDriver,
+    Effect.gen(function* () {
+      const createGameUseCase = yield* CreateGameUseCase;
+      const joinGameUseCase = yield* JoinGameUseCase;
+      const leaveGameUseCase = yield* LeaveGameUseCase;
+      const startGameUseCase = yield* StartGameUseCase;
+      const gameRepository = yield* GameRepository;
+      const deckRepository = yield* DeckRepository;
 
-    return makeUnitTestGameDriver({
-      createGameUseCase,
-      joinGameUseCase,
-      leaveGameUseCase,
-      startGameUseCase,
-      gameRepository,
-      deckRepository,
-    });
-  }),
-).pipe(
-  Layer.provide(GameLayerTest),
-  Layer.provide(Layer.mergeAll(InMemoryGameRepository, InMemoryDeckRepository)),
-);
+      return makeUnitTestGameDriver({
+        createGameUseCase,
+        joinGameUseCase,
+        leaveGameUseCase,
+        startGameUseCase,
+        gameRepository,
+        deckRepository,
+      });
+    }),
+  ).pipe(
+    Layer.provide(GameLayerWithoutDependencies),
+    Layer.provide(
+      Layer.mergeAll(
+        InMemoryGameRepository,
+        InMemoryDeckRepository,
+      ),
+    ),
+  );

@@ -1,58 +1,87 @@
-import { Data, Effect, Layer, Option, Context } from 'effect';
-import { GameEntity } from './game.entity.js';
+import { Context, Data, Effect, Layer, Option } from "effect";
+import { GameEntity } from "./game.entity.js";
 
 export class OptimisticConcurrencyError extends Data.TaggedError(
-	'OptimisticConcurrencyError',
+  "OptimisticConcurrencyError",
 )<{}> {}
 
-export class GameRepository extends Effect.Tag('game/GameRepository')<
-	GameRepository,
-	{
-		save: (
-			game: GameEntity
-		) => Effect.Effect<void, OptimisticConcurrencyError>;
-		findById: (id: string) => Effect.Effect<Option.Option<GameEntity>>;
-		isPlayerInGame: (
-			gameId: string,
-			playerId: string,
-		) => Effect.Effect<boolean>;
-	}
+export class GameRepository extends Effect.Tag("game/GameRepository")<
+  GameRepository,
+  {
+    save: (game: GameEntity) => Effect.Effect<void, OptimisticConcurrencyError>;
+    findById: (id: string) => Effect.Effect<Option.Option<GameEntity>>;
+    isPlayerInGame: (
+      gameId: string,
+      playerId: string,
+    ) => Effect.Effect<boolean>;
+    simulateStaleRead: (
+      staleGame: GameEntity,
+    ) => Effect.Effect<void>;
+  }
 >() {}
 
 const makeInMemoryGameRepository = (): Context.Tag.Service<GameRepository> => {
-	const games = new Map<string, GameEntity>();
+  const games = new Map<string, GameEntity>();
+  const staleReads = new Map<string, GameEntity>();
 
-	return {
-		save: (game: GameEntity) =>
-			Effect.gen(function* () {
-				const maybeGame = Option.fromNullable(games.get(game.props.id));
-				Option.map(maybeGame, (existingGame) => {
-					if (game.toSnapshot().version !== existingGame.toSnapshot().version + 1) {
-						return Effect.fail(new OptimisticConcurrencyError());
-					}
-					return Effect.succeed(void 0);
-				})
-				games.set(game.props.id, game);
-			}),
-		findById: (id: string) => {
-			return Effect.gen(function* () {
-				const game = games.get(id);
-				return Option.fromNullable(game);
-			});
-		},
-		isPlayerInGame: (gameId: string, playerId: string) => {
-			return Effect.gen(function* () {
-				const maybeGame = Option.fromNullable(games.get(gameId));
-				if (Option.isNone(maybeGame)) {
-					return false;
-				}
-				return maybeGame.value.toSnapshot().players.includes(playerId);
-			});
-		}
-	};
+  const shouldThrowOptimisticConcurrencyError = (
+    gameToBeSaved: GameEntity,
+    existingGame: Option.Option<GameEntity>,
+  ) => {
+    // Simulation here of a query that could resemble "update game where id = $id and version = $version set version = $gameToBeSaved.version - 1"
+    return Option.getOrElse(
+      Option.map(existingGame, (existingGame) => {
+        console.log(
+          `Trying to save updated game with version ${gameToBeSaved.version} but existing game has version ${existingGame.version} that should be ${
+            gameToBeSaved.version - 1
+          } to not throw optimistic concurrency error`,
+        );
+        return existingGame.version !== gameToBeSaved.version - 1;
+      }),
+      () => false,
+    );
+  };
+
+  return {
+    save: (gameToBeSaved: GameEntity) => {
+      const actualGame = Option.fromNullable(games.get(gameToBeSaved.props.id));
+      if (shouldThrowOptimisticConcurrencyError(gameToBeSaved, actualGame)) {
+        return Effect.fail(new OptimisticConcurrencyError());
+      }
+      games.set(gameToBeSaved.props.id, gameToBeSaved);
+      return Effect.succeed(void 0);
+    },
+    findById: (id: string) => {
+      const staleGame = Option.fromNullable(staleReads.get(id));
+      const actualGame = Option.fromNullable(games.get(id));
+      return Option.match(staleGame, {
+        onNone: () => {
+          return Effect.succeed(actualGame);
+        },
+        onSome: () => {
+          console.log("Stale game found", staleGame);
+          staleReads.delete(id);
+          return Effect.succeed(staleGame);
+        },
+      });
+    },
+    isPlayerInGame: (gameId: string, playerId: string) => {
+      const maybeGame = Option.fromNullable(games.get(gameId));
+      if (Option.isNone(maybeGame)) {
+        return Effect.succeed(false);
+      }
+      return Effect.succeed(
+        maybeGame.value.toSnapshot().players.includes(playerId),
+      );
+    },
+    simulateStaleRead: (staleGame: GameEntity) => {
+      staleReads.set(staleGame.props.id, staleGame);
+      return Effect.succeed(void 0);
+    },
+  };
 };
 
-export const InMemoryGameRepository = Layer.effect(
-	GameRepository,
-	Effect.succeed(makeInMemoryGameRepository()),
+export const InMemoryGameRepository = Layer.sync(
+  GameRepository,
+  makeInMemoryGameRepository,
 );

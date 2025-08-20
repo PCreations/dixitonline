@@ -1,5 +1,9 @@
-import { Effect, Option } from "effect";
-import { GameRepository, InMemoryGameRepository } from "./game.repository.js";
+import { Effect, Option, Schedule } from "effect";
+import {
+  GameRepository,
+  InMemoryGameRepository,
+  OptimisticConcurrencyError,
+} from "./game.repository.js";
 import { PlayerId } from "./player.entity.js";
 
 export type StartGameCommand = {
@@ -14,8 +18,8 @@ export class StartGameUseCase extends Effect.Service<StartGameUseCase>()(
       const gameRepository = yield* GameRepository;
 
       return {
-        startGame: (props: StartGameCommand) =>
-          Effect.gen(function* () {
+        startGame: (props: StartGameCommand) => {
+          const startGameLogic = Effect.gen(function* () {
             const game = yield* gameRepository.findById(props.gameId);
 
             return yield* Option.match(game, {
@@ -29,7 +33,15 @@ export class StartGameUseCase extends Effect.Service<StartGameUseCase>()(
                   yield* gameRepository.save(updatedGame);
                 }),
             });
-          }),
+          });
+
+          return Effect.retry(startGameLogic, {
+            while: (error) => {
+              return error instanceof OptimisticConcurrencyError;
+            },
+            times: 3,
+          });
+        },
       };
     }),
     dependencies: [InMemoryGameRepository],

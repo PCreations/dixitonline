@@ -11,7 +11,7 @@ export const GameLayerLive = Layer.mergeAll(
   StartGameUseCase.Default,
 );
 
-export const GameLayerTest = Layer.mergeAll(
+export const GameLayerWithoutDependencies = Layer.mergeAll(
   CreateGameUseCase.DefaultWithoutDependencies,
   JoinGameUseCase.DefaultWithoutDependencies,
   LeaveGameUseCase.DefaultWithoutDependencies,
