@@ -30,7 +30,9 @@
   "dependencies": {
     "effect": "latest",
     "fastify": "^5.5.0",
-    "fastify-type-provider-effect-schema": "^0.0.4"
+    "fastify-type-provider-effect-schema": "^0.0.4",
+    "preact": "^10.27.1",
+    "preact-render-to-string": "^6.6.1"
   },
   "devDependencies": {
     "@babel/cli": "^7.24.8",

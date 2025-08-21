@@ -2,6 +2,9 @@ import { Effect, Either, Option, ParseResult, Schema as S } from 'effect';
 import Fastify, { FastifyInstance } from 'fastify';
 import { CreateGameUseCase } from './game/create-game.usecase.js';
 import { GameLayerLive } from './game/index.js';
+import { h } from 'preact';
+import { renderToString, renderHtmlPage } from './view/render.js';
+import { HelloWorld } from './view/components/HelloWorld.js';
 
 const isDev = process.env.NODE_ENV === 'development';
 
@@ -28,6 +31,18 @@ const fastify: FastifyInstance = Fastify({
 const CreateGameBodySchema = S.Struct({
   gameId: S.String,
   hostId: S.String,
+});
+
+fastify.route({
+  method: 'GET',
+  url: '/',
+  handler: async function handler(_request, reply) {
+    const component = h(HelloWorld, {});
+    const body = renderToString(component);
+    const html = renderHtmlPage('Tixid Online', body);
+    
+    reply.type('text/html').send(html);
+  },
 });
 
 fastify.route({

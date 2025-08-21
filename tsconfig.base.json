@@ -35,6 +35,8 @@
     "module": "NodeNext",
     "incremental": true,
     "removeComments": false,
+    "jsx": "react",
+    "jsxFactory": "h",
     "plugins": [{ "name": "@effect/language-service" }]
   }
 }

@@ -10,7 +10,9 @@
       "WebSearch",
       "Bash(pnpm list pino)",
       "Bash(pnpm add -D @types/pino)",
-      "Bash(curl -X POST http://localhost:3000/game/create -H \"Content-Type: application/json\" -d '{\"\"\"\"gameId\"\"\"\": \"\"\"\"test-game-1\"\"\"\", \"\"\"\"hostId\"\"\"\": \"\"\"\"player-1\"\"\"\"}' -s)"
+      "Bash(curl -X POST http://localhost:3000/game/create -H \"Content-Type: application/json\" -d '{\"\"\"\"gameId\"\"\"\": \"\"\"\"test-game-1\"\"\"\", \"\"\"\"hostId\"\"\"\": \"\"\"\"player-1\"\"\"\"}' -s)",
+      "Bash(pnpm add:*)",
+      "Bash(curl:*)"
     ]
   },
   "enableAllProjectMcpServers": false

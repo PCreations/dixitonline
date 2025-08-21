@@ -22,6 +22,12 @@ importers:
       fastify-type-provider-effect-schema:
         specifier: ^0.0.4
         version: 0.0.4(@effect/schema@0.12.1)(fastify@5.5.0)
+      preact:
+        specifier: ^10.27.1
+        version: 10.27.1
+      preact-render-to-string:
+        specifier: ^6.6.1
+        version: 6.6.1(preact@10.27.1)
     devDependencies:
       '@babel/cli':
         specifier: ^7.24.8
@@ -2353,6 +2359,14 @@ packages:
   postcss@8.5.6:
     resolution: {integrity: sha512-3Ybi1tAuwAP9s0r1UQ2J4n5Y0G05bJkpUIO0/bI9MhwmD70S5aTWbXGBwxHrelT+XM1k6dM0pk+SwNkpTRN7Pg==}
     engines: {node: ^10 || ^12 || >=14}
+
+  preact-render-to-string@6.6.1:
+    resolution: {integrity: sha512-IIMfXRjmbSP9QmG18WJLQa4Z4yx3J0VC9QN5q9z2XYlWSzFlJ+bSm/AyLyyV/YFwjof1OXFX2Mz6Ao60LXudJg==}
+    peerDependencies:
+      preact: '>=10 || >= 11.0.0-0'
+
+  preact@10.27.1:
+    resolution: {integrity: sha512-V79raXEWch/rbqoNc7nT9E4ep7lu+mI3+sBmfRD4i1M73R3WLYcCtdI0ibxGVf4eQL8ZIz2nFacqEC+rmnOORQ==}
 
   prelude-ls@1.2.1:
     resolution: {integrity: sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==}
@@ -5202,6 +5216,12 @@ snapshots:
       nanoid: 3.3.11
       picocolors: 1.1.1
       source-map-js: 1.2.1
+
+  preact-render-to-string@6.6.1(preact@10.27.1):
+    dependencies:
+      preact: 10.27.1
+
+  preact@10.27.1: {}
 
   prelude-ls@1.2.1: {}
 
