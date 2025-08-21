@@ -125,7 +125,6 @@ const makeUnitTestGameDriver = ({
   gameRepository: Context.Tag.Service<GameRepository>;
   deckRepository: Context.Tag.Service<DeckRepository>;
 }): GameDriverDSL => {
-  console.log("makeUnitTestGameDriver");
   const testState = {
     currentError: Option.none<Error>(),
   };

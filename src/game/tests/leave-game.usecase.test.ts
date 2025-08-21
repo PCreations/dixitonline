@@ -81,8 +81,4 @@ describe("Feature: Leaving a game as a player", () => {
       });
     }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
   });
-
-  it.todo(
-    "Example: A player cannot leave a game that has started",
-  );
 });

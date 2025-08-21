@@ -1,10 +1,10 @@
-import { Effect, Option, Schedule } from "effect";
+import { Effect, Option } from "effect";
 import {
   GameRepository,
   InMemoryGameRepository,
-  OptimisticConcurrencyError,
 } from "./game.repository.js";
 import { PlayerId } from "./player.entity.js";
+import { withOptimisticRetry } from "./optimistic-retry.js";
 
 export type StartGameCommand = {
   gameId: string;
@@ -35,12 +35,7 @@ export class StartGameUseCase extends Effect.Service<StartGameUseCase>()(
             });
           });
 
-          return Effect.retry(startGameLogic, {
-            while: (error) => {
-              return error instanceof OptimisticConcurrencyError;
-            },
-            times: 3,
-          });
+          return withOptimisticRetry(startGameLogic);
         },
       };
     }),

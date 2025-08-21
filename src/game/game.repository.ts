@@ -31,11 +31,6 @@ const makeInMemoryGameRepository = (): Context.Tag.Service<GameRepository> => {
     // Simulation here of a query that could resemble "update game where id = $id and version = $version set version = $gameToBeSaved.version - 1"
     return Option.getOrElse(
       Option.map(existingGame, (existingGame) => {
-        console.log(
-          `Trying to save updated game with version ${gameToBeSaved.version} but existing game has version ${existingGame.version} that should be ${
-            gameToBeSaved.version - 1
-          } to not throw optimistic concurrency error`,
-        );
         return existingGame.version !== gameToBeSaved.version - 1;
       }),
       () => false,
@@ -59,7 +54,6 @@ const makeInMemoryGameRepository = (): Context.Tag.Service<GameRepository> => {
           return Effect.succeed(actualGame);
         },
         onSome: () => {
-          console.log("Stale game found", staleGame);
           staleReads.delete(id);
           return Effect.succeed(staleGame);
         },

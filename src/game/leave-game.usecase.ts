@@ -1,6 +1,7 @@
 import { Effect, Option } from 'effect';
 import { GameRepository, InMemoryGameRepository } from './game.repository.js';
 import { PlayerId } from './player.entity.js';
+import { withOptimisticRetry } from './optimistic-retry.js';
 
 export type LeaveGameCommand = {
 	gameId: string;
@@ -14,8 +15,8 @@ export class LeaveGameUseCase extends Effect.Service<LeaveGameUseCase>()(
 			const gameRepository = yield* GameRepository;
 
 			return {
-				leaveGame: (props: LeaveGameCommand) =>
-					Effect.gen(function* () {
+				leaveGame: (props: LeaveGameCommand) => {
+					const leaveGameLogic = Effect.gen(function* () {
 						const game = yield* gameRepository.findById(props.gameId);
 
 						return yield* Option.match(game, {
@@ -29,7 +30,10 @@ export class LeaveGameUseCase extends Effect.Service<LeaveGameUseCase>()(
 									yield* gameRepository.save(updatedGame);
 								}),
 						});
-					}),
+					});
+
+					return withOptimisticRetry(leaveGameLogic);
+				},
 			};
 		}),
 		dependencies: [InMemoryGameRepository],
