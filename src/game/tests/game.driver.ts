@@ -187,30 +187,57 @@ const makeUnitTestGameDriver = ({
     },
   };
 
-  return {
-    given,
-    when: {
-      creatingGame: (props) =>
-        createGameUseCase.createGame({
-          gameId: props.gameId,
-          hostId: props.hostId,
-          deckId: Option.fromNullable(props.deckId),
-          endCondition: Option.fromNullable(props.endCondition).pipe(
-            Option.map((endCondition) =>
-              endCondition.type === "NumberOfTimesBeingStoryteller"
-                ? {
-                  type: "NumberOfTimesBeingStoryteller",
-                  numberOfTimes: Option.some(endCondition.numberOfTimes),
-                }
-                : {
-                  type: "LimitOfPoints",
-                  limit: endCondition.limit,
-                }
-            ),
+  const when: GameDriverDSL["when"] = {
+    creatingGame: (props) =>
+      createGameUseCase.createGame({
+        gameId: props.gameId,
+        hostId: props.hostId,
+        deckId: Option.fromNullable(props.deckId),
+        endCondition: Option.fromNullable(props.endCondition).pipe(
+          Option.map((endCondition) =>
+            endCondition.type === "NumberOfTimesBeingStoryteller"
+              ? {
+                type: "NumberOfTimesBeingStoryteller",
+                numberOfTimes: Option.some(endCondition.numberOfTimes),
+              }
+              : {
+                type: "LimitOfPoints",
+                limit: endCondition.limit,
+              }
           ),
-        }),
-      joiningGame: (props) =>
-        joinGameUseCase
+        ),
+      }),
+    joiningGame: (props) =>
+      joinGameUseCase
+        .joinGame({
+          gameId: props.gameId,
+          playerId: props.playerId,
+        })
+        .pipe(
+          Effect.catchAll((error) => {
+            testState.currentError = Option.some(error);
+            return Effect.succeed(void 0);
+          }),
+        ),
+    joiningGameWhileAnotherPlayerJustJoinedInBetween: (props) => {
+      return Effect.gen(function* () {
+        const game = Option.getOrThrow(
+          yield* gameRepository.findById(props.gameId),
+        );
+
+        const newGameEntity = GameEntity.fromSnapshot({
+          ...game.toSnapshot(),
+          players: [
+            ...game.toSnapshot().players,
+            props.playerThatHasJustJoinedInBetween,
+          ],
+          version: game.toSnapshot().version + 1,
+        });
+
+        yield* Effect.either(gameRepository.save(newGameEntity));
+        yield* gameRepository.simulateStaleRead(game);
+
+        yield* joinGameUseCase
           .joinGame({
             gameId: props.gameId,
             playerId: props.playerId,
@@ -220,53 +247,51 @@ const makeUnitTestGameDriver = ({
               testState.currentError = Option.some(error);
               return Effect.succeed(void 0);
             }),
+          );
+      });
+    },
+    leavingGame: (props) => {
+      return leaveGameUseCase
+        .leaveGame({
+          gameId: props.gameId,
+          playerId: props.playerId,
+        })
+        .pipe(
+          Effect.catchAll((error) => {
+            testState.currentError = Option.some(error);
+            return Effect.succeed(void 0);
+          }),
+        );
+    },
+    startingGame: (props) => {
+      return startGameUseCase.startGame({
+        gameId: props.gameId,
+        playerId: props.playerId,
+      }).pipe(
+        Effect.catchAll((error) => {
+          testState.currentError = Option.some(error);
+          return Effect.succeed(void 0);
+        }),
+      );
+    },
+    startingGameWhileAnotherPlayerLeftInBetween: (props) => {
+      return Effect.gen(function* () {
+        const game = Option.getOrThrow(
+          yield* gameRepository.findById(props.gameId),
+        );
+
+        const newGameEntity = GameEntity.fromSnapshot({
+          ...game.toSnapshot(),
+          players: [...game.toSnapshot().players].filter(
+            (player) => player !== props.playerThatHasLeftInBetween,
           ),
-      joiningGameWhileAnotherPlayerJustJoinedInBetween: (props) => {
-        return Effect.gen(function* () {
-          const game = Option.getOrThrow(
-            yield* gameRepository.findById(props.gameId),
-          );
-
-          const newGameEntity = GameEntity.fromSnapshot({
-            ...game.toSnapshot(),
-            players: [
-              ...game.toSnapshot().players,
-              props.playerThatHasJustJoinedInBetween,
-            ],
-            version: game.toSnapshot().version + 1,
-          });
-
-          yield* Effect.either(gameRepository.save(newGameEntity));
-          yield* gameRepository.simulateStaleRead(game);
-
-          yield* joinGameUseCase
-            .joinGame({
-              gameId: props.gameId,
-              playerId: props.playerId,
-            })
-            .pipe(
-              Effect.catchAll((error) => {
-                testState.currentError = Option.some(error);
-                return Effect.succeed(void 0);
-              }),
-            );
+          version: game.toSnapshot().version + 1,
         });
-      },
-      leavingGame: (props) => {
-        return leaveGameUseCase
-          .leaveGame({
-            gameId: props.gameId,
-            playerId: props.playerId,
-          })
-          .pipe(
-            Effect.catchAll((error) => {
-              testState.currentError = Option.some(error);
-              return Effect.succeed(void 0);
-            }),
-          );
-      },
-      startingGame: (props) => {
-        return startGameUseCase.startGame({
+        yield* Effect.either(gameRepository.save(newGameEntity));
+
+        yield* gameRepository.simulateStaleRead(game);
+
+        yield* startGameUseCase.startGame({
           gameId: props.gameId,
           playerId: props.playerId,
         }).pipe(
@@ -275,100 +300,79 @@ const makeUnitTestGameDriver = ({
             return Effect.succeed(void 0);
           }),
         );
-      },
-      startingGameWhileAnotherPlayerLeftInBetween: (props) => {
-        return Effect.gen(function* () {
-          const game = Option.getOrThrow(
-            yield* gameRepository.findById(props.gameId),
-          );
-
-          const newGameEntity = GameEntity.fromSnapshot({
-            ...game.toSnapshot(),
-            players: [...game.toSnapshot().players].filter(
-              (player) => player !== props.playerThatHasLeftInBetween,
-            ),
-            version: game.toSnapshot().version + 1,
-          });
-          yield* Effect.either(gameRepository.save(newGameEntity));
-
-          yield* gameRepository.simulateStaleRead(game);
-
-          yield* startGameUseCase.startGame({
-            gameId: props.gameId,
-            playerId: props.playerId,
-          }).pipe(
-            Effect.catchAll((error) => {
-              testState.currentError = Option.some(error);
-              return Effect.succeed(void 0);
-            }),
-          );
-        });
-      },
+      });
     },
-    assert: {
-      createdGameToEqual: (game) =>
-        Effect.gen(function* () {
-          const createdGame = yield* gameRepository.findById(game.id);
+  };
 
-          const defaultEndCondition = {
-            type: "NumberOfTimesBeingStoryteller",
-            numberOfTimes: 3,
-          };
+  const assert: GameDriverDSL["assert"] = {
+    createdGameToEqual: (game) =>
+      Effect.gen(function* () {
+        const createdGame = yield* gameRepository.findById(game.id);
 
-          Option.map(createdGame, (gameEntity) =>
-            expect(gameEntity.toSnapshot()).toEqual({
-              id: game.id,
-              createdBy: game.createdBy,
-              deckId: game.deckId,
-              endCondition: game.endCondition ?? defaultEndCondition,
-              players: game.players,
-              status: GameStatus.Created,
-              version: 1,
-            }));
-        }),
-      playerToHaveJoinedGame: (props) =>
-        Effect.gen(function* () {
-          const isPlayerInGame = yield* gameRepository.isPlayerInGame(
-            props.gameId,
-            props.playerId,
-          );
-          expect(isPlayerInGame).toBe(true);
-        }),
-      playerToNotHaveBeenAbleToJoinGame: (props) =>
-        Effect.sync(() => {
-          expect(testState.currentError).toEqual(
-            Option.some(new Error(props?.error)),
-          );
-        }),
-      playerToNotHaveBeenAbleToLeaveGame: (props) =>
-        Effect.sync(() => {
-          expect(testState.currentError).toEqual(
-            Option.some(new Error(props?.error)),
-          );
-        }),
-      playerToNotHaveBeenAbleToStartGame: (props) =>
-        Effect.sync(() => {
-          expect(testState.currentError).toEqual(
-            Option.some(new Error(props?.error)),
-          );
-        }),
-      gameToEqual: (props) => {
-        return Effect.gen(function* () {
-          const game = Option.getOrThrow(
-            yield* gameRepository.findById(props.gameId),
-          );
-          expect(game.toSnapshot().players).toEqual(props.players);
-        });
-      },
-      gameToHaveBeenStarted: (props) => {
-        return Effect.gen(function* () {
-          const game = Option.getOrThrow(
-            yield* gameRepository.findById(props.gameId),
-          );
-          expect(game.toSnapshot().status).toEqual(GameStatus.Started);
-        });
-      },
+        const defaultEndCondition = {
+          type: "NumberOfTimesBeingStoryteller",
+          numberOfTimes: 3,
+        };
+
+        Option.map(createdGame, (gameEntity) =>
+          expect(gameEntity.toSnapshot()).toEqual({
+            id: game.id,
+            createdBy: game.createdBy,
+            deckId: game.deckId,
+            endCondition: game.endCondition ?? defaultEndCondition,
+            players: game.players,
+            status: GameStatus.Created,
+            version: 1,
+          }));
+      }),
+    playerToHaveJoinedGame: (props) =>
+      Effect.gen(function* () {
+        const isPlayerInGame = yield* gameRepository.isPlayerInGame(
+          props.gameId,
+          props.playerId,
+        );
+        expect(isPlayerInGame).toBe(true);
+      }),
+    playerToNotHaveBeenAbleToJoinGame: (props) =>
+      Effect.sync(() => {
+        expect(testState.currentError).toEqual(
+          Option.some(new Error(props?.error)),
+        );
+      }),
+    playerToNotHaveBeenAbleToLeaveGame: (props) =>
+      Effect.sync(() => {
+        expect(testState.currentError).toEqual(
+          Option.some(new Error(props?.error)),
+        );
+      }),
+    playerToNotHaveBeenAbleToStartGame: (props) =>
+      Effect.sync(() => {
+        expect(testState.currentError).toEqual(
+          Option.some(new Error(props?.error)),
+        );
+      }),
+    gameToEqual: (props) => {
+      return Effect.gen(function* () {
+        const game = Option.getOrThrow(
+          yield* gameRepository.findById(props.gameId),
+        );
+        expect(game.toSnapshot().players).toEqual(props.players);
+      });
     },
+    gameToHaveBeenStarted: (props) => {
+      return Effect.gen(function* () {
+        const game = Option.getOrThrow(
+          yield* gameRepository.findById(props.gameId),
+        );
+        expect(game.toSnapshot().status).toEqual(GameStatus.Started);
+      });
+    },
+  };
+
+  return {
+    given,
+    when,
+    assert,
   };
 };
 
