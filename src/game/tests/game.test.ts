@@ -28,7 +28,7 @@ describe.only("Game logic", () => {
   test("Game can be started", () => {
     const now = new Date();
     const { deck, cards } = createDeckWithXcards(25);
-    const choppedCards = Arr.chunksOf(cards, 6);
+    const cardChunks = Arr.chunksOf(cards, 6);
     const remainingCard = cards.at(-1);
     const game = GameEntity.fromSnapshot({
       id: GameId("game-id"),
@@ -60,16 +60,16 @@ describe.only("Game logic", () => {
       currentStorytellerId: PlayerId("player-id"),
       playerHands: [{
         playerId: PlayerId("player-id"),
-        cards: choppedCards[0],
+        cards: cardChunks[0],
       }, {
         playerId: PlayerId("player-id-2"),
-        cards: choppedCards[1],
+        cards: cardChunks[1],
       }, {
         playerId: PlayerId("player-id-3"),
-        cards: choppedCards[2],
+        cards: cardChunks[2],
       }, {
         playerId: PlayerId("player-id-4"),
-        cards: choppedCards[3],
+        cards: cardChunks[3],
       }],
       cardsInDrawPile: [remainingCard],
       turnNumber: 1,
@@ -77,5 +77,36 @@ describe.only("Game logic", () => {
       turnClue: Option.none(),
       phase: "storytelling",
     }));
+  });
+
+  test("Players receive 7 cards instead of 6 when the number of players is 3", () => {
+    const now = new Date();
+    const { deck } = createDeckWithXcards(25);
+    const game = GameEntity.fromSnapshot({
+      id: GameId("game-id"),
+      createdBy: PlayerId("player-id"),
+      deckId: deck.id,
+      endCondition: {
+        type: "NumberOfTimesBeingStoryteller",
+        numberOfTimes: 3,
+      },
+      players: ["player-id", "player-id-2", "player-id-3"],
+      status: GameStatus.Created,
+      version: 1,
+      currentTurn: Option.none(),
+    });
+
+    const updatedGame = Effect.runSync(game.start({
+      playerId: PlayerId("player-id"),
+      deck,
+      startedAt: now,
+    }));
+
+    const gameSnapshot = updatedGame.toSnapshot();
+
+    const currentTurn = Option.getOrThrow(gameSnapshot.currentTurn);
+    expect(currentTurn.playerHands[0].cards.length).toBe(7);
+    expect(currentTurn.playerHands[1].cards.length).toBe(7);
+    expect(currentTurn.playerHands[2].cards.length).toBe(7);
   });
 });

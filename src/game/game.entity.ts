@@ -239,14 +239,21 @@ export class GameEntity {
     );
   }
 
+  private getNumberOfCardsPerPlayer(players: ReadonlyArray<PlayerId>) {
+    return players.length === 3 ? CARD_PER_PLAYER + 1 : CARD_PER_PLAYER;
+  }
+
   private dealCards(props: {
     cards: ReadonlyArray<Card>;
     players: ReadonlyArray<PlayerId>;
   }) {
     const [cardsChunk, remainingCards] = pipe(
-      Arr.splitAt(props.cards, CARD_PER_PLAYER * props.players.length),
+      Arr.splitAt(
+        props.cards,
+        this.getNumberOfCardsPerPlayer(props.players) * props.players.length,
+      ),
       ([cards, remainingCards]) => [
-        Arr.chunksOf(cards, CARD_PER_PLAYER),
+        Arr.chunksOf(cards, this.getNumberOfCardsPerPlayer(props.players)),
         remainingCards,
       ],
     );
