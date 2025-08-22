@@ -6,6 +6,7 @@ export class DeckRepository extends Effect.Tag("game/DeckRepository")<
   {
     save: (props: DeckEntity) => Effect.Effect<void>;
     getDefaultDeckId: () => Effect.Effect<Option.Option<DeckId>>;
+    findById: (id: DeckId) => Effect.Effect<Option.Option<DeckEntity>>;
   }
 >() {}
 
@@ -24,6 +25,8 @@ const makeInMemoryDeckRepository = (): Context.Tag.Service<DeckRepository> => {
 
         yield* Effect.succeed(void 0);
       }),
+    findById: (id: DeckId) =>
+      Effect.succeed(Option.fromNullable(decks.get(id))),
     getDefaultDeckId: () => Effect.succeed(defaultDeckId),
   };
 };

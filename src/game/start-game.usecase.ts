@@ -1,10 +1,8 @@
 import { Effect, Option } from "effect";
-import {
-  GameRepository,
-  InMemoryGameRepository,
-} from "./game.repository.js";
-import { PlayerId } from "./player.entity.js";
+import { DeckRepository, InMemoryDeckRepository } from "./deck.repository.js";
+import { GameRepository, InMemoryGameRepository } from "./game.repository.js";
 import { withOptimisticRetry } from "./optimistic-retry.js";
+import { PlayerId } from "./player.entity.js";
 
 export type StartGameCommand = {
   gameId: string;
@@ -16,29 +14,35 @@ export class StartGameUseCase extends Effect.Service<StartGameUseCase>()(
   {
     effect: Effect.gen(function* () {
       const gameRepository = yield* GameRepository;
+      const deckRepository = yield* DeckRepository;
 
       return {
         startGame: (props: StartGameCommand) => {
           const startGameLogic = Effect.gen(function* () {
             const game = yield* gameRepository.findById(props.gameId);
-
-            return yield* Option.match(game, {
+            const gameEntity = yield* Option.match(game, {
               onNone: () => Effect.fail(new Error("Game not found")),
-              onSome: (gameEntity) =>
-                Effect.gen(function* () {
-                  const updatedGame = yield* gameEntity.start(
-                    PlayerId(props.playerId),
-                  );
-
-                  yield* gameRepository.save(updatedGame);
-                }),
+              onSome: Effect.succeed,
             });
+
+            const deck = yield* deckRepository.findById(gameEntity.deckId);
+            const deckEntity = yield* Option.match(deck, {
+              onNone: () => Effect.fail(new Error("Deck not found")),
+              onSome: Effect.succeed,
+            });
+
+            const updatedGame = yield* gameEntity.start(
+              PlayerId(props.playerId),
+              deckEntity,
+            );
+
+            yield* gameRepository.save(updatedGame);
           });
 
           return withOptimisticRetry(startGameLogic);
         },
       };
     }),
-    dependencies: [InMemoryGameRepository],
+    dependencies: [InMemoryGameRepository, InMemoryDeckRepository],
   },
 ) {}

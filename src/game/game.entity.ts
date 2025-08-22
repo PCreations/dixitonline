@@ -1,7 +1,8 @@
-import { Array as Arr, Brand, Data, Effect, Option } from "effect";
+import { Array as Arr, Brand, Data, Effect, Option, pipe } from "effect";
 import { NonEmptyReadonlyArray } from "effect/Array";
-import { DeckId } from "./deck.entity.js";
+import { Card, DeckEntity, DeckId } from "./deck.entity.js";
 import { PlayerId } from "./player.entity.js";
+import { TurnEntity, TurnId } from "./turn.entity.js";
 
 export type GameId = string & Brand.Brand<"GameId">;
 
@@ -86,9 +87,32 @@ const isNonEmptyReadonlyArray = <T>(
   return Arr.isNonEmptyReadonlyArray(array);
 };
 
+export class PlayerHand {
+  private constructor(
+    private readonly props: {
+      readonly playerId: PlayerId;
+      readonly cards: ReadonlyArray<Card>;
+    },
+  ) {}
+
+  static create(props: { playerId: PlayerId; cards: ReadonlyArray<Card> }) {
+    return new PlayerHand(props);
+  }
+
+  get playerId() {
+    return this.props.playerId;
+  }
+
+  get cards() {
+    return this.props.cards;
+  }
+}
+
+const CARD_PER_PLAYER = 6;
+
 export class GameEntity {
   private constructor(
-    readonly props: {
+    private readonly props: {
       readonly id: GameId;
       readonly createdBy: PlayerId;
       readonly deckId: DeckId;
@@ -96,6 +120,7 @@ export class GameEntity {
       readonly players: NonEmptyReadonlyArray<PlayerId>;
       readonly status: GameStatus;
       readonly version: number;
+      readonly currentTurn: Option.Option<TurnEntity>; // @TODO: when we have a proper StartedGameEntity we can remove this, and just have a TurnEntity without Option in it.
     },
   ) {}
 
@@ -108,6 +133,10 @@ export class GameEntity {
 
   get version() {
     return this.props.version;
+  }
+
+  get deckId() {
+    return this.props.deckId;
   }
 
   addPlayer(playerId: PlayerId): Effect.Effect<GameEntity, Error, never> {
@@ -157,7 +186,12 @@ export class GameEntity {
     );
   }
 
-  start(playerId: PlayerId) {
+  start(opts: {
+    playerId: PlayerId;
+    deck: DeckEntity;
+    startedAt: Date;
+  }): Effect.Effect<GameEntity, Error, never> {
+    const { playerId, deck, startedAt } = opts;
     if (this.props.players.length < MIN_PLAYERS) {
       return Effect.fail(
         new Error("The game does not meet the minimum number of players"),
@@ -176,13 +210,55 @@ export class GameEntity {
       return Effect.fail(new Error("Only the host can start the game"));
     }
 
+    return this.startGameWithDeck(deck, startedAt);
+  }
+
+  private startGameWithDeck(deck: DeckEntity, startedAt: Date) {
+    const shuffledCards = deck.getShuffledCards();
+    const [hands, remainingCards] = this.dealCards({
+      cards: shuffledCards,
+      players: this.props.players,
+    });
+
+    const turn = TurnEntity.create({
+      id: TurnId(`${this.props.id}-turn-1`),
+      gameId: this.props.id,
+      currentStorytellerId: this.props.createdBy,
+      playerHands: hands,
+      cardsInDrawPile: remainingCards,
+      turnStartedAt: startedAt,
+    });
+
     return Effect.succeed(
       new GameEntity({
         ...this.props,
         status: GameStatus.Started,
+        currentTurn: Option.some(turn),
         version: this.props.version + 1,
       }),
     );
+  }
+
+  private dealCards(props: {
+    cards: ReadonlyArray<Card>;
+    players: ReadonlyArray<PlayerId>;
+  }) {
+    const [cardsChunk, remainingCards] = pipe(
+      Arr.splitAt(props.cards, CARD_PER_PLAYER * props.players.length),
+      ([cards, remainingCards]) => [
+        Arr.chunksOf(cards, CARD_PER_PLAYER),
+        remainingCards,
+      ],
+    );
+
+    const hands = Arr.map(props.players, (playerId, index) => {
+      return PlayerHand.create({
+        playerId,
+        cards: cardsChunk[index],
+      });
+    });
+
+    return [hands, remainingCards] as const;
   }
 
   static create(props: {
@@ -195,6 +271,7 @@ export class GameEntity {
       ...props,
       players: GameEntity.ensurePlayersIncludeCreator([], props.createdBy),
       status: GameStatus.Created,
+      currentTurn: Option.none(),
       version: 1,
     });
   }
@@ -208,6 +285,9 @@ export class GameEntity {
       players: this.props.players as ReadonlyArray<string>,
       status: this.props.status,
       version: this.props.version,
+      currentTurn: Option.map(this.props.currentTurn, (turn) => {
+        return turn.toSnapshot();
+      }),
     };
   }
 
@@ -223,6 +303,7 @@ export class GameEntity {
       players: GameEntity.ensurePlayersIncludeCreator(playerIds, createdBy),
       status: snapshot.status,
       version: snapshot.version,
+      currentTurn: Option.none(),
     });
   }
 }

@@ -27,7 +27,9 @@ type EndConditionDto =
 
 interface GameDriverDSL {
   readonly given: {
-    readonly defaultDeck: (props: { id: string }) => Effect.Effect<void>;
+    readonly defaultDeck: (
+      props: { id: string; withShuffledCards?: ReadonlyArray<string> },
+    ) => Effect.Effect<void>;
     readonly existingDeck: (props: { id: string }) => Effect.Effect<void>;
     readonly existingGame: (props: {
       gameId: string;
