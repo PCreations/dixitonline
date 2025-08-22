@@ -13,11 +13,6 @@ export enum EndConditionType {
   LimitOfPoints = "limit-of-points",
 }
 
-export enum GameStatus {
-  Created = "created",
-  Started = "started",
-}
-
 const DEFAULT_NUMBER_OF_TIMES_BEING_STORYTELLER = 3;
 
 export type NumberOfTimesBeingStorytellerEndCondition = {
@@ -124,29 +119,21 @@ export class NoopRandomizeStrategy implements RandomizeStrategy {
   }
 }
 
-export class GameEntity {
-  private constructor(
-    private readonly props: {
+export abstract class GameEntity {
+  abstract readonly _tag: string;
+  protected constructor(
+    protected readonly props: {
       readonly id: GameId;
       readonly createdBy: PlayerId;
       readonly deckId: DeckId;
       readonly endCondition: EndCondition;
       players: NonEmptyReadonlyArray<PlayerId>;
-      readonly status: GameStatus;
       readonly version: number;
-      readonly currentTurn: Option.Option<TurnEntity>; // @TODO: when we have a proper StartedGameEntity we can remove this, and just have a TurnEntity without Option in it.
     },
-    private readonly randomizeStrategy: RandomizeStrategy =
+    protected readonly randomizeStrategy: RandomizeStrategy =
       new NoopRandomizeStrategy(),
   ) {
     this.props.players = this.randomizeStrategy.randomize(this.props.players);
-  }
-
-  private static ensurePlayersIncludeCreator(
-    players: ReadonlyArray<PlayerId>,
-    createdBy: PlayerId,
-  ): NonEmptyReadonlyArray<PlayerId> {
-    return Arr.isNonEmptyReadonlyArray(players) ? players : Arr.of(createdBy);
   }
 
   get id() {
@@ -159,6 +146,54 @@ export class GameEntity {
 
   get deckId() {
     return this.props.deckId;
+  }
+
+  toSnapshot() {
+    return {
+      id: this.props.id as string,
+      _tag: this._tag,
+      createdBy: this.props.createdBy as string,
+      deckId: this.props.deckId as string,
+      endCondition: endConditionToSnapshot(this.props.endCondition),
+      players: this.props.players as ReadonlyArray<string>,
+      version: this.props.version,
+    };
+  }
+}
+
+export class NotStartedGameEntity extends GameEntity {
+  readonly _tag = "NotStartedGame";
+
+  private constructor(props: GameEntity["props"], opts: {
+    randomizeStrategy?: RandomizeStrategy;
+  } = {}) {
+    super({
+      ...props,
+      players: NotStartedGameEntity.ensurePlayersIncludeCreator(
+        props.players,
+        props.createdBy,
+      ),
+    }, opts.randomizeStrategy);
+  }
+
+  private static ensurePlayersIncludeCreator(
+    players: ReadonlyArray<PlayerId>,
+    createdBy: PlayerId,
+  ): NonEmptyReadonlyArray<PlayerId> {
+    return Arr.isNonEmptyReadonlyArray(players) ? players : Arr.of(createdBy);
+  }
+
+  static create(props: {
+    id: GameId;
+    createdBy: PlayerId;
+    deckId: DeckId;
+    endCondition: EndCondition;
+  }) {
+    return new NotStartedGameEntity({
+      ...props,
+      players: Arr.of(props.createdBy),
+      version: 1,
+    });
   }
 
   addPlayer(playerId: PlayerId) {
@@ -174,7 +209,7 @@ export class GameEntity {
       const updatedPlayers = Arr.append(this.props.players, playerId);
 
       return Effect.succeed(
-        new GameEntity({
+        new NotStartedGameEntity({
           ...this.props,
           players: updatedPlayers,
           version: this.props.version + 1,
@@ -203,7 +238,7 @@ export class GameEntity {
       }
 
       return Effect.succeed(
-        new GameEntity({
+        new NotStartedGameEntity({
           ...this.props,
           players: updatedPlayers,
           version: this.props.version + 1,
@@ -225,10 +260,6 @@ export class GameEntity {
         );
       }
 
-      if (this.props.status === GameStatus.Started) {
-        return Effect.fail(new Error("Game already started"));
-      }
-
       if (!this.props.players.includes(playerId)) {
         return Effect.fail(new Error("Player not in game"));
       }
@@ -238,27 +269,6 @@ export class GameEntity {
       }
 
       return this.startGameWithDeck(deck, startedAt);
-    });
-  }
-
-  submitClue(opts: {
-    playerId: PlayerId;
-    gameId: GameId;
-    cardId: CardId;
-    clue: string;
-  }) {
-    return Effect.gen(this, function* () {
-      const currentTurn = Option.getOrThrow(this.props.currentTurn);
-      const updatedTurn = yield* currentTurn.submitClue({
-        playerId: opts.playerId,
-        clue: opts.clue,
-      });
-
-      return new GameEntity({
-        ...this.props,
-        currentTurn: Option.some(updatedTurn),
-        version: this.props.version + 1,
-      });
     });
   }
 
@@ -279,17 +289,12 @@ export class GameEntity {
     });
 
     return Effect.succeed(
-      new GameEntity({
+      StartedGameEntity.create({
         ...this.props,
-        status: GameStatus.Started,
-        currentTurn: Option.some(turn),
+        currentTurn: turn,
         version: this.props.version + 1,
       }),
     );
-  }
-
-  private getNumberOfCardsPerPlayer(players: ReadonlyArray<PlayerId>) {
-    return players.length === 3 ? CARD_PER_PLAYER + 1 : CARD_PER_PLAYER;
   }
 
   private dealCards(props: {
@@ -317,38 +322,12 @@ export class GameEntity {
     return [hands, remainingCards] as const;
   }
 
-  static create(props: {
-    id: GameId;
-    createdBy: PlayerId;
-    deckId: DeckId;
-    endCondition: EndCondition;
-  }) {
-    return new GameEntity({
-      ...props,
-      players: GameEntity.ensurePlayersIncludeCreator([], props.createdBy),
-      status: GameStatus.Created,
-      currentTurn: Option.none(),
-      version: 1,
-    });
-  }
-
-  toSnapshot() {
-    return {
-      id: this.props.id as string,
-      createdBy: this.props.createdBy as string,
-      deckId: this.props.deckId as string,
-      endCondition: endConditionToSnapshot(this.props.endCondition),
-      players: this.props.players as ReadonlyArray<string>,
-      status: this.props.status,
-      version: this.props.version,
-      currentTurn: Option.map(this.props.currentTurn, (turn) => {
-        return turn.toSnapshot();
-      }),
-    };
+  private getNumberOfCardsPerPlayer(players: ReadonlyArray<PlayerId>) {
+    return players.length === 3 ? CARD_PER_PLAYER + 1 : CARD_PER_PLAYER;
   }
 
   static fromSnapshot(
-    snapshot: ReturnType<GameEntity["toSnapshot"]>,
+    snapshot: Omit<ReturnType<NotStartedGameEntity["toSnapshot"]>, "_tag">,
     opts: {
       randomizeStrategy?: RandomizeStrategy;
     } = {},
@@ -356,15 +335,80 @@ export class GameEntity {
     const createdBy = PlayerId(snapshot.createdBy);
     const playerIds = snapshot.players.map((playerId) => PlayerId(playerId));
 
-    return new GameEntity({
+    return new NotStartedGameEntity({
       id: GameId(snapshot.id),
       createdBy,
       deckId: DeckId(snapshot.deckId),
       endCondition: endConditionFromSnapshot(snapshot.endCondition),
-      players: GameEntity.ensurePlayersIncludeCreator(playerIds, createdBy),
-      status: snapshot.status,
+      players: NotStartedGameEntity.ensurePlayersIncludeCreator(
+        playerIds,
+        createdBy,
+      ),
       version: snapshot.version,
-      currentTurn: Option.none(),
-    }, opts.randomizeStrategy);
+    }, opts);
+  }
+}
+
+export class StartedGameEntity extends GameEntity {
+  readonly _tag = "StartedGame";
+
+  private constructor(
+    readonly props: GameEntity["props"] & {
+      currentTurn: TurnEntity;
+    },
+  ) {
+    super(props);
+  }
+
+  static create(
+    props: GameEntity["props"] & {
+      currentTurn: TurnEntity;
+    },
+  ) {
+    return new StartedGameEntity(props);
+  }
+
+  static fromSnapshot(
+    snapshot: Omit<ReturnType<StartedGameEntity["toSnapshot"]>, "_tag">,
+  ) {
+    return new StartedGameEntity({
+      id: GameId(snapshot.id),
+      createdBy: PlayerId(snapshot.createdBy),
+      deckId: DeckId(snapshot.deckId),
+      endCondition: endConditionFromSnapshot(snapshot.endCondition),
+      players: snapshot.players.map((playerId) =>
+        PlayerId(playerId)
+      ) as unknown as NonEmptyReadonlyArray<PlayerId>,
+      version: snapshot.version,
+      currentTurn: TurnEntity.fromSnapshot(snapshot.currentTurn),
+    });
+  }
+
+  toSnapshot() {
+    return {
+      ...super.toSnapshot(),
+      players: this.props.players as ReadonlyArray<string>,
+      currentTurn: this.props.currentTurn.toSnapshot(),
+    };
+  }
+
+  submitClue(opts: {
+    playerId: PlayerId;
+    gameId: GameId;
+    cardId: CardId;
+    clue: string;
+  }) {
+    return Effect.gen(this, function* () {
+      const updatedTurn = yield* this.props.currentTurn.submitClue({
+        playerId: opts.playerId,
+        clue: opts.clue,
+      });
+
+      return StartedGameEntity.create({
+        ...this.props,
+        currentTurn: updatedTurn,
+        version: this.props.version + 1,
+      });
+    });
   }
 }
