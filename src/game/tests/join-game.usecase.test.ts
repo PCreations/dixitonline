@@ -7,7 +7,7 @@ describe("Feature: Joining a game as a player", () => {
     return Effect.gen(function* () {
       const gameDriver = yield* GameDriver;
 
-      yield* gameDriver.given.existingGame({
+      yield* gameDriver.given.existingNonStartedGame({
         gameId: "id-game-1",
         hostId: "id-player-1",
       });
@@ -28,7 +28,7 @@ describe("Feature: Joining a game as a player", () => {
     return Effect.gen(function* () {
       const gameDriver = yield* GameDriver;
 
-      yield* gameDriver.given.existingGame({
+      yield* gameDriver.given.existingNonStartedGame({
         gameId: "id-game-1",
         hostId: "id-player-1",
         players: ["id-player-1", "id-player-2"],
@@ -85,7 +85,7 @@ describe("Feature: Joining a game as a player", () => {
       return Effect.gen(function* () {
         const gameDriver = yield* GameDriver;
 
-        yield* gameDriver.given.existingGame({
+        yield* gameDriver.given.existingNonStartedGame({
           gameId: "id-game-1",
           hostId: "id-player-1",
           players: [

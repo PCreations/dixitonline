@@ -119,8 +119,27 @@ export class NoopRandomizeStrategy implements RandomizeStrategy {
   }
 }
 
+export type GameStatus = Data.TaggedEnum<{
+  NotStartedGame: {};
+  StartedGame: {};
+}>;
+
+const {
+  $is,
+  NotStartedGame: NotStartedGameStatus,
+  StartedGame: StartedGameStatus,
+} = Data.taggedEnum<GameStatus>();
+
+export const isNotStartedGame = (
+  game: GameEntity,
+): game is NotStartedGameEntity => $is("NotStartedGame")(game.status);
+
+export const isStartedGame = (game: GameEntity): game is StartedGameEntity =>
+  $is("StartedGame")(game.status);
+
 export abstract class GameEntity {
-  abstract readonly _tag: string;
+  abstract readonly status: GameStatus;
+
   protected constructor(
     protected readonly props: {
       readonly id: GameId;
@@ -136,6 +155,8 @@ export abstract class GameEntity {
     this.props.players = this.randomizeStrategy.randomize(this.props.players);
   }
 
+  protected abstract createInstance(props: GameEntity["props"]): this;
+
   get id() {
     return this.props.id;
   }
@@ -148,10 +169,39 @@ export abstract class GameEntity {
     return this.props.deckId;
   }
 
+  removePlayer(playerId: PlayerId) {
+    return Effect.suspend(() => {
+      if (!this.props.players.includes(playerId)) {
+        return Effect.fail(new Error("Player not in game"));
+      }
+
+      if (playerId === this.props.createdBy) {
+        return Effect.fail(new Error("Host cannot leave the game"));
+      }
+
+      const updatedPlayers = Arr.filter(
+        this.props.players,
+        (player) => player !== playerId,
+      );
+
+      if (!isNonEmptyReadonlyArray(updatedPlayers)) {
+        return Effect.fail(new Error("Game is empty"));
+      }
+
+      return Effect.succeed(
+        this.createInstance({
+          ...this.props,
+          players: updatedPlayers,
+          version: this.props.version + 1,
+        }),
+      );
+    });
+  }
+
   toSnapshot() {
     return {
       id: this.props.id as string,
-      _tag: this._tag,
+      status: this.status,
       createdBy: this.props.createdBy as string,
       deckId: this.props.deckId as string,
       endCondition: endConditionToSnapshot(this.props.endCondition),
@@ -162,7 +212,7 @@ export abstract class GameEntity {
 }
 
 export class NotStartedGameEntity extends GameEntity {
-  readonly _tag = "NotStartedGame";
+  readonly status = NotStartedGameStatus();
 
   private constructor(props: GameEntity["props"], opts: {
     randomizeStrategy?: RandomizeStrategy;
@@ -181,6 +231,10 @@ export class NotStartedGameEntity extends GameEntity {
     createdBy: PlayerId,
   ): NonEmptyReadonlyArray<PlayerId> {
     return Arr.isNonEmptyReadonlyArray(players) ? players : Arr.of(createdBy);
+  }
+
+  protected createInstance(props: GameEntity["props"]): this {
+    return new NotStartedGameEntity(props) as this;
   }
 
   static create(props: {
@@ -207,35 +261,6 @@ export class NotStartedGameEntity extends GameEntity {
       }
 
       const updatedPlayers = Arr.append(this.props.players, playerId);
-
-      return Effect.succeed(
-        new NotStartedGameEntity({
-          ...this.props,
-          players: updatedPlayers,
-          version: this.props.version + 1,
-        }),
-      );
-    });
-  }
-
-  removePlayer(playerId: PlayerId) {
-    return Effect.suspend(() => {
-      if (!this.props.players.includes(playerId)) {
-        return Effect.fail(new Error("Player not in game"));
-      }
-
-      if (playerId === this.props.createdBy) {
-        return Effect.fail(new Error("Host cannot leave the game"));
-      }
-
-      const updatedPlayers = Arr.filter(
-        this.props.players,
-        (player) => player !== playerId,
-      );
-
-      if (!isNonEmptyReadonlyArray(updatedPlayers)) {
-        return Effect.fail(new Error("Game is empty"));
-      }
 
       return Effect.succeed(
         new NotStartedGameEntity({
@@ -285,7 +310,7 @@ export class NotStartedGameEntity extends GameEntity {
       currentStorytellerId: this.props.players[0],
       playerHands: hands,
       cardsInDrawPile: remainingCards,
-      turnStartedAt: startedAt,
+      startedAt: startedAt,
     });
 
     return Effect.succeed(
@@ -327,7 +352,7 @@ export class NotStartedGameEntity extends GameEntity {
   }
 
   static fromSnapshot(
-    snapshot: Omit<ReturnType<NotStartedGameEntity["toSnapshot"]>, "_tag">,
+    snapshot: Omit<ReturnType<NotStartedGameEntity["toSnapshot"]>, "status">,
     opts: {
       randomizeStrategy?: RandomizeStrategy;
     } = {},
@@ -350,7 +375,7 @@ export class NotStartedGameEntity extends GameEntity {
 }
 
 export class StartedGameEntity extends GameEntity {
-  readonly _tag = "StartedGame";
+  readonly status = StartedGameStatus();
 
   private constructor(
     readonly props: GameEntity["props"] & {
@@ -368,8 +393,16 @@ export class StartedGameEntity extends GameEntity {
     return new StartedGameEntity(props);
   }
 
+  protected createInstance(
+    props: GameEntity["props"] & {
+      currentTurn: TurnEntity;
+    },
+  ): this {
+    return new StartedGameEntity(props) as this;
+  }
+
   static fromSnapshot(
-    snapshot: Omit<ReturnType<StartedGameEntity["toSnapshot"]>, "_tag">,
+    snapshot: Omit<ReturnType<StartedGameEntity["toSnapshot"]>, "status">,
   ) {
     return new StartedGameEntity({
       id: GameId(snapshot.id),

@@ -3,6 +3,7 @@ import { describe, expect, test } from "vitest";
 import { Card, CardId, DeckEntity, DeckId } from "../deck.entity.js";
 import {
   GameId,
+  isStartedGame,
   NotStartedGameEntity,
   StartedGameEntity,
 } from "../game.entity.js";
@@ -104,7 +105,7 @@ describe("Game logic", () => {
 
       const gameSnapshot = updatedGame.toSnapshot();
       expect(gameSnapshot.version).toBe(2);
-      expect(gameSnapshot._tag).toBe("StartedGame");
+      expect(isStartedGame(updatedGame)).toBe(true);
       expect(gameSnapshot.currentTurn).toStrictEqual({
         id: TurnId("game-id-turn-1"),
         gameId: GameId("game-id"),

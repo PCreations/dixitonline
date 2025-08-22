@@ -4,10 +4,11 @@ import { CreateGameUseCase } from "../create-game.usecase.js";
 import { DeckEntity, DeckId } from "../deck.entity.js";
 import { DeckRepository, InMemoryDeckRepository } from "../deck.repository.js";
 import {
-  GameEntity,
   GameStatus,
+  isStartedGame,
   MAX_PLAYERS,
   MIN_PLAYERS,
+  NotStartedGameEntity,
 } from "../game.entity.js";
 import { GameRepository, InMemoryGameRepository } from "../game.repository.js";
 import { GameLayerWithoutDependencies } from "../index.js";
@@ -31,7 +32,7 @@ interface GameDriverDSL {
       props: { id: string; withShuffledCards?: ReadonlyArray<string> },
     ) => Effect.Effect<void>;
     readonly existingDeck: (props: { id: string }) => Effect.Effect<void>;
-    readonly existingGame: (props: {
+    readonly existingNonStartedGame: (props: {
       gameId: string;
       hostId: string;
       players?: ReadonlyArray<string>;
@@ -43,7 +44,6 @@ interface GameDriverDSL {
     readonly existingGameWithMinimumNumberOfPlayers: (props: {
       gameId: string;
       hostId: string;
-      started?: boolean;
     }) => Effect.Effect<void>;
   };
   readonly when: {
@@ -138,7 +138,7 @@ const makeUnitTestGameDriver = ({
       deckRepository.save(
         DeckEntity.create({ id: DeckId(props.id), isDefault: false }),
       ),
-    existingGame: (props) => {
+    existingNonStartedGame: (props) => {
       return Effect.gen(function* () {
         const defaultDeckId = DeckId("default-deck-id");
         yield* deckRepository.save(
@@ -146,7 +146,7 @@ const makeUnitTestGameDriver = ({
         );
         yield* Effect.either(
           gameRepository.save(
-            GameEntity.fromSnapshot({
+            NotStartedGameEntity.fromSnapshot({
               id: props.gameId,
               deckId: defaultDeckId,
               createdBy: props.hostId,
@@ -155,9 +155,7 @@ const makeUnitTestGameDriver = ({
                 numberOfTimes: 3,
               },
               players: props.players ?? [],
-              status: props.status ?? GameStatus.Created,
               version: 1,
-              currentTurn: Option.none(),
             }),
           ),
         );
@@ -165,7 +163,7 @@ const makeUnitTestGameDriver = ({
     },
     existingFullGame: (props) => {
       return Effect.gen(function* () {
-        yield* given.existingGame({
+        yield* given.existingNonStartedGame({
           gameId: props.gameId,
           hostId: "id-player-1",
           players: Array.from(
@@ -177,10 +175,9 @@ const makeUnitTestGameDriver = ({
     },
     existingGameWithMinimumNumberOfPlayers: (props) => {
       return Effect.gen(function* () {
-        yield* given.existingGame({
+        yield* given.existingNonStartedGame({
           gameId: props.gameId,
           hostId: props.hostId,
-          status: props.started ? GameStatus.Started : GameStatus.Created,
           players: Array.from(
             { length: MIN_PLAYERS },
             (_, i) => `id-player-${i + 1}`,
@@ -225,10 +222,10 @@ const makeUnitTestGameDriver = ({
     joiningGameWhileAnotherPlayerJustJoinedInBetween: (props) => {
       return Effect.gen(function* () {
         const game = Option.getOrThrow(
-          yield* gameRepository.findById(props.gameId),
+          yield* gameRepository.findNotStartedGameById(props.gameId),
         );
 
-        const newGameEntity = GameEntity.fromSnapshot({
+        const newGameEntity = NotStartedGameEntity.fromSnapshot({
           ...game.toSnapshot(),
           players: [
             ...game.toSnapshot().players,
@@ -280,10 +277,10 @@ const makeUnitTestGameDriver = ({
     startingGameWhileAnotherPlayerLeftInBetween: (props) => {
       return Effect.gen(function* () {
         const game = Option.getOrThrow(
-          yield* gameRepository.findById(props.gameId),
+          yield* gameRepository.findNotStartedGameById(props.gameId),
         );
 
-        const newGameEntity = GameEntity.fromSnapshot({
+        const newGameEntity = NotStartedGameEntity.fromSnapshot({
           ...game.toSnapshot(),
           players: [...game.toSnapshot().players].filter(
             (player) => player !== props.playerThatHasLeftInBetween,
@@ -319,14 +316,15 @@ const makeUnitTestGameDriver = ({
 
         Option.map(createdGame, (gameEntity) =>
           expect(gameEntity.toSnapshot()).toEqual({
+            status: {
+              _tag: "NotStartedGame",
+            },
             id: game.id,
             createdBy: game.createdBy,
             deckId: game.deckId,
             endCondition: game.endCondition ?? defaultEndCondition,
             players: game.players,
-            status: GameStatus.Created,
             version: 1,
-            currentTurn: Option.none(),
           }));
       }),
     playerToHaveJoinedGame: (props) =>
@@ -366,9 +364,9 @@ const makeUnitTestGameDriver = ({
     gameToHaveBeenStarted: (props) => {
       return Effect.gen(function* () {
         const game = Option.getOrThrow(
-          yield* gameRepository.findById(props.gameId),
+          yield* gameRepository.findStartedGameById(props.gameId),
         );
-        expect(game.toSnapshot().status).toEqual(GameStatus.Started);
+        expect(isStartedGame(game)).toBe(true);
       });
     },
   };

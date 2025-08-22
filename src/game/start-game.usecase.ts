@@ -19,7 +19,9 @@ export class StartGameUseCase extends Effect.Service<StartGameUseCase>()(
       return {
         startGame: (props: StartGameCommand) => {
           const startGameLogic = Effect.gen(function* () {
-            const game = yield* gameRepository.findById(props.gameId);
+            const game = yield* gameRepository.findNotStartedGameById(
+              props.gameId,
+            );
             const gameEntity = yield* Option.match(game, {
               onNone: () => Effect.fail(new Error("Game not found")),
               onSome: Effect.succeed,
@@ -35,7 +37,7 @@ export class StartGameUseCase extends Effect.Service<StartGameUseCase>()(
               playerId: PlayerId(props.playerId),
               deck: deckEntity,
               startedAt: new Date(),
-            });
+            }); //?
 
             yield* gameRepository.save(updatedGame);
           });

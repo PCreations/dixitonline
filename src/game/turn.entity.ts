@@ -28,7 +28,7 @@ export class TurnEntity {
     currentStorytellerId: PlayerId;
     playerHands: ReadonlyArray<PlayerHand>;
     cardsInDrawPile: ReadonlyArray<Card>;
-    turnStartedAt: Date;
+    startedAt: Date;
   }) {
     return new TurnEntity({
       ...props,
@@ -37,7 +37,7 @@ export class TurnEntity {
       currentStorytellerId: props.currentStorytellerId,
       playerHands: props.playerHands,
       cardsInDrawPile: props.cardsInDrawPile,
-      startedAt: props.turnStartedAt,
+      startedAt: props.startedAt,
       turnClue: Option.none(),
       phase: "storytelling",
       turnNumber: 1,

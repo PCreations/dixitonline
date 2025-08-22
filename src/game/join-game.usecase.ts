@@ -1,10 +1,7 @@
 import { Effect, Option } from "effect";
-import {
-  GameRepository,
-  InMemoryGameRepository,
-} from "./game.repository.js";
-import { PlayerId } from "./player.entity.js";
+import { GameRepository, InMemoryGameRepository } from "./game.repository.js";
 import { withOptimisticRetry } from "./optimistic-retry.js";
+import { PlayerId } from "./player.entity.js";
 
 export type JoinGameCommand = {
   gameId: string;
@@ -20,7 +17,9 @@ export class JoinGameUseCase extends Effect.Service<JoinGameUseCase>()(
       return {
         joinGame: (props: JoinGameCommand) => {
           const joinGameLogic = Effect.gen(function* () {
-            const game = yield* gameRepository.findById(props.gameId);
+            const game = yield* gameRepository.findNotStartedGameById(
+              props.gameId,
+            );
 
             return yield* Option.match(game, {
               onNone: () => Effect.fail(new Error("Game not found")),

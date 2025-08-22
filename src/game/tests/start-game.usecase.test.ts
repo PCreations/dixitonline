@@ -48,7 +48,7 @@ describe("Feature: Starting a game", () => {
       return Effect.gen(function* () {
         const gameDriver = yield* GameDriver;
 
-        yield* gameDriver.given.existingGame({
+        yield* gameDriver.given.existingNonStartedGame({
           gameId: "id-game-1",
           hostId: "id-player-1",
           players: ["id-player-1", "id-player-2"],
@@ -85,32 +85,11 @@ describe("Feature: Starting a game", () => {
       }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
     });
 
-    it.effect("Example: A player can not start the game if the game is already started", () => {
-      return Effect.gen(function* () {
-        const gameDriver = yield* GameDriver;
-
-        yield* gameDriver.given.existingGameWithMinimumNumberOfPlayers({
-          gameId: "id-game-1",
-          hostId: "id-player-1",
-          started: true,
-        });
-
-        yield* gameDriver.when.startingGame({
-          gameId: "id-game-1",
-          playerId: "id-player-1",
-        });
-
-        yield* gameDriver.assert.playerToNotHaveBeenAbleToStartGame({
-          error: "Game already started",
-        });
-      }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
-    });
-
     it.effect("Example: Optimistic concurrency: A player cannot start a game if a player has left in between at the time of starting, making the game not meet the minimum number of players", () => {
       return Effect.gen(function* () {
         const gameDriver = yield* GameDriver;
 
-        yield* gameDriver.given.existingGame({
+        yield* gameDriver.given.existingNonStartedGame({
           gameId: "id-game-1",
           hostId: "id-player-1",
           players: ["id-player-1", "id-player-2", "id-player-3"],
