@@ -110,6 +110,20 @@ export class PlayerHand {
 
 const CARD_PER_PLAYER = 6;
 
+export interface RandomizeStrategy {
+  randomize(
+    players: NonEmptyReadonlyArray<PlayerId>,
+  ): NonEmptyReadonlyArray<PlayerId>;
+}
+
+export class NoopRandomizeStrategy implements RandomizeStrategy {
+  randomize(
+    players: NonEmptyReadonlyArray<PlayerId>,
+  ): NonEmptyReadonlyArray<PlayerId> {
+    return players;
+  }
+}
+
 export class GameEntity {
   private constructor(
     private readonly props: {
@@ -117,12 +131,16 @@ export class GameEntity {
       readonly createdBy: PlayerId;
       readonly deckId: DeckId;
       readonly endCondition: EndCondition;
-      readonly players: NonEmptyReadonlyArray<PlayerId>;
+      players: NonEmptyReadonlyArray<PlayerId>;
       readonly status: GameStatus;
       readonly version: number;
       readonly currentTurn: Option.Option<TurnEntity>; // @TODO: when we have a proper StartedGameEntity we can remove this, and just have a TurnEntity without Option in it.
     },
-  ) {}
+    private readonly randomizeStrategy: RandomizeStrategy =
+      new NoopRandomizeStrategy(),
+  ) {
+    this.props.players = this.randomizeStrategy.randomize(this.props.players);
+  }
 
   private static ensurePlayersIncludeCreator(
     players: ReadonlyArray<PlayerId>,
@@ -223,7 +241,7 @@ export class GameEntity {
     const turn = TurnEntity.create({
       id: TurnId(`${this.props.id}-turn-1`),
       gameId: this.props.id,
-      currentStorytellerId: this.props.createdBy,
+      currentStorytellerId: this.props.players[0],
       playerHands: hands,
       cardsInDrawPile: remainingCards,
       turnStartedAt: startedAt,
@@ -298,7 +316,12 @@ export class GameEntity {
     };
   }
 
-  static fromSnapshot(snapshot: ReturnType<GameEntity["toSnapshot"]>) {
+  static fromSnapshot(
+    snapshot: ReturnType<GameEntity["toSnapshot"]>,
+    opts: {
+      randomizeStrategy?: RandomizeStrategy;
+    } = {},
+  ) {
     const createdBy = PlayerId(snapshot.createdBy);
     const playerIds = snapshot.players.map((playerId) => PlayerId(playerId));
 
@@ -311,6 +334,6 @@ export class GameEntity {
       status: snapshot.status,
       version: snapshot.version,
       currentTurn: Option.none(),
-    });
+    }, opts.randomizeStrategy);
   }
 }

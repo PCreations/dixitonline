@@ -23,6 +23,7 @@ const createDeckWithXcards = (x: number) => {
 
 const createTestGame = (
   props: Partial<Parameters<typeof GameEntity["fromSnapshot"]>[0]>,
+  opts: Parameters<typeof GameEntity["fromSnapshot"]>[1] = {},
 ) => {
   const { deck: defaultDeck } = createDeckWithXcards(25);
   return {
@@ -39,7 +40,7 @@ const createTestGame = (
       version: 1,
       currentTurn: Option.none(),
       ...props,
-    }),
+    }, opts),
     deck: defaultDeck,
   };
 };
@@ -118,5 +119,31 @@ describe.only("Game logic", () => {
     expect(currentTurn.playerHands[0].cards.length).toBe(7);
     expect(currentTurn.playerHands[1].cards.length).toBe(7);
     expect(currentTurn.playerHands[2].cards.length).toBe(7);
+  });
+
+  test("Players orders can be randomized", () => {
+    const now = new Date();
+    const { game, deck } = createTestGame({
+      players: ["player-id", "player-id-2", "player-id-3"],
+    }, {
+      randomizeStrategy: {
+        randomize: (players) => [players[2], players[0], players[1]],
+      },
+    });
+
+    const updatedGame = Effect.runSync(game.start({
+      playerId: PlayerId("player-id"),
+      deck,
+      startedAt: now,
+    }));
+
+    const gameSnapshot = updatedGame.toSnapshot();
+    expect(gameSnapshot.players).toEqual([
+      "player-id-3",
+      "player-id",
+      "player-id-2",
+    ]);
+    const currentTurn = Option.getOrThrow(gameSnapshot.currentTurn);
+    expect(currentTurn.currentStorytellerId).toBe(PlayerId("player-id-3"));
   });
 });
