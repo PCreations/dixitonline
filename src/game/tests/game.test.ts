@@ -21,6 +21,29 @@ const createDeckWithXcards = (x: number) => {
   return { deck, cards };
 };
 
+const createTestGame = (
+  props: Partial<Parameters<typeof GameEntity["fromSnapshot"]>[0]>,
+) => {
+  const { deck: defaultDeck } = createDeckWithXcards(25);
+  return {
+    game: GameEntity.fromSnapshot({
+      id: GameId("game-id"),
+      createdBy: PlayerId("player-id"),
+      deckId: defaultDeck.id,
+      endCondition: {
+        type: "NumberOfTimesBeingStoryteller",
+        numberOfTimes: 3,
+      },
+      players: ["player-id", "player-id-2", "player-id-3", "player-id-4"],
+      status: GameStatus.Created,
+      version: 1,
+      currentTurn: Option.none(),
+      ...props,
+    }),
+    deck: defaultDeck,
+  };
+};
+
 /**
  * For these tests, the Game Entity become our entry point. Thus, everything exported from Game Entity is considered public API.
  */
@@ -30,7 +53,7 @@ describe.only("Game logic", () => {
     const { deck, cards } = createDeckWithXcards(25);
     const cardChunks = Arr.chunksOf(cards, 6);
     const remainingCard = cards.at(-1);
-    const game = GameEntity.fromSnapshot({
+    const { game } = createTestGame({
       id: GameId("game-id"),
       createdBy: PlayerId("player-id"),
       deckId: deck.id,
@@ -51,7 +74,6 @@ describe.only("Game logic", () => {
     }));
 
     const gameSnapshot = updatedGame.toSnapshot();
-
     expect(gameSnapshot.version).toBe(2);
     expect(gameSnapshot.status).toBe(GameStatus.Started);
     expect(gameSnapshot.currentTurn).toStrictEqual(Option.some({
@@ -81,19 +103,8 @@ describe.only("Game logic", () => {
 
   test("Players receive 7 cards instead of 6 when the number of players is 3", () => {
     const now = new Date();
-    const { deck } = createDeckWithXcards(25);
-    const game = GameEntity.fromSnapshot({
-      id: GameId("game-id"),
-      createdBy: PlayerId("player-id"),
-      deckId: deck.id,
-      endCondition: {
-        type: "NumberOfTimesBeingStoryteller",
-        numberOfTimes: 3,
-      },
+    const { deck, game } = createTestGame({
       players: ["player-id", "player-id-2", "player-id-3"],
-      status: GameStatus.Created,
-      version: 1,
-      currentTurn: Option.none(),
     });
 
     const updatedGame = Effect.runSync(game.start({
@@ -103,7 +114,6 @@ describe.only("Game logic", () => {
     }));
 
     const gameSnapshot = updatedGame.toSnapshot();
-
     const currentTurn = Option.getOrThrow(gameSnapshot.currentTurn);
     expect(currentTurn.playerHands[0].cards.length).toBe(7);
     expect(currentTurn.playerHands[1].cards.length).toBe(7);
