@@ -31,10 +31,11 @@ export class StartGameUseCase extends Effect.Service<StartGameUseCase>()(
               onSome: Effect.succeed,
             });
 
-            const updatedGame = yield* gameEntity.start(
-              PlayerId(props.playerId),
-              deckEntity,
-            );
+            const updatedGame = yield* gameEntity.start({
+              playerId: PlayerId(props.playerId),
+              deck: deckEntity,
+              startedAt: new Date(),
+            });
 
             yield* gameRepository.save(updatedGame);
           });

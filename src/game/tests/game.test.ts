@@ -48,7 +48,7 @@ const createTestGame = (
 /**
  * For these tests, the Game Entity become our entry point. Thus, everything exported from Game Entity is considered public API.
  */
-describe.only("Game logic", () => {
+describe("Game logic", () => {
   test("Game can be started", () => {
     const now = new Date();
     const { deck, cards } = createDeckWithXcards(25);

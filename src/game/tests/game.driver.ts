@@ -157,6 +157,7 @@ const makeUnitTestGameDriver = ({
               players: props.players ?? [],
               status: props.status ?? GameStatus.Created,
               version: 1,
+              currentTurn: Option.none(),
             }),
           ),
         );
@@ -325,6 +326,7 @@ const makeUnitTestGameDriver = ({
             players: game.players,
             status: GameStatus.Created,
             version: 1,
+            currentTurn: Option.none(),
           }));
       }),
     playerToHaveJoinedGame: (props) =>
