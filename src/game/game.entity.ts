@@ -1,6 +1,6 @@
 import { Array as Arr, Brand, Data, Effect, Option, pipe } from "effect";
 import { NonEmptyReadonlyArray } from "effect/Array";
-import { Card, DeckEntity, DeckId } from "./deck.entity.js";
+import { Card, CardId, DeckEntity, DeckId } from "./deck.entity.js";
 import { PlayerId } from "./player.entity.js";
 import { TurnEntity, TurnId } from "./turn.entity.js";
 
@@ -149,6 +149,10 @@ export class GameEntity {
     return Arr.isNonEmptyReadonlyArray(players) ? players : Arr.of(createdBy);
   }
 
+  get id() {
+    return this.props.id;
+  }
+
   get version() {
     return this.props.version;
   }
@@ -157,78 +161,105 @@ export class GameEntity {
     return this.props.deckId;
   }
 
-  addPlayer(playerId: PlayerId): Effect.Effect<GameEntity, Error, never> {
-    if (this.props.players.includes(playerId)) {
-      return Effect.fail(new Error("Player already in game"));
-    }
+  addPlayer(playerId: PlayerId) {
+    return Effect.suspend(() => {
+      if (this.props.players.includes(playerId)) {
+        return Effect.fail(new Error("Player already in game"));
+      }
 
-    if (this.props.players.length >= MAX_PLAYERS) {
-      return Effect.fail(new Error("Game is full"));
-    }
+      if (this.props.players.length >= MAX_PLAYERS) {
+        return Effect.fail(new Error("Game is full"));
+      }
 
-    const updatedPlayers = Arr.append(this.props.players, playerId);
+      const updatedPlayers = Arr.append(this.props.players, playerId);
 
-    return Effect.succeed(
-      new GameEntity({
-        ...this.props,
-        players: updatedPlayers,
-        version: this.props.version + 1,
-      }),
-    );
+      return Effect.succeed(
+        new GameEntity({
+          ...this.props,
+          players: updatedPlayers,
+          version: this.props.version + 1,
+        }),
+      );
+    });
   }
 
-  removePlayer(playerId: PlayerId): Effect.Effect<GameEntity, Error, never> {
-    if (!this.props.players.includes(playerId)) {
-      return Effect.fail(new Error("Player not in game"));
-    }
+  removePlayer(playerId: PlayerId) {
+    return Effect.suspend(() => {
+      if (!this.props.players.includes(playerId)) {
+        return Effect.fail(new Error("Player not in game"));
+      }
 
-    if (playerId === this.props.createdBy) {
-      return Effect.fail(new Error("Host cannot leave the game"));
-    }
+      if (playerId === this.props.createdBy) {
+        return Effect.fail(new Error("Host cannot leave the game"));
+      }
 
-    const updatedPlayers = Arr.filter(
-      this.props.players,
-      (player) => player !== playerId,
-    );
+      const updatedPlayers = Arr.filter(
+        this.props.players,
+        (player) => player !== playerId,
+      );
 
-    if (!isNonEmptyReadonlyArray(updatedPlayers)) {
-      return Effect.fail(new Error("Game is empty"));
-    }
+      if (!isNonEmptyReadonlyArray(updatedPlayers)) {
+        return Effect.fail(new Error("Game is empty"));
+      }
 
-    return Effect.succeed(
-      new GameEntity({
-        ...this.props,
-        players: updatedPlayers,
-        version: this.props.version + 1,
-      }),
-    );
+      return Effect.succeed(
+        new GameEntity({
+          ...this.props,
+          players: updatedPlayers,
+          version: this.props.version + 1,
+        }),
+      );
+    });
   }
 
   start(opts: {
     playerId: PlayerId;
     deck: DeckEntity;
     startedAt: Date;
-  }): Effect.Effect<GameEntity, Error, never> {
-    const { playerId, deck, startedAt } = opts;
-    if (this.props.players.length < MIN_PLAYERS) {
-      return Effect.fail(
-        new Error("The game does not meet the minimum number of players"),
-      );
-    }
+  }) {
+    return Effect.suspend(() => {
+      const { playerId, deck, startedAt } = opts;
+      if (this.props.players.length < MIN_PLAYERS) {
+        return Effect.fail(
+          new Error("The game does not meet the minimum number of players"),
+        );
+      }
 
-    if (this.props.status === GameStatus.Started) {
-      return Effect.fail(new Error("Game already started"));
-    }
+      if (this.props.status === GameStatus.Started) {
+        return Effect.fail(new Error("Game already started"));
+      }
 
-    if (!this.props.players.includes(playerId)) {
-      return Effect.fail(new Error("Player not in game"));
-    }
+      if (!this.props.players.includes(playerId)) {
+        return Effect.fail(new Error("Player not in game"));
+      }
 
-    if (playerId !== this.props.createdBy) {
-      return Effect.fail(new Error("Only the host can start the game"));
-    }
+      if (playerId !== this.props.createdBy) {
+        return Effect.fail(new Error("Only the host can start the game"));
+      }
 
-    return this.startGameWithDeck(deck, startedAt);
+      return this.startGameWithDeck(deck, startedAt);
+    });
+  }
+
+  submitClue(opts: {
+    playerId: PlayerId;
+    gameId: GameId;
+    cardId: CardId;
+    clue: string;
+  }) {
+    return Effect.gen(this, function* () {
+      const currentTurn = Option.getOrThrow(this.props.currentTurn);
+      const updatedTurn = yield* currentTurn.submitClue({
+        playerId: opts.playerId,
+        clue: opts.clue,
+      });
+
+      return new GameEntity({
+        ...this.props,
+        currentTurn: Option.some(updatedTurn),
+        version: this.props.version + 1,
+      });
+    });
   }
 
   private startGameWithDeck(deck: DeckEntity, startedAt: Date) {

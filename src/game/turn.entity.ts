@@ -1,6 +1,6 @@
-import { Brand, Option } from "effect";
+import { Brand, Effect, Option } from "effect";
 import { type Card } from "./deck.entity.js";
-import { type GameId, type PlayerHand } from "./game.entity.js";
+import { GameId, PlayerHand } from "./game.entity.js";
 import { PlayerId } from "./player.entity.js";
 
 export type TurnId = string & Brand.Brand<"TurnId">;
@@ -46,12 +46,12 @@ export class TurnEntity {
 
   toSnapshot() {
     return {
-      id: this.props.id,
-      gameId: this.props.gameId,
-      currentStorytellerId: this.props.currentStorytellerId,
+      id: this.props.id as string,
+      gameId: this.props.gameId as string,
+      currentStorytellerId: this.props.currentStorytellerId as string,
       playerHands: this.props.playerHands.map((hand) => {
         return {
-          playerId: hand.playerId,
+          playerId: hand.playerId as string,
           cards: hand.cards,
         };
       }),
@@ -61,6 +61,25 @@ export class TurnEntity {
       turnClue: this.props.turnClue,
       startedAt: this.props.startedAt,
     };
+  }
+
+  static fromSnapshot(snapshot: ReturnType<TurnEntity["toSnapshot"]>) {
+    return new TurnEntity({
+      id: TurnId(snapshot.id),
+      gameId: GameId(snapshot.gameId),
+      currentStorytellerId: PlayerId(snapshot.currentStorytellerId),
+      playerHands: snapshot.playerHands.map((hand) => {
+        return PlayerHand.create({
+          playerId: PlayerId(hand.playerId),
+          cards: hand.cards,
+        });
+      }),
+      cardsInDrawPile: snapshot.cardsInDrawPile,
+      phase: snapshot.phase,
+      turnNumber: snapshot.turnNumber,
+      turnClue: snapshot.turnClue,
+      startedAt: snapshot.startedAt,
+    });
   }
 
   get id() {
@@ -81,5 +100,21 @@ export class TurnEntity {
 
   get startedAt() {
     return this.props.startedAt;
+  }
+
+  submitClue(opts: {
+    playerId: PlayerId;
+    clue: string;
+  }): Effect.Effect<TurnEntity, Error, never> {
+    if (this.props.currentStorytellerId !== opts.playerId) {
+      return Effect.fail(new Error("Only the storyteller can submit a clue"));
+    }
+
+    return Effect.succeed(
+      new TurnEntity({
+        ...this.props,
+        turnClue: Option.some(opts.clue),
+      }),
+    );
   }
 }
