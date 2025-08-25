@@ -1,5 +1,9 @@
 import { Effect, Option } from "effect";
 import { DeckRepository, InMemoryDeckRepository } from "./deck.repository.js";
+import {
+  NoopRandomizeStrategy,
+  PlayersRandomizeStrategy,
+} from "./game.entity.js";
 import { GameRepository, InMemoryGameRepository } from "./game.repository.js";
 import { withOptimisticRetry } from "./optimistic-retry.js";
 import { PlayerId } from "./player.entity.js";
@@ -15,6 +19,7 @@ export class StartGameUseCase extends Effect.Service<StartGameUseCase>()(
     effect: Effect.gen(function* () {
       const gameRepository = yield* GameRepository;
       const deckRepository = yield* DeckRepository;
+      const randomizeStrategy = yield* PlayersRandomizeStrategy;
 
       return {
         startGame: (props: StartGameCommand) => {
@@ -37,7 +42,8 @@ export class StartGameUseCase extends Effect.Service<StartGameUseCase>()(
               playerId: PlayerId(props.playerId),
               deck: deckEntity,
               startedAt: new Date(),
-            }); //?
+              randomizeStrategy: randomizeStrategy,
+            });
 
             yield* gameRepository.save(updatedGame);
           });
@@ -46,6 +52,10 @@ export class StartGameUseCase extends Effect.Service<StartGameUseCase>()(
         },
       };
     }),
-    dependencies: [InMemoryGameRepository, InMemoryDeckRepository],
+    dependencies: [
+      InMemoryGameRepository,
+      InMemoryDeckRepository,
+      NoopRandomizeStrategy,
+    ],
   },
 ) {}

@@ -1,4 +1,13 @@
-import { Array as Arr, Brand, Data, Effect, Option, pipe } from "effect";
+import {
+  Array as Arr,
+  Brand,
+  Context,
+  Data,
+  Effect,
+  Layer,
+  Option,
+  pipe,
+} from "effect";
 import { NonEmptyReadonlyArray } from "effect/Array";
 import { Card, CardId, DeckEntity, DeckId } from "./deck.entity.js";
 import { PlayerId } from "./player.entity.js";
@@ -105,19 +114,46 @@ export class PlayerHand {
 
 const CARD_PER_PLAYER = 6;
 
-export interface RandomizeStrategy {
-  randomize(
-    players: NonEmptyReadonlyArray<PlayerId>,
-  ): NonEmptyReadonlyArray<PlayerId>;
-}
+export class PlayersRandomizeStrategy
+  extends Context.Tag("game/PlayersRandomizeStrategy")<
+    PlayersRandomizeStrategy,
+    {
+      readonly type: string;
+      randomize: (
+        players: NonEmptyReadonlyArray<PlayerId>,
+      ) => NonEmptyReadonlyArray<PlayerId>;
+    }
+  >() {}
 
-export class NoopRandomizeStrategy implements RandomizeStrategy {
-  randomize(
-    players: NonEmptyReadonlyArray<PlayerId>,
-  ): NonEmptyReadonlyArray<PlayerId> {
-    return players;
-  }
-}
+export type PlayersRandomizeStrategyType = Context.Tag.Service<
+  PlayersRandomizeStrategy
+>;
+
+const makeNoopRandomizeStrategy = (): PlayersRandomizeStrategyType => {
+  return {
+    type: "noop",
+    randomize: (players) => players,
+  };
+};
+
+export const NoopRandomizeStrategy = Layer.sync(
+  PlayersRandomizeStrategy,
+  makeNoopRandomizeStrategy,
+);
+
+const makeShuffleRandomizeStrategy = (): PlayersRandomizeStrategyType => {
+  return {
+    type: "shuffle",
+    randomize: (players) => {
+      return Arr.sort(players, () => (Math.random() < 0.5 ? -1 : 1));
+    },
+  };
+};
+
+export const ShuffleRandomizeStrategy = Layer.sync(
+  PlayersRandomizeStrategy,
+  makeShuffleRandomizeStrategy,
+);
 
 export type GameStatus = Data.TaggedEnum<{
   NotStartedGame: {};
@@ -149,11 +185,7 @@ export abstract class GameEntity {
       players: NonEmptyReadonlyArray<PlayerId>;
       readonly version: number;
     },
-    protected readonly randomizeStrategy: RandomizeStrategy =
-      new NoopRandomizeStrategy(),
-  ) {
-    this.props.players = this.randomizeStrategy.randomize(this.props.players);
-  }
+  ) {}
 
   protected abstract createInstance(props: GameEntity["props"]): this;
 
@@ -214,16 +246,14 @@ export abstract class GameEntity {
 export class NotStartedGameEntity extends GameEntity {
   readonly status = NotStartedGameStatus();
 
-  private constructor(props: GameEntity["props"], opts: {
-    randomizeStrategy?: RandomizeStrategy;
-  } = {}) {
+  private constructor(props: GameEntity["props"]) {
     super({
       ...props,
       players: NotStartedGameEntity.ensurePlayersIncludeCreator(
         props.players,
         props.createdBy,
       ),
-    }, opts.randomizeStrategy);
+    });
   }
 
   private static ensurePlayersIncludeCreator(
@@ -276,9 +306,10 @@ export class NotStartedGameEntity extends GameEntity {
     playerId: PlayerId;
     deck: DeckEntity;
     startedAt: Date;
+    randomizeStrategy: PlayersRandomizeStrategyType;
   }) {
     return Effect.suspend(() => {
-      const { playerId, deck, startedAt } = opts;
+      const { playerId, deck, startedAt, randomizeStrategy } = opts;
       if (this.props.players.length < MIN_PLAYERS) {
         return Effect.fail(
           new Error("The game does not meet the minimum number of players"),
@@ -293,33 +324,50 @@ export class NotStartedGameEntity extends GameEntity {
         return Effect.fail(new Error("Only the host can start the game"));
       }
 
-      return this.startGameWithDeck(deck, startedAt);
+      return this.startGameWithDeck(deck, startedAt, randomizeStrategy);
     });
   }
 
-  private startGameWithDeck(deck: DeckEntity, startedAt: Date) {
-    const shuffledCards = deck.getShuffledCards();
-    const [hands, remainingCards] = this.dealCards({
-      cards: shuffledCards,
-      players: this.props.players,
-    });
+  private guardAgainstEmptyDeck(deck: DeckEntity) {
+    if (deck.props.cards.length === 0) {
+      return Effect.fail(new Error("The deck is empty"));
+    }
 
-    const turn = TurnEntity.create({
-      id: TurnId(`${this.props.id}-turn-1`),
-      gameId: this.props.id,
-      currentStorytellerId: this.props.players[0],
-      playerHands: hands,
-      cardsInDrawPile: remainingCards,
-      startedAt: startedAt,
-    });
+    return Effect.succeed(void 0);
+  }
 
-    return Effect.succeed(
-      StartedGameEntity.create({
-        ...this.props,
-        currentTurn: turn,
-        version: this.props.version + 1,
-      }),
-    );
+  private startGameWithDeck(
+    deck: DeckEntity,
+    startedAt: Date,
+    randomizeStrategy: PlayersRandomizeStrategyType,
+  ) {
+    return Effect.gen(this, function* () {
+      yield* this.guardAgainstEmptyDeck(deck);
+      this.props.players = randomizeStrategy.randomize(this.props.players);
+      const shuffledCards = deck.getShuffledCards();
+      const [hands, remainingCards] = this.dealCards({
+        cards: shuffledCards,
+        players: this.props.players,
+      });
+
+      const turn = TurnEntity.create({
+        id: TurnId(`${this.props.id}-turn-1`),
+        gameId: this.props.id,
+        currentStorytellerId: this.props.players[0],
+        playerHands: hands,
+        cardsInDrawPile: remainingCards,
+        startedAt: startedAt,
+      });
+
+      return yield* Effect.succeed(
+        StartedGameEntity.create({
+          ...this.props,
+          currentTurn: turn,
+          version: this.props.version + 1,
+          randomizeStrategy,
+        }),
+      );
+    });
   }
 
   private dealCards(props: {
@@ -353,9 +401,6 @@ export class NotStartedGameEntity extends GameEntity {
 
   static fromSnapshot(
     snapshot: Omit<ReturnType<NotStartedGameEntity["toSnapshot"]>, "status">,
-    opts: {
-      randomizeStrategy?: RandomizeStrategy;
-    } = {},
   ) {
     const createdBy = PlayerId(snapshot.createdBy);
     const playerIds = snapshot.players.map((playerId) => PlayerId(playerId));
@@ -370,7 +415,7 @@ export class NotStartedGameEntity extends GameEntity {
         createdBy,
       ),
       version: snapshot.version,
-    }, opts);
+    });
   }
 }
 
@@ -380,6 +425,7 @@ export class StartedGameEntity extends GameEntity {
   private constructor(
     readonly props: GameEntity["props"] & {
       currentTurn: TurnEntity;
+      randomizeStrategy: PlayersRandomizeStrategyType;
     },
   ) {
     super(props);
@@ -388,6 +434,7 @@ export class StartedGameEntity extends GameEntity {
   static create(
     props: GameEntity["props"] & {
       currentTurn: TurnEntity;
+      randomizeStrategy: PlayersRandomizeStrategyType;
     },
   ) {
     return new StartedGameEntity(props);
@@ -396,6 +443,7 @@ export class StartedGameEntity extends GameEntity {
   protected createInstance(
     props: GameEntity["props"] & {
       currentTurn: TurnEntity;
+      randomizeStrategy: PlayersRandomizeStrategyType;
     },
   ): this {
     return new StartedGameEntity(props) as this;
@@ -414,6 +462,9 @@ export class StartedGameEntity extends GameEntity {
       ) as unknown as NonEmptyReadonlyArray<PlayerId>,
       version: snapshot.version,
       currentTurn: TurnEntity.fromSnapshot(snapshot.currentTurn),
+      randomizeStrategy: snapshot.randomizeStrategy === "noop"
+        ? PlayersRandomizeStrategy.of(makeNoopRandomizeStrategy())
+        : PlayersRandomizeStrategy.of(makeNoopRandomizeStrategy()), // TODO: Implement factory
     });
   }
 
@@ -422,6 +473,7 @@ export class StartedGameEntity extends GameEntity {
       ...super.toSnapshot(),
       players: this.props.players as ReadonlyArray<string>,
       currentTurn: this.props.currentTurn.toSnapshot(),
+      randomizeStrategy: this.props.randomizeStrategy.type,
     };
   }
 

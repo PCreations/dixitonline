@@ -18,7 +18,7 @@ describe("Feature: Leaving a game as a player", () => {
         playerId: "id-player-2",
       });
 
-      yield* gameDriver.assert.gameToEqual({
+      yield* gameDriver.assert.gameToHavePlayers({
         gameId: "id-game-1",
         players: ["id-player-1"],
       });

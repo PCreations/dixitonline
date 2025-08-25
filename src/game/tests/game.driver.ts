@@ -1,13 +1,22 @@
 import { expect } from "@effect/vitest";
 import { Context, Effect, Layer, Option } from "effect";
 import { CreateGameUseCase } from "../create-game.usecase.js";
-import { DeckEntity, DeckId } from "../deck.entity.js";
+import {
+  Card,
+  CardId,
+  DeckEntity,
+  DeckId,
+  IdentityDeckShuffleStrategy,
+} from "../deck.entity.js";
 import { DeckRepository, InMemoryDeckRepository } from "../deck.repository.js";
 import {
   GameStatus,
   isStartedGame,
   MAX_PLAYERS,
   MIN_PLAYERS,
+  NoopRandomizeStrategy,
+  PlayersRandomizeStrategy,
+  PlayersRandomizeStrategyType,
 } from "../game.entity.js";
 import { GameRepository, InMemoryGameRepository } from "../game.repository.js";
 import { GameLayerWithoutDependencies } from "../index.js";
@@ -30,10 +39,15 @@ interface GameDriverDSL {
     readonly defaultDeck: (
       props: { id: string; withShuffledCards?: ReadonlyArray<string> },
     ) => Effect.Effect<void>;
-    readonly existingDeck: (props: { id: string }) => Effect.Effect<void>;
+    readonly existingDeck: (props: {
+      id: string;
+      cards?: ReadonlyArray<string>;
+      shuffleStrategy?: "identity" | "shuffle";
+    }) => Effect.Effect<void>;
     readonly existingNonStartedGame: (props: {
       gameId: string;
       hostId: string;
+      deckId?: string;
       players?: ReadonlyArray<string>;
       status?: GameStatus;
     }) => Effect.Effect<void>;
@@ -68,6 +82,7 @@ interface GameDriverDSL {
     readonly startingGame: (props: {
       gameId: string;
       playerId: string;
+      randomizeStrategy?: PlayersRandomizeStrategy;
     }) => Effect.Effect<void>;
     readonly startingGameWhileAnotherPlayerLeftInBetween: (props: {
       gameId: string;
@@ -96,12 +111,23 @@ interface GameDriverDSL {
     readonly playerToNotHaveBeenAbleToStartGame: (props?: {
       error?: string;
     }) => Effect.Effect<void, never, never>;
-    readonly gameToEqual: (props: {
+    readonly gameToHavePlayers: (props: {
       gameId: string;
       players: ReadonlyArray<string>;
     }) => Effect.Effect<void, never, never>;
     readonly gameToHaveBeenStarted: (props: {
       gameId: string;
+    }) => Effect.Effect<void, never, never>;
+    readonly currentTurnToBeStarted: (props: {
+      gameId: string;
+      storytellerId: string;
+    }) => Effect.Effect<void, never, never>;
+    readonly playerHandsToEqual: (props: {
+      gameId: string;
+      playerHands: ReadonlyArray<{
+        playerId: string;
+        cards: ReadonlyArray<string>;
+      }>;
     }) => Effect.Effect<void, never, never>;
   };
 }
@@ -132,18 +158,44 @@ const makeUnitTestGameDriver = ({
 
   const given: GameDriverDSL["given"] = {
     defaultDeck: (props) =>
-      deckRepository.save(DeckEntity.createDefault({ id: DeckId(props.id) })),
-    existingDeck: (props) =>
       deckRepository.save(
-        DeckEntity.create({ id: DeckId(props.id), isDefault: false }),
+        DeckEntity.createDefault({
+          id: DeckId(props.id),
+          cards: new Array(24).fill(0).map((_, i) =>
+            Card.create({
+              id: CardId(`card-${i + 1}`),
+              url: `https://example.com/card-${i + 1}`,
+            })
+          ),
+        }),
       ),
+    existingDeck: (props) => {
+      /* This will be replaced by the real create deck use case*/
+      const cards = (props.cards ?? []).map((card) =>
+        Card.create({ id: CardId(card), url: `https://example.com/${card}` })
+      );
+      return deckRepository.save(
+        DeckEntity.create({
+          id: DeckId(props.id),
+          isDefault: false,
+          cards,
+          shuffleStrategy: props.shuffleStrategy === "identity"
+            ? new IdentityDeckShuffleStrategy()
+            : new IdentityDeckShuffleStrategy(), // TODO: Implement shuffle strategy
+        }),
+      );
+    },
     existingNonStartedGame: (props) => {
       return Effect.gen(function* () {
-        yield* given.defaultDeck({ id: "default-deck-id" });
+        let { deckId } = props;
+        if (!deckId) {
+          deckId = "default-deck-id";
+          yield* given.defaultDeck({ id: "default-deck-id" });
+        }
         yield* when.creatingGame({
           gameId: props.gameId,
           hostId: props.hostId,
-          deckId: "default-deck-id",
+          deckId,
           endCondition: {
             type: "NumberOfTimesBeingStoryteller",
             numberOfTimes: 3,
@@ -328,7 +380,7 @@ const makeUnitTestGameDriver = ({
           Option.some(new Error(props?.error)),
         );
       }),
-    gameToEqual: (props) => {
+    gameToHavePlayers: (props) => {
       return Effect.gen(function* () {
         const game = Option.getOrThrow(
           yield* gameRepository.findById(props.gameId),
@@ -344,6 +396,33 @@ const makeUnitTestGameDriver = ({
         expect(isStartedGame(game)).toBe(true);
       });
     },
+    currentTurnToBeStarted: (props) => {
+      return Effect.gen(function* () {
+        const game = Option.getOrThrow(
+          yield* gameRepository.findStartedGameById(props.gameId),
+        );
+        expect(game.toSnapshot().currentTurn).toEqual(expect.objectContaining({
+          currentStorytellerId: props.storytellerId,
+          phase: "storytelling",
+          turnNumber: 1,
+        }));
+      });
+    },
+    playerHandsToEqual: (props) => {
+      return Effect.gen(function* () {
+        const game = Option.getOrThrow(
+          yield* gameRepository.findStartedGameById(props.gameId),
+        );
+        expect(
+          game.toSnapshot().currentTurn.playerHands.map((hand) => ({
+            playerId: hand.playerId,
+            cards: hand.cards.map((card) => card.id),
+          })),
+        ).toEqual(
+          props.playerHands,
+        );
+      });
+    },
   };
 
   return {
@@ -353,7 +432,9 @@ const makeUnitTestGameDriver = ({
   };
 };
 
-export const makeGameDriverUnitTestLayer = () =>
+export const makeGameDriverUnitTestLayer = (props?: {
+  randomizeStrategy?: PlayersRandomizeStrategyType;
+}) =>
   Layer.effect(
     GameDriver,
     Effect.gen(function* () {
@@ -379,6 +460,9 @@ export const makeGameDriverUnitTestLayer = () =>
       Layer.mergeAll(
         InMemoryGameRepository,
         InMemoryDeckRepository,
+        props?.randomizeStrategy
+          ? Layer.succeed(PlayersRandomizeStrategy, props.randomizeStrategy)
+          : NoopRandomizeStrategy,
       ),
     ),
   );

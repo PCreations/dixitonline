@@ -29,7 +29,7 @@ export interface DeckShuffleStrategy {
   shuffle(cards: ReadonlyArray<Card>): ReadonlyArray<Card>;
 }
 
-export class DefaultDeckShuffleStrategy implements DeckShuffleStrategy {
+export class IdentityDeckShuffleStrategy implements DeckShuffleStrategy {
   shuffle(cards: ReadonlyArray<Card>): ReadonlyArray<Card> {
     return cards;
   }
@@ -45,7 +45,10 @@ export class DeckEntity {
     },
   ) {}
 
-  static createDefault(props: { readonly id: DeckId }) {
+  static createDefault(props: {
+    readonly id: DeckId;
+    readonly cards: ReadonlyArray<Card>;
+  }) {
     return DeckEntity.create({
       ...props,
       isDefault: true,
@@ -57,12 +60,14 @@ export class DeckEntity {
       readonly id: DeckId;
       readonly isDefault: boolean;
       readonly cards?: ReadonlyArray<Card>;
+      readonly shuffleStrategy?: DeckShuffleStrategy;
     },
   ) {
     return new DeckEntity({
       ...props,
       cards: props.cards ?? [],
-      shuffleStrategy: new DefaultDeckShuffleStrategy(),
+      shuffleStrategy: props.shuffleStrategy ??
+        new IdentityDeckShuffleStrategy(),
     });
   }
 
