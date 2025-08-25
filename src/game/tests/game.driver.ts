@@ -8,7 +8,6 @@ import {
   isStartedGame,
   MAX_PLAYERS,
   MIN_PLAYERS,
-  NotStartedGameEntity,
 } from "../game.entity.js";
 import { GameRepository, InMemoryGameRepository } from "../game.repository.js";
 import { GameLayerWithoutDependencies } from "../index.js";
@@ -140,23 +139,22 @@ const makeUnitTestGameDriver = ({
       ),
     existingNonStartedGame: (props) => {
       return Effect.gen(function* () {
-        const defaultDeckId = DeckId("default-deck-id");
-        yield* deckRepository.save(
-          DeckEntity.create({ id: defaultDeckId, isDefault: true }),
-        );
-        yield* Effect.either(
-          gameRepository.save(
-            NotStartedGameEntity.fromSnapshot({
-              id: props.gameId,
-              deckId: defaultDeckId,
-              createdBy: props.hostId,
-              endCondition: {
-                type: "NumberOfTimesBeingStoryteller",
-                numberOfTimes: 3,
-              },
-              players: props.players ?? [],
-              version: 1,
-            }),
+        yield* given.defaultDeck({ id: "default-deck-id" });
+        yield* when.creatingGame({
+          gameId: props.gameId,
+          hostId: props.hostId,
+          deckId: "default-deck-id",
+          endCondition: {
+            type: "NumberOfTimesBeingStoryteller",
+            numberOfTimes: 3,
+          },
+        });
+        yield* Effect.all(
+          (props.players ?? []).map((player) =>
+            when.joiningGame({
+              gameId: props.gameId,
+              playerId: player,
+            })
           ),
         );
       });
@@ -225,29 +223,16 @@ const makeUnitTestGameDriver = ({
           yield* gameRepository.findNotStartedGameById(props.gameId),
         );
 
-        const newGameEntity = NotStartedGameEntity.fromSnapshot({
-          ...game.toSnapshot(),
-          players: [
-            ...game.toSnapshot().players,
-            props.playerThatHasJustJoinedInBetween,
-          ],
-          version: game.toSnapshot().version + 1,
+        yield* when.joiningGame({
+          gameId: props.gameId,
+          playerId: props.playerThatHasJustJoinedInBetween,
         });
-
-        yield* Effect.either(gameRepository.save(newGameEntity));
         yield* gameRepository.simulateStaleRead(game);
 
-        yield* joinGameUseCase
-          .joinGame({
-            gameId: props.gameId,
-            playerId: props.playerId,
-          })
-          .pipe(
-            Effect.catchAll((error) => {
-              testState.currentError = Option.some(error);
-              return Effect.succeed(void 0);
-            }),
-          );
+        yield* when.joiningGame({
+          gameId: props.gameId,
+          playerId: props.playerId,
+        });
       });
     },
     leavingGame: (props) => {
@@ -280,26 +265,16 @@ const makeUnitTestGameDriver = ({
           yield* gameRepository.findNotStartedGameById(props.gameId),
         );
 
-        const newGameEntity = NotStartedGameEntity.fromSnapshot({
-          ...game.toSnapshot(),
-          players: [...game.toSnapshot().players].filter(
-            (player) => player !== props.playerThatHasLeftInBetween,
-          ),
-          version: game.toSnapshot().version + 1,
+        yield* when.leavingGame({
+          gameId: props.gameId,
+          playerId: props.playerThatHasLeftInBetween,
         });
-        yield* Effect.either(gameRepository.save(newGameEntity));
-
         yield* gameRepository.simulateStaleRead(game);
 
-        yield* startGameUseCase.startGame({
+        yield* when.startingGame({
           gameId: props.gameId,
           playerId: props.playerId,
-        }).pipe(
-          Effect.catchAll((error) => {
-            testState.currentError = Option.some(error);
-            return Effect.succeed(void 0);
-          }),
-        );
+        });
       });
     },
   };

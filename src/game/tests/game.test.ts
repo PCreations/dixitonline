@@ -48,7 +48,11 @@ const createTestNotStartedGame = (
   };
 };
 
-const createStartedGameWithXPlayers = (x: number) => {
+const createStartedGameWithXPlayers = (
+  x: number,
+  { phase = "storytelling" }: { phase?: "storytelling" | "selecting-cards" } =
+    {},
+) => {
   return (
     props: Partial<Parameters<typeof StartedGameEntity["fromSnapshot"]>[0]> =
       {},
@@ -65,6 +69,31 @@ const createStartedGameWithXPlayers = (x: number) => {
       deck,
       startedAt: new Date(),
     }));
+
+    if (phase === "selecting-cards") {
+      const storytellerId =
+        startedGame.toSnapshot().currentTurn.currentStorytellerId;
+      const storytellerCard =
+        startedGame.toSnapshot().currentTurn.playerHands.find((hand) =>
+          hand.playerId === storytellerId
+        )!.cards[0];
+      const updatedGame = Effect.runSync(startedGame.submitClue({
+        playerId: PlayerId(
+          storytellerId,
+        ),
+        gameId: startedGame.id,
+        cardId: storytellerCard.id,
+        clue: "A clue",
+      }));
+
+      return {
+        game: updatedGame,
+        deck,
+        storytellerId:
+          startedGame.toSnapshot().currentTurn.currentStorytellerId,
+        storytellerCard,
+      };
+    }
 
     return {
       game: startedGame,
@@ -192,6 +221,7 @@ describe("Game logic", () => {
       const gameSnapshot = updatedGame.toSnapshot();
       const currentTurn = gameSnapshot.currentTurn;
       expect(currentTurn.turnClue).toStrictEqual(Option.some("A clue"));
+      expect(currentTurn.phase).toBe("selecting-cards");
     });
 
     test("Other player than the storyteller cannot submit a clue", () => {
@@ -208,4 +238,35 @@ describe("Game logic", () => {
       expect(error.message).toBe("Only the storyteller can submit a clue");
     });
   });
+
+  // describe("Selecting cards phase", () => {
+  //   test("A player can select a card from their hand", () => {
+  //     const { game, storytellerId, storytellerCard } =
+  //       createStartedGameWithXPlayers(4, {
+  //         phase: "selecting-cards",
+  //       })();
+
+  //     const playerId = game.toSnapshot().players.find((player) =>
+  //       player !== storytellerId
+  //     )!;
+  //     const cardId =
+  //       game.toSnapshot().currentTurn.playerHands.find((hand) =>
+  //         hand.playerId === playerId
+  //       )!.cards[0].id;
+  //     const updatedGame = Effect.runSync(game.selectCardFromHand({
+  //       playerId,
+  //       gameId: game.id,
+  //       cardId,
+  //     }));
+
+  //     const gameSnapshot = updatedGame.toSnapshot();
+  //     expect(gameSnapshot.currentTurn.board).toStrictEqual([{
+  //       playerId: storytellerId,
+  //       cardId: storytellerCard,
+  //     }, {
+  //       playerId,
+  //       cardId,
+  //     }]);
+  //   });
+  // });
 });

@@ -1,5 +1,5 @@
 import { Brand, Effect, Option } from "effect";
-import { type Card } from "./deck.entity.js";
+import { type Card, CardId } from "./deck.entity.js";
 import { GameId, PlayerHand } from "./game.entity.js";
 import { PlayerId } from "./player.entity.js";
 
@@ -16,7 +16,7 @@ export class TurnEntity {
       readonly turnNumber: number;
       readonly startedAt: Date;
       readonly turnClue: Option.Option<string>;
-      readonly phase: "storytelling";
+      readonly phase: "storytelling" | "selecting-cards";
       readonly playerHands: ReadonlyArray<PlayerHand>;
       readonly cardsInDrawPile: ReadonlyArray<Card>;
     },
@@ -114,6 +114,27 @@ export class TurnEntity {
       new TurnEntity({
         ...this.props,
         turnClue: Option.some(opts.clue),
+        phase: "selecting-cards",
+      }),
+    );
+  }
+
+  selectCardFromHand(opts: {
+    playerId: PlayerId;
+    cardId: CardId;
+  }): Effect.Effect<TurnEntity, Error, never> {
+    return Effect.succeed(
+      new TurnEntity({
+        ...this.props,
+        playerHands: this.props.playerHands.map((hand) => {
+          if (hand.playerId === opts.playerId) {
+            return PlayerHand.create({
+              playerId: hand.playerId,
+              cards: hand.cards.filter((card) => card.id !== opts.cardId),
+            });
+          }
+          return hand;
+        }),
       }),
     );
   }
