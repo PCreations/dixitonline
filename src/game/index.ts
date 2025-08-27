@@ -3,12 +3,14 @@ import { CreateGameUseCase } from "./create-game.usecase.js";
 import { JoinGameUseCase } from "./join-game.usecase.js";
 import { LeaveGameUseCase } from "./leave-game.usecase.js";
 import { StartGameUseCase } from "./start-game.usecase.js";
+import { SubmitClueUseCase } from "./submit-clue.usecase.js";
 
 export const GameLayerLive = Layer.mergeAll(
   CreateGameUseCase.Default,
   JoinGameUseCase.Default,
   LeaveGameUseCase.Default,
   StartGameUseCase.Default,
+  SubmitClueUseCase.Default,
 );
 
 export const GameLayerWithoutDependencies = Layer.mergeAll(
@@ -16,4 +18,5 @@ export const GameLayerWithoutDependencies = Layer.mergeAll(
   JoinGameUseCase.DefaultWithoutDependencies,
   LeaveGameUseCase.DefaultWithoutDependencies,
   StartGameUseCase.DefaultWithoutDependencies,
+  SubmitClueUseCase.DefaultWithoutDependencies,
 );

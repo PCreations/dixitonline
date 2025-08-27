@@ -15,7 +15,10 @@ export class TurnEntity {
       readonly currentStorytellerId: PlayerId;
       readonly turnNumber: number;
       readonly startedAt: Date;
-      readonly turnClue: Option.Option<string>;
+      readonly turnClue: Option.Option<{
+        clue: string;
+        cardId: CardId;
+      }>;
       readonly phase: "storytelling" | "selecting-cards";
       readonly playerHands: ReadonlyArray<PlayerHand>;
       readonly cardsInDrawPile: ReadonlyArray<Card>;
@@ -105,36 +108,32 @@ export class TurnEntity {
   submitClue(opts: {
     playerId: PlayerId;
     clue: string;
+    cardId: CardId;
   }): Effect.Effect<TurnEntity, Error, never> {
+    console.log(this.props.playerHands);
     if (this.props.currentStorytellerId !== opts.playerId) {
       return Effect.fail(new Error("Only the storyteller can submit a clue"));
+    }
+    if (
+      !this.props.playerHands.some((hand) =>
+        hand.cards.some((card) => card.id === opts.cardId)
+      )
+    ) {
+      return Effect.fail(
+        new Error(
+          "The storyteller cannot submit a clue on a card they don't have",
+        ),
+      );
     }
 
     return Effect.succeed(
       new TurnEntity({
         ...this.props,
-        turnClue: Option.some(opts.clue),
-        phase: "selecting-cards",
-      }),
-    );
-  }
-
-  selectCardFromHand(opts: {
-    playerId: PlayerId;
-    cardId: CardId;
-  }): Effect.Effect<TurnEntity, Error, never> {
-    return Effect.succeed(
-      new TurnEntity({
-        ...this.props,
-        playerHands: this.props.playerHands.map((hand) => {
-          if (hand.playerId === opts.playerId) {
-            return PlayerHand.create({
-              playerId: hand.playerId,
-              cards: hand.cards.filter((card) => card.id !== opts.cardId),
-            });
-          }
-          return hand;
+        turnClue: Option.some({
+          clue: opts.clue,
+          cardId: opts.cardId,
         }),
+        phase: "selecting-cards",
       }),
     );
   }

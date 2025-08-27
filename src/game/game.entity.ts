@@ -95,11 +95,13 @@ export class PlayerHand {
   private constructor(
     private readonly props: {
       readonly playerId: PlayerId;
-      readonly cards: ReadonlyArray<Card>;
+      readonly cards: NonEmptyReadonlyArray<Card>;
     },
   ) {}
 
-  static create(props: { playerId: PlayerId; cards: ReadonlyArray<Card> }) {
+  static create(
+    props: { playerId: PlayerId; cards: NonEmptyReadonlyArray<Card> },
+  ) {
     return new PlayerHand(props);
   }
 
@@ -336,6 +338,23 @@ export class NotStartedGameEntity extends GameEntity {
     return Effect.succeed(void 0);
   }
 
+  private guardAgainstDeckTooSmall(deck: DeckEntity) {
+    if (
+      deck.props.cards.length <
+        this.getNumberOfCardsPerPlayer() * this.props.players.length
+    ) {
+      return Effect.fail(
+        new Error(
+          `The deck is too small. It has ${deck.props.cards.length} cards, but at least ${
+            this.getNumberOfCardsPerPlayer() * this.props.players.length
+          } cards are needed.`,
+        ),
+      );
+    }
+
+    return Effect.succeed(void 0);
+  }
+
   private startGameWithDeck(
     deck: DeckEntity,
     startedAt: Date,
@@ -343,11 +362,11 @@ export class NotStartedGameEntity extends GameEntity {
   ) {
     return Effect.gen(this, function* () {
       yield* this.guardAgainstEmptyDeck(deck);
+      yield* this.guardAgainstDeckTooSmall(deck);
       this.props.players = randomizeStrategy.randomize(this.props.players);
       const shuffledCards = deck.getShuffledCards();
       const [hands, remainingCards] = this.dealCards({
         cards: shuffledCards,
-        players: this.props.players,
       });
 
       const turn = TurnEntity.create({
@@ -372,20 +391,19 @@ export class NotStartedGameEntity extends GameEntity {
 
   private dealCards(props: {
     cards: ReadonlyArray<Card>;
-    players: ReadonlyArray<PlayerId>;
   }) {
     const [cardsChunk, remainingCards] = pipe(
       Arr.splitAt(
         props.cards,
-        this.getNumberOfCardsPerPlayer(props.players) * props.players.length,
+        this.getNumberOfCardsPerPlayer() * this.props.players.length,
       ),
       ([cards, remainingCards]) => [
-        Arr.chunksOf(cards, this.getNumberOfCardsPerPlayer(props.players)),
+        Arr.chunksOf(cards, this.getNumberOfCardsPerPlayer()),
         remainingCards,
       ],
     );
 
-    const hands = Arr.map(props.players, (playerId, index) => {
+    const hands = Arr.map(this.props.players, (playerId, index) => {
       return PlayerHand.create({
         playerId,
         cards: cardsChunk[index],
@@ -395,8 +413,10 @@ export class NotStartedGameEntity extends GameEntity {
     return [hands, remainingCards] as const;
   }
 
-  private getNumberOfCardsPerPlayer(players: ReadonlyArray<PlayerId>) {
-    return players.length === 3 ? CARD_PER_PLAYER + 1 : CARD_PER_PLAYER;
+  private getNumberOfCardsPerPlayer() {
+    return this.props.players.length === 3
+      ? CARD_PER_PLAYER + 1
+      : CARD_PER_PLAYER;
   }
 
   static fromSnapshot(
@@ -487,6 +507,7 @@ export class StartedGameEntity extends GameEntity {
       const updatedTurn = yield* this.props.currentTurn.submitClue({
         playerId: opts.playerId,
         clue: opts.clue,
+        cardId: opts.cardId,
       });
 
       return StartedGameEntity.create({

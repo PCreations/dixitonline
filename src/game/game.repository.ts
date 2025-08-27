@@ -54,8 +54,8 @@ const makeInMemoryGameRepository = (): Context.Tag.Service<GameRepository> => {
   return {
     save: (gameToBeSaved: GameEntity) => {
       const actualGame = Option.fromNullable(
-        notStartedGames.get(gameToBeSaved.id) ??
-          startedGames.get(gameToBeSaved.id),
+        startedGames.get(gameToBeSaved.id) ??
+          notStartedGames.get(gameToBeSaved.id),
       );
       if (shouldThrowOptimisticConcurrencyError(gameToBeSaved, actualGame)) {
         return Effect.fail(new OptimisticConcurrencyError());
