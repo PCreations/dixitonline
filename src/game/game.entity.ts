@@ -499,7 +499,6 @@ export class StartedGameEntity extends GameEntity {
 
   submitClue(opts: {
     playerId: PlayerId;
-    gameId: GameId;
     cardId: CardId;
     clue: string;
   }) {
@@ -507,6 +506,24 @@ export class StartedGameEntity extends GameEntity {
       const updatedTurn = yield* this.props.currentTurn.submitClue({
         playerId: opts.playerId,
         clue: opts.clue,
+        cardId: opts.cardId,
+      });
+
+      return StartedGameEntity.create({
+        ...this.props,
+        currentTurn: updatedTurn,
+        version: this.props.version + 1,
+      });
+    });
+  }
+
+  selectCard(opts: {
+    playerId: PlayerId;
+    cardId: CardId;
+  }) {
+    return Effect.gen(this, function* () {
+      const updatedTurn = yield* this.props.currentTurn.selectCard({
+        playerId: opts.playerId,
         cardId: opts.cardId,
       });
 

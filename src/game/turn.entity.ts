@@ -1,4 +1,5 @@
 import { Brand, Effect, Option } from "effect";
+import { NonEmptyReadonlyArray } from "effect/Array";
 import { type Card, CardId } from "./deck.entity.js";
 import { GameId, PlayerHand } from "./game.entity.js";
 import { PlayerId } from "./player.entity.js";
@@ -22,6 +23,7 @@ export class TurnEntity {
       readonly phase: "storytelling" | "selecting-cards";
       readonly playerHands: ReadonlyArray<PlayerHand>;
       readonly cardsInDrawPile: ReadonlyArray<Card>;
+      readonly selectedCards: ReadonlyArray<CardId>;
     },
   ) {}
 
@@ -44,6 +46,7 @@ export class TurnEntity {
       turnClue: Option.none(),
       phase: "storytelling",
       turnNumber: 1,
+      selectedCards: [],
     });
   }
 
@@ -63,6 +66,7 @@ export class TurnEntity {
       turnNumber: this.props.turnNumber,
       turnClue: this.props.turnClue,
       startedAt: this.props.startedAt,
+      selectedCards: this.props.selectedCards,
     };
   }
 
@@ -82,6 +86,7 @@ export class TurnEntity {
       turnNumber: snapshot.turnNumber,
       turnClue: snapshot.turnClue,
       startedAt: snapshot.startedAt,
+      selectedCards: snapshot.selectedCards,
     });
   }
 
@@ -110,7 +115,6 @@ export class TurnEntity {
     clue: string;
     cardId: CardId;
   }): Effect.Effect<TurnEntity, Error, never> {
-    console.log(this.props.playerHands);
     if (this.props.currentStorytellerId !== opts.playerId) {
       return Effect.fail(new Error("Only the storyteller can submit a clue"));
     }
@@ -134,6 +138,29 @@ export class TurnEntity {
           cardId: opts.cardId,
         }),
         phase: "selecting-cards",
+      }),
+    );
+  }
+
+  selectCard(opts: {
+    playerId: PlayerId;
+    cardId: CardId;
+  }): Effect.Effect<TurnEntity, Error, never> {
+    return Effect.succeed(
+      new TurnEntity({
+        ...this.props,
+        playerHands: this.props.playerHands.map((hand) => {
+          if (hand.playerId === opts.playerId) {
+            return PlayerHand.create({
+              playerId: hand.playerId,
+              cards: hand.cards.filter(
+                (card) => card.id !== opts.cardId,
+              ) as unknown as NonEmptyReadonlyArray<Card>,
+            });
+          }
+          return hand;
+        }),
+        selectedCards: [...this.props.selectedCards, opts.cardId],
       }),
     );
   }

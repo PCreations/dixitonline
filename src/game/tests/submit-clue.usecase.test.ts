@@ -1,5 +1,5 @@
 import { describe, it } from "@effect/vitest";
-import { Effect, Option } from "effect";
+import { Effect } from "effect";
 import { GameDriver, makeGameDriverUnitTestLayer } from "./game.driver.js";
 
 describe("Feature: Submitting the storyteller's clue", () => {
@@ -13,7 +13,6 @@ describe("Feature: Submitting the storyteller's clue", () => {
         currentStorytellerId: "id-player-1",
         currentTurn: {
           phase: "storytelling",
-          turnClue: Option.none(),
         },
         playerHands: {
           "id-player-1": {
@@ -54,7 +53,6 @@ describe("Feature: Submitting the storyteller's clue", () => {
         currentStorytellerId: "id-player-1",
         currentTurn: {
           phase: "storytelling",
-          turnClue: Option.none(),
         },
         playerHands: {
           "id-player-1": {
@@ -93,7 +91,6 @@ describe("Feature: Submitting the storyteller's clue", () => {
         currentStorytellerId: "id-player-1",
         currentTurn: {
           phase: "storytelling",
-          turnClue: Option.none(),
         },
       });
 
