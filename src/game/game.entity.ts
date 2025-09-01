@@ -285,7 +285,7 @@ export class NotStartedGameEntity extends GameEntity {
   addPlayer(playerId: PlayerId) {
     return Effect.suspend(() => {
       if (this.props.players.includes(playerId)) {
-        return Effect.fail(new Error("Player already in game"));
+        return Effect.fail(new Error(`Player already in game: ${playerId}`));
       }
 
       if (this.props.players.length >= MAX_PLAYERS) {

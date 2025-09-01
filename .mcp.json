@@ -1,0 +1,24 @@
+{
+  "mcpServers": {
+    "wallaby": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "-c",
+        "node ~/.wallaby/mcp"
+      ],
+      "env": {}
+    },
+    "console-ninja": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "-c",
+        "node ~/.console-ninja/mcp"
+      ],
+      "env": {}
+    }
+  }
+}

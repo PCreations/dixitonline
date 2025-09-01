@@ -40,7 +40,7 @@ describe("Feature: Joining a game as a player", () => {
       });
 
       yield* gameDriver.assert.playerToNotHaveBeenAbleToJoinGame({
-        error: "Player already in game",
+        error: "Player already in game: id-player-2",
       });
     }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
   });

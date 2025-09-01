@@ -9,7 +9,6 @@ describe("Feature: Submitting the storyteller's clue", () => {
 
       yield* gameDriver.given.existingStartedGame({
         gameId: "id-game-1",
-        hostId: "id-player-1",
         currentStorytellerId: "id-player-1",
         currentTurn: {
           phase: "storytelling",
@@ -49,7 +48,6 @@ describe("Feature: Submitting the storyteller's clue", () => {
 
       yield* gameDriver.given.existingStartedGame({
         gameId: "id-game-1",
-        hostId: "id-player-1",
         currentStorytellerId: "id-player-1",
         currentTurn: {
           phase: "storytelling",
@@ -87,7 +85,6 @@ describe("Feature: Submitting the storyteller's clue", () => {
 
       yield* gameDriver.given.existingStartedGame({
         gameId: "id-game-1",
-        hostId: "id-player-1",
         currentStorytellerId: "id-player-1",
         currentTurn: {
           phase: "storytelling",

@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "context7": {
+      "url": "https://mcp.context7.com/mcp",
+      "headers": {
+        "CONTEXT7_API_KEY": "ctx7sk-01f8562c-2e18-4b31-b36b-5e1fcfd5da0b"
+      }
+    },
+    "console-ninja": {
+      "command": "node",
+      "args": ["~/.console-ninja/mcp/"]
+    },
+    "wallaby": {
+      "command": "node",
+      "args": [
+        "~/.wallaby/mcp/"
+      ]
+    }
+  }
+}

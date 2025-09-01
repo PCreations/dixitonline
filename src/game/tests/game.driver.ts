@@ -58,7 +58,6 @@ interface GameDriverDSL {
     }) => Effect.Effect<void>;
     readonly existingStartedGame: (props: {
       gameId: string;
-      hostId: string;
       currentStorytellerId: string;
       currentTurn: {
         phase: "storytelling" | "selecting-cards";
@@ -163,6 +162,9 @@ interface GameDriverDSL {
     readonly playerToNotHaveBeenAbleToSubmitClue: (props?: {
       error?: string;
     }) => Effect.Effect<void, never, never>;
+    readonly playerToNotHaveBeenAbleToSelectCard: (props?: {
+      error?: string;
+    }) => Effect.Effect<void, never, never>;
   };
 }
 
@@ -239,6 +241,7 @@ const makeUnitTestGameDriver = ({
           deckId = "default-deck-id";
           yield* given.defaultDeck({ id: "default-deck-id" });
         }
+
         yield* when.creatingGame({
           gameId: props.gameId,
           hostId: props.hostId,
@@ -248,12 +251,14 @@ const makeUnitTestGameDriver = ({
             numberOfTimes: 3,
           },
         });
+
         yield* Effect.all(
-          (props.players ?? []).map((player) =>
-            when.joiningGame({
-              gameId: props.gameId,
-              playerId: player,
-            })
+          (props.players ?? []).filter((player) => player !== props.hostId).map(
+            (player) =>
+              when.joiningGame({
+                gameId: props.gameId,
+                playerId: player,
+              }),
           ),
         );
       });
@@ -272,27 +277,47 @@ const makeUnitTestGameDriver = ({
     },
     existingStartedGame: (props) => {
       return Effect.gen(function* () {
-        const players = Object.keys(props.playerHands ?? {}).concat(
+        const knownPlayerIds = Object.keys(props.playerHands ?? {}).concat(
+          [props.currentStorytellerId],
+        );
+        const players = knownPlayerIds.concat(
           Array.from(
             {
-              length: MAX_PLAYERS - Object.keys(props.playerHands ?? {}).length,
+              length: MAX_PLAYERS - knownPlayerIds.length,
             },
             (_, i) => `id-default-player-${i + 1}`,
           ),
         );
+        const storytellerIndex = players.findIndex(
+          (player) => player === props.currentStorytellerId,
+        );
+        if (storytellerIndex !== -1) {
+          players.splice(storytellerIndex, 1);
+          players.unshift(props.currentStorytellerId);
+        }
         const cards = Object.values(props.playerHands ?? {}).flatMap(
           (hand) => hand.cards,
         );
+        if (props.playerHands?.[props.currentStorytellerId] === undefined) {
+          cards.unshift(
+            ...Array.from(
+              { length: 6 },
+              (_, i) => `id-storyteler-card-${i + 1}`,
+            ),
+          );
+        }
+
         yield* given.defaultDeck({ id: "id-deck", cards });
         yield* given.existingNonStartedGame({
           gameId: props.gameId,
-          hostId: props.hostId,
+          hostId: players[0],
           deckId: "id-deck",
           players,
         });
+
         yield* when.startingGame({
           gameId: props.gameId,
-          playerId: props.hostId,
+          playerId: players[0],
         });
       });
     },
@@ -543,15 +568,23 @@ const makeUnitTestGameDriver = ({
         const game = Option.getOrThrow(
           yield* gameRepository.findStartedGameById(props.gameId),
         );
-        expect(
-          game.toSnapshot().currentTurn.playerHands.map((hand) => ({
+        const expectedPlayerHands = game.toSnapshot().currentTurn.playerHands
+          .map((hand) => ({
             playerId: hand.playerId,
             cards: hand.cards.map((card) => card.id),
-          })),
+          }));
+        expect(
+          expectedPlayerHands,
         ).toEqual(props.playerHands);
       });
     },
     playerToNotHaveBeenAbleToSubmitClue: (props) =>
+      Effect.sync(() => {
+        expect(testState.currentError).toEqual(
+          Option.some(new Error(props?.error)),
+        );
+      }),
+    playerToNotHaveBeenAbleToSelectCard: (props) =>
       Effect.sync(() => {
         expect(testState.currentError).toEqual(
           Option.some(new Error(props?.error)),

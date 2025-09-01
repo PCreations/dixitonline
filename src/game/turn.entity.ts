@@ -146,6 +146,16 @@ export class TurnEntity {
     playerId: PlayerId;
     cardId: CardId;
   }): Effect.Effect<TurnEntity, Error, never> {
+    if (this.props.currentStorytellerId === opts.playerId) {
+      return Effect.fail(new Error("The storyteller cannot select a card"));
+    }
+    if (
+      !this.props.playerHands.some((hand) =>
+        hand.cards.some((card) => card.id === opts.cardId)
+      )
+    ) {
+      return Effect.fail(new Error("The card is not in the player's hand"));
+    }
     return Effect.succeed(
       new TurnEntity({
         ...this.props,

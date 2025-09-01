@@ -10,7 +10,6 @@ describe("Feature: Selecting a card when the turn is in the selecting-cards phas
         const gameDriver = yield* GameDriver;
         yield* gameDriver.given.existingStartedGame({
           gameId: "id-game-1",
-          hostId: "id-player-1",
           currentStorytellerId: "id-player-2",
           currentTurn: {
             phase: "selecting-cards",
@@ -53,6 +52,70 @@ describe("Feature: Selecting a card when the turn is in the selecting-cards phas
         yield* gameDriver.assert.turnToHaveSelectedCards({
           gameId: "id-game-1",
           selectedCards: ["id-card-2"],
+        });
+      }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+    },
+  );
+
+  it.effect(
+    "Example: A player cannot select a card that is not in their hand",
+    () => {
+      return Effect.gen(function* () {
+        const gameDriver = yield* GameDriver;
+        yield* gameDriver.given.existingStartedGame({
+          gameId: "id-game-1",
+          currentStorytellerId: "id-player-2",
+          currentTurn: {
+            phase: "selecting-cards",
+          },
+        });
+
+        yield* gameDriver.when.selectingCard({
+          gameId: "id-game-1",
+          playerId: "id-player-1",
+          cardId: "id-card-not-in-player-hand",
+        });
+
+        yield* gameDriver.assert.playerToNotHaveBeenAbleToSelectCard({
+          error: "The card is not in the player's hand",
+        });
+      }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+    },
+  );
+
+  it.effect(
+    "Example: The storyteller cannot select a card",
+    () => {
+      return Effect.gen(function* () {
+        const gameDriver = yield* GameDriver;
+        yield* gameDriver.given.existingStartedGame({
+          gameId: "id-game-1",
+          currentStorytellerId: "id-player-1",
+          currentTurn: {
+            phase: "selecting-cards",
+          },
+          playerHands: {
+            "id-player-1": {
+              cards: [
+                "id-card-1",
+                "id-card-2",
+                "id-card-3",
+                "id-card-4",
+                "id-card-5",
+                "id-card-6",
+              ],
+            },
+          },
+        });
+
+        yield* gameDriver.when.selectingCard({
+          gameId: "id-game-1",
+          playerId: "id-player-1",
+          cardId: "id-card-7",
+        });
+
+        yield* gameDriver.assert.playerToNotHaveBeenAbleToSelectCard({
+          error: "The storyteller cannot select a card",
         });
       }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
     },
