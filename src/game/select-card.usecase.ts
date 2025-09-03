@@ -30,7 +30,7 @@ export class SelectCardUseCase extends Effect.Service<SelectCardUseCase>()(
                   const updatedGame = yield* gameEntity.selectCard({
                     playerId: PlayerId(props.playerId),
                     cardId: CardId(props.cardId),
-                  });
+                  }); //?
 
                   yield* gameRepository.save(updatedGame);
                 }),

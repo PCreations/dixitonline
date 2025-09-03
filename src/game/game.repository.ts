@@ -75,7 +75,7 @@ const makeInMemoryGameRepository = (): Context.Tag.Service<GameRepository> => {
           | undefined,
       );
       const actualGame = Option.fromNullable(
-        notStartedGames.get(id) ?? startedGames.get(id),
+        startedGames.get(id) ?? notStartedGames.get(id),
       );
       return Option.match(staleGame, {
         onNone: () => {

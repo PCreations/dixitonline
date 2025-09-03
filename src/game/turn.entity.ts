@@ -1,5 +1,4 @@
 import { Brand, Effect, Option } from "effect";
-import { NonEmptyReadonlyArray } from "effect/Array";
 import { type Card, CardId } from "./deck.entity.js";
 import { GameId, PlayerHand } from "./game.entity.js";
 import { PlayerId } from "./player.entity.js";
@@ -20,10 +19,13 @@ export class TurnEntity {
         clue: string;
         cardId: CardId;
       }>;
-      readonly phase: "storytelling" | "selecting-cards";
+      readonly phase: "storytelling" | "selecting-cards" | "voting";
       readonly playerHands: ReadonlyArray<PlayerHand>;
       readonly cardsInDrawPile: ReadonlyArray<Card>;
-      readonly selectedCards: ReadonlyArray<CardId>;
+      readonly selectedCards: ReadonlyArray<{
+        cardId: CardId;
+        playerId: PlayerId;
+      }>;
     },
   ) {}
 
@@ -119,9 +121,10 @@ export class TurnEntity {
       return Effect.fail(new Error("Only the storyteller can submit a clue"));
     }
     if (
-      !this.props.playerHands.some((hand) =>
-        hand.cards.some((card) => card.id === opts.cardId)
-      )
+      !this.doesPlayerOwnCard({
+        playerId: opts.playerId,
+        cardId: opts.cardId,
+      })
     ) {
       return Effect.fail(
         new Error(
@@ -150,28 +153,72 @@ export class TurnEntity {
       return Effect.fail(new Error("The storyteller cannot select a card"));
     }
     if (
-      !this.props.playerHands.some((hand) =>
-        hand.cards.some((card) => card.id === opts.cardId)
-      )
+      !this.doesPlayerOwnCard({
+        playerId: opts.playerId,
+        cardId: opts.cardId,
+      })
     ) {
       return Effect.fail(new Error("The card is not in the player's hand"));
     }
-    return Effect.succeed(
-      new TurnEntity({
+    if (
+      this.props.selectedCards.some((card) => card.playerId === opts.playerId)
+    ) {
+      return Effect.fail(new Error("A player can only select one card"));
+    }
+    const updatedTurn = this.removeCardFromPlayerHand({
+      playerId: opts.playerId,
+      cardId: opts.cardId,
+    });
+
+    return Effect.map(updatedTurn, (turn) => {
+      const updatedSelectedCards = [...this.props.selectedCards, {
+        cardId: opts.cardId,
+        playerId: opts.playerId,
+      }];
+      return new TurnEntity({
         ...this.props,
-        playerHands: this.props.playerHands.map((hand) => {
-          if (hand.playerId === opts.playerId) {
-            return PlayerHand.create({
-              playerId: hand.playerId,
-              cards: hand.cards.filter(
-                (card) => card.id !== opts.cardId,
-              ) as unknown as NonEmptyReadonlyArray<Card>,
-            });
-          }
-          return hand;
-        }),
-        selectedCards: [...this.props.selectedCards, opts.cardId],
-      }),
+        playerHands: turn.playerHands,
+        selectedCards: updatedSelectedCards,
+        phase: updatedSelectedCards.length === this.props.playerHands.length - 1
+          ? "voting"
+          : "selecting-cards", // TODO: handle 3 players case
+      });
+    });
+  }
+
+  private removeCardFromPlayerHand(opts: {
+    playerId: PlayerId;
+    cardId: CardId;
+  }): Effect.Effect<TurnEntity, Error, never> {
+    const hand = this.props.playerHands.find((hand) =>
+      hand.playerId === opts.playerId
     );
+    if (!hand) {
+      return Effect.fail(new Error("Player hand not found"));
+    }
+    const self = this;
+    return Effect.map(
+      hand.removeCard(opts.cardId),
+      (newHand) =>
+        new TurnEntity({
+          ...self.props,
+          playerHands: self.props.playerHands.map((h) =>
+            h.playerId === opts.playerId ? newHand : h
+          ),
+        }),
+    );
+  }
+
+  private doesPlayerOwnCard(opts: {
+    playerId: PlayerId;
+    cardId: CardId;
+  }) {
+    const playerHand = this.props.playerHands.find((hand) =>
+      hand.playerId === opts.playerId
+    );
+    if (!playerHand) {
+      return false;
+    }
+    return playerHand.isCardInHand(opts.cardId);
   }
 }

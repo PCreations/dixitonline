@@ -1,5 +1,6 @@
 import { describe, it } from "@effect/vitest";
 import { Effect } from "effect";
+import { GameBuilder } from "./game.builder.js";
 import { GameDriver, makeGameDriverUnitTestLayer } from "./game.driver.js";
 
 describe("Feature: Leaving a game as a player", () => {
@@ -7,11 +8,12 @@ describe("Feature: Leaving a game as a player", () => {
     return Effect.gen(function* () {
       const gameDriver = yield* GameDriver;
 
-      yield* gameDriver.given.existingNonStartedGame({
-        gameId: "id-game-1",
-        hostId: "id-player-1",
-        players: ["id-player-1", "id-player-2"],
-      });
+      yield* gameDriver.given.existingGame(
+        gameDriver,
+        new GameBuilder("id-game-1")
+          .hostedBy("id-player-1")
+          .withPlayer("id-player-2"),
+      );
 
       yield* gameDriver.when.leavingGame({
         gameId: "id-game-1",
@@ -29,11 +31,12 @@ describe("Feature: Leaving a game as a player", () => {
     return Effect.gen(function* () {
       const gameDriver = yield* GameDriver;
 
-      yield* gameDriver.given.existingNonStartedGame({
-        gameId: "id-game-1",
-        hostId: "id-player-1",
-        players: ["id-player-1", "id-player-2"],
-      });
+      yield* gameDriver.given.existingGame(
+        gameDriver,
+        new GameBuilder("id-game-1")
+          .hostedBy("id-player-1")
+          .withPlayer("id-player-2"),
+      );
 
       yield* gameDriver.when.leavingGame({
         gameId: "id-game-1",
@@ -65,11 +68,11 @@ describe("Feature: Leaving a game as a player", () => {
     return Effect.gen(function* () {
       const gameDriver = yield* GameDriver;
 
-      yield* gameDriver.given.existingNonStartedGame({
-        gameId: "id-game-1",
-        hostId: "id-player-1",
-        players: ["id-player-1"],
-      });
+      yield* gameDriver.given.existingGame(
+        gameDriver,
+        new GameBuilder("id-game-1")
+          .hostedBy("id-player-1"),
+      );
 
       yield* gameDriver.when.leavingGame({
         gameId: "id-game-1",

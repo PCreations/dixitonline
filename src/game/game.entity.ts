@@ -112,6 +112,25 @@ export class PlayerHand {
   get cards() {
     return this.props.cards;
   }
+
+  isCardInHand(cardId: CardId) {
+    return this.props.cards.some((card) => card.id === cardId);
+  }
+
+  removeCard(cardId: CardId) {
+    const newCards = this.props.cards.filter((card) =>
+      card.id !== cardId
+    ) as unknown as NonEmptyReadonlyArray<Card>;
+    if (!isNonEmptyReadonlyArray(newCards)) {
+      return Effect.fail(new Error("Player hand cannot be empty"));
+    }
+    return Effect.succeed(
+      new PlayerHand({
+        ...this.props,
+        cards: newCards,
+      }),
+    );
+  }
 }
 
 const CARD_PER_PLAYER = 6;
@@ -535,3 +554,19 @@ export class StartedGameEntity extends GameEntity {
     });
   }
 }
+
+export type NotStartedGameSnapshot = ReturnType<NotStartedGameEntity["toSnapshot"]>;
+export type StartedGameSnapshot = ReturnType<StartedGameEntity["toSnapshot"]>;
+export type GameEntitySnapshot = NotStartedGameSnapshot | StartedGameSnapshot;
+
+export const isNotStartedGameSnapshot = (
+  snapshot: GameEntitySnapshot,
+): snapshot is NotStartedGameSnapshot => {
+  return snapshot.status._tag === "NotStartedGame";
+};
+
+export const isStartedGameSnapshot = (
+  snapshot: GameEntitySnapshot,
+): snapshot is StartedGameSnapshot => {
+  return snapshot.status._tag === "StartedGame";
+};

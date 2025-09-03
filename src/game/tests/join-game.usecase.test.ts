@@ -1,16 +1,17 @@
 import { describe, it } from "@effect/vitest";
 import { Effect } from "effect";
+import { GameBuilder } from "./game.builder.js";
 import { GameDriver, makeGameDriverUnitTestLayer } from "./game.driver.js";
 
 describe("Feature: Joining a game as a player", () => {
   it.effect("Example: Joining a game as a player", () => {
     return Effect.gen(function* () {
       const gameDriver = yield* GameDriver;
-
-      yield* gameDriver.given.existingNonStartedGame({
-        gameId: "id-game-1",
-        hostId: "id-player-1",
-      });
+      yield* gameDriver.given.existingGame(
+        gameDriver,
+        new GameBuilder("id-game-1")
+          .hostedBy("id-player-1"),
+      );
 
       yield* gameDriver.when.joiningGame({
         gameId: "id-game-1",
@@ -28,11 +29,12 @@ describe("Feature: Joining a game as a player", () => {
     return Effect.gen(function* () {
       const gameDriver = yield* GameDriver;
 
-      yield* gameDriver.given.existingNonStartedGame({
-        gameId: "id-game-1",
-        hostId: "id-player-1",
-        players: ["id-player-1", "id-player-2"],
-      });
+      yield* gameDriver.given.existingGame(
+        gameDriver,
+        new GameBuilder("id-game-1")
+          .hostedBy("id-player-1")
+          .withPlayer("id-player-2"),
+      );
 
       yield* gameDriver.when.joiningGame({
         gameId: "id-game-1",
@@ -84,18 +86,18 @@ describe("Feature: Joining a game as a player", () => {
     () => {
       return Effect.gen(function* () {
         const gameDriver = yield* GameDriver;
-
-        yield* gameDriver.given.existingNonStartedGame({
-          gameId: "id-game-1",
-          hostId: "id-player-1",
-          players: [
-            "id-player-1",
-            "id-player-2",
-            "id-player-3",
-            "id-player-4",
-            "id-player-5",
-          ],
-        });
+        yield* gameDriver.given.existingGame(
+          gameDriver,
+          new GameBuilder("id-game-1")
+            .withPlayers(
+              "id-player-1",
+              "id-player-2",
+              "id-player-3",
+              "id-player-4",
+              "id-player-5",
+            )
+            .hostedBy("id-player-1"),
+        );
 
         yield* gameDriver.when.joiningGameWhileAnotherPlayerJustJoinedInBetween(
           {

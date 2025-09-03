@@ -10,6 +10,7 @@ import {
 } from "../deck.entity.js";
 import { DeckRepository, InMemoryDeckRepository } from "../deck.repository.js";
 import {
+  GameEntitySnapshot,
   isStartedGame,
   MAX_PLAYERS,
   MIN_PLAYERS,
@@ -24,6 +25,7 @@ import { LeaveGameUseCase } from "../leave-game.usecase.js";
 import { SelectCardUseCase } from "../select-card.usecase.js";
 import { StartGameUseCase } from "../start-game.usecase.js";
 import { SubmitClueUseCase } from "../submit-clue.usecase.js";
+import type { GameBuilder } from "./game.builder.js";
 
 type EndConditionDto =
   | {
@@ -36,6 +38,9 @@ type EndConditionDto =
   };
 
 interface GameDriverDSL {
+  readonly getGameSnapshot: (
+    gameId: string,
+  ) => Effect.Effect<GameEntitySnapshot>;
   readonly given: {
     readonly defaultDeck: (props: {
       id: string;
@@ -56,19 +61,17 @@ interface GameDriverDSL {
     readonly existingFullGame: (props: {
       gameId: string;
     }) => Effect.Effect<void>;
-    readonly existingStartedGame: (props: {
-      gameId: string;
-      currentStorytellerId: string;
-      currentTurn: {
-        phase: "storytelling" | "selecting-cards";
-      };
-      playerHands?: Record<string, { cards: ReadonlyArray<string> }>;
-    }) => Effect.Effect<void>;
-    readonly existingGameWithMinimumNumberOfPlayers: (props: {
-      gameId: string;
-      hostId: string;
-    }) => Effect.Effect<void>;
+    readonly existingGame: (
+      driver: GameDriverDSL,
+      builder: GameBuilder,
+    ) => Effect.Effect<
+      {
+        game: GameEntitySnapshot;
+        deck: { id: string; cards: ReadonlyArray<string> };
+      }
+    >;
   };
+  readonly withFailFastMode: () => GameDriverDSL;
   readonly when: {
     readonly creatingGame: (props: {
       gameId: string;
@@ -157,7 +160,13 @@ interface GameDriverDSL {
     }) => Effect.Effect<void, never, never>;
     readonly turnToHaveSelectedCards: (props: {
       gameId: string;
-      selectedCards: ReadonlyArray<string>;
+      selectedCards: ReadonlyArray<{
+        cardId: string;
+        playerId: string;
+      }>;
+    }) => Effect.Effect<void, never, never>;
+    readonly turnToBeInVotingPhase: (props: {
+      gameId: string;
     }) => Effect.Effect<void, never, never>;
     readonly playerToNotHaveBeenAbleToSubmitClue: (props?: {
       error?: string;
@@ -196,6 +205,7 @@ const makeUnitTestGameDriver = ({
 }): GameDriverDSL => {
   const testState = {
     currentError: Option.none<Error>(),
+    failFast: false,
   };
 
   const given: GameDriverDSL["given"] = {
@@ -253,13 +263,14 @@ const makeUnitTestGameDriver = ({
         });
 
         yield* Effect.all(
-          (props.players ?? []).filter((player) => player !== props.hostId).map(
-            (player) =>
+          (props.players ?? [])
+            .filter((player) => player !== props.hostId)
+            .map((player) =>
               when.joiningGame({
                 gameId: props.gameId,
                 playerId: player,
-              }),
-          ),
+              })
+            ),
         );
       });
     },
@@ -275,62 +286,51 @@ const makeUnitTestGameDriver = ({
         });
       });
     },
-    existingStartedGame: (props) => {
+    existingGame: (driver, gameBuilder) => {
       return Effect.gen(function* () {
-        const knownPlayerIds = Object.keys(props.playerHands ?? {}).concat(
-          [props.currentStorytellerId],
+        const originalFailFast = testState.failFast;
+
+        yield* Effect.gen(function* () {
+          testState.failFast = true;
+          yield* gameBuilder.build(driver);
+        }).pipe(
+          Effect.ensuring(Effect.sync(() => {
+            testState.failFast = originalFailFast;
+          })),
         );
-        const players = knownPlayerIds.concat(
-          Array.from(
-            {
-              length: MAX_PLAYERS - knownPlayerIds.length,
-            },
-            (_, i) => `id-default-player-${i + 1}`,
-          ),
-        );
-        const storytellerIndex = players.findIndex(
-          (player) => player === props.currentStorytellerId,
-        );
-        if (storytellerIndex !== -1) {
-          players.splice(storytellerIndex, 1);
-          players.unshift(props.currentStorytellerId);
-        }
-        const cards = Object.values(props.playerHands ?? {}).flatMap(
-          (hand) => hand.cards,
-        );
-        if (props.playerHands?.[props.currentStorytellerId] === undefined) {
-          cards.unshift(
-            ...Array.from(
-              { length: 6 },
-              (_, i) => `id-storyteler-card-${i + 1}`,
+
+        const gameId = gameBuilder.gameId;
+        const deckId = gameBuilder.deckId;
+
+        const maybeGame = yield* gameRepository.findById(gameId);
+        const game = yield* Option.match(maybeGame, {
+          onNone: () =>
+            Effect.die(
+              new Error(
+                `Game ${gameId} not found during test setup. Verify the game was build correctly`,
+              ),
             ),
-          );
-        }
-
-        yield* given.defaultDeck({ id: "id-deck", cards });
-        yield* given.existingNonStartedGame({
-          gameId: props.gameId,
-          hostId: players[0],
-          deckId: "id-deck",
-          players,
+          onSome: (game) => Effect.succeed(game),
         });
 
-        yield* when.startingGame({
-          gameId: props.gameId,
-          playerId: players[0],
+        const maybeDeck = yield* deckRepository.findById(DeckId(deckId));
+        const deck = yield* Option.match(maybeDeck, {
+          onNone: () =>
+            Effect.die(
+              new Error(
+                `Deck ${deckId} not found during test setup. Verify the deck was created correctly`,
+              ),
+            ),
+          onSome: (deck) => Effect.succeed(deck),
         });
-      });
-    },
-    existingGameWithMinimumNumberOfPlayers: (props) => {
-      return Effect.gen(function* () {
-        yield* given.existingNonStartedGame({
-          gameId: props.gameId,
-          hostId: props.hostId,
-          players: Array.from(
-            { length: MIN_PLAYERS },
-            (_, i) => `id-player-${i + 1}`,
-          ),
-        });
+
+        return {
+          game: game.toSnapshot(),
+          deck: {
+            id: deck.props.id,
+            cards: deck.props.cards.map((card) => card.id),
+          },
+        };
       });
     },
   };
@@ -355,18 +355,22 @@ const makeUnitTestGameDriver = ({
           ),
         ),
       }),
-    joiningGame: (props) =>
-      joinGameUseCase
+    joiningGame: (props) => {
+      return joinGameUseCase
         .joinGame({
           gameId: props.gameId,
           playerId: props.playerId,
         })
         .pipe(
           Effect.catchAll((error) => {
+            if (testState.failFast) {
+              return Effect.die(new Error(`[GameBuilder] ${error.message}`));
+            }
             testState.currentError = Option.some(error);
             return Effect.succeed(void 0);
           }),
-        ),
+        );
+    },
     joiningGameWhileAnotherPlayerJustJoinedInBetween: (props) => {
       return Effect.gen(function* () {
         const game = Option.getOrThrow(
@@ -393,6 +397,9 @@ const makeUnitTestGameDriver = ({
         })
         .pipe(
           Effect.catchAll((error) => {
+            if (testState.failFast) {
+              return Effect.die(new Error(`[GameBuilder] ${error.message}`));
+            }
             testState.currentError = Option.some(error);
             return Effect.succeed(void 0);
           }),
@@ -406,6 +413,9 @@ const makeUnitTestGameDriver = ({
         })
         .pipe(
           Effect.catchAll((error) => {
+            if (testState.failFast) {
+              return Effect.die(new Error(`[GameBuilder] ${error.message}`));
+            }
             testState.currentError = Option.some(error);
             return Effect.succeed(void 0);
           }),
@@ -439,6 +449,9 @@ const makeUnitTestGameDriver = ({
         })
         .pipe(
           Effect.catchAll((error) => {
+            if (testState.failFast) {
+              return Effect.die(new Error(`[GameBuilder] ${error.message}`));
+            }
             testState.currentError = Option.some(error);
             return Effect.succeed(void 0);
           }),
@@ -453,6 +466,9 @@ const makeUnitTestGameDriver = ({
         })
         .pipe(
           Effect.catchAll((error) => {
+            if (testState.failFast) {
+              return Effect.die(new Error(`[GameBuilder] ${error.message}`));
+            }
             testState.currentError = Option.some(error);
             return Effect.succeed(void 0);
           }),
@@ -519,16 +535,26 @@ const makeUnitTestGameDriver = ({
     },
     gameToHaveBeenStarted: (props) => {
       return Effect.gen(function* () {
-        const game = Option.getOrThrow(
+        expect(testState.currentError).toEqual(Option.none());
+        const game = Option.getOrThrowWith(
           yield* gameRepository.findStartedGameById(props.gameId),
+          () =>
+            new Error(
+              `Started Game ${props.gameId} not found while asserting game has been started`,
+            ),
         );
         expect(isStartedGame(game)).toBe(true);
       });
     },
     currentTurnToBeStarted: (props) => {
       return Effect.gen(function* () {
-        const game = Option.getOrThrow(
+        expect(testState.currentError).toEqual(Option.none());
+        const game = Option.getOrThrowWith(
           yield* gameRepository.findStartedGameById(props.gameId),
+          () =>
+            new Error(
+              `StartedGame ${props.gameId} not found while asserting current turn has started`,
+            ),
         );
         expect(game.toSnapshot().currentTurn).toEqual(
           expect.objectContaining({
@@ -541,8 +567,13 @@ const makeUnitTestGameDriver = ({
     },
     turnClueToBeSubmitted: (props) => {
       return Effect.gen(function* () {
-        const game = Option.getOrThrow(
+        expect(testState.currentError).toEqual(Option.none());
+        const game = Option.getOrThrowWith(
           yield* gameRepository.findStartedGameById(props.gameId),
+          () =>
+            new Error(
+              `StartedGame ${props.gameId} not found while asserting turn clue has been submitted`,
+            ),
         );
         expect(game.toSnapshot().currentTurn.turnClue).toEqual(
           Option.some({
@@ -555,27 +586,49 @@ const makeUnitTestGameDriver = ({
     },
     turnToHaveSelectedCards: (props) => {
       return Effect.gen(function* () {
-        const game = Option.getOrThrow(
+        expect(testState.currentError).toEqual(Option.none());
+        const game = Option.getOrThrowWith(
           yield* gameRepository.findStartedGameById(props.gameId),
+          () =>
+            new Error(
+              `Started Game ${props.gameId} not found while asserting turn has selected cards`,
+            ),
         );
         expect(game.toSnapshot().currentTurn.selectedCards).toEqual(
           props.selectedCards,
         );
       });
     },
+    turnToBeInVotingPhase: (props) => {
+      return Effect.gen(function* () {
+        expect(testState.currentError).toEqual(Option.none());
+        const game = Option.getOrThrowWith(
+          yield* gameRepository.findStartedGameById(props.gameId),
+          () =>
+            new Error(
+              `Started Game ${props.gameId} not found while asserting turn is in voting phase`,
+            ),
+        );
+        expect(game.toSnapshot().currentTurn.phase).toEqual("voting");
+      });
+    },
     playerHandsToEqual: (props) => {
       return Effect.gen(function* () {
-        const game = Option.getOrThrow(
+        const game = Option.getOrThrowWith(
           yield* gameRepository.findStartedGameById(props.gameId),
+          () =>
+            new Error(
+              `Started Game ${props.gameId} not found while asserting player hands are equal`,
+            ),
         );
-        const expectedPlayerHands = game.toSnapshot().currentTurn.playerHands
-          .map((hand) => ({
+        const expectedPlayerHands = game
+          .toSnapshot()
+          .currentTurn.playerHands.map((hand) => ({
             playerId: hand.playerId,
             cards: hand.cards.map((card) => card.id),
           }));
-        expect(
-          expectedPlayerHands,
-        ).toEqual(props.playerHands);
+        expect(testState.currentError).toEqual(Option.none());
+        expect(expectedPlayerHands).toEqual(props.playerHands);
       });
     },
     playerToNotHaveBeenAbleToSubmitClue: (props) =>
@@ -592,11 +645,24 @@ const makeUnitTestGameDriver = ({
       }),
   };
 
-  return {
-    given,
-    when,
-    assert,
+  const getGameSnapshot = (gameId: string) =>
+    Effect.gen(function* () {
+      const game = Option.getOrThrowWith(
+        yield* gameRepository.findStartedGameById(gameId),
+        () =>
+          new Error(
+            `Started Game ${gameId} not found while getting game snapshot`,
+          ),
+      );
+      return game.toSnapshot();
+    });
+
+  const withFailFastMode = (): GameDriverDSL => {
+    testState.failFast = true;
+    return { given, when, assert, withFailFastMode, getGameSnapshot };
   };
+
+  return { given, when, assert, withFailFastMode, getGameSnapshot };
 };
 
 export const makeGameDriverUnitTestLayer = (props?: {

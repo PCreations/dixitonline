@@ -2,6 +2,7 @@ import { describe, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { PlayersRandomizeStrategy } from "../game.entity.js";
 import { PlayerId } from "../player.entity.js";
+import { GameBuilder } from "./game.builder.js";
 import { GameDriver, makeGameDriverUnitTestLayer } from "./game.driver.js";
 
 describe("Feature: Starting a game", () => {
@@ -12,10 +13,12 @@ describe("Feature: Starting a game", () => {
         return Effect.gen(function* () {
           const gameDriver = yield* GameDriver;
 
-          yield* gameDriver.given.existingGameWithMinimumNumberOfPlayers({
-            gameId: "id-game-1",
-            hostId: "id-player-1",
-          });
+          yield* gameDriver.given.existingGame(
+            gameDriver,
+            new GameBuilder("id-game-1")
+              .hostedBy("id-player-1")
+              .withPlayers("id-player-2", "id-player-3"),
+          );
 
           yield* gameDriver.when.startingGame({
             gameId: "id-game-1",
@@ -33,10 +36,12 @@ describe("Feature: Starting a game", () => {
       return Effect.gen(function* () {
         const gameDriver = yield* GameDriver;
 
-        yield* gameDriver.given.existingGameWithMinimumNumberOfPlayers({
-          gameId: "id-game-1",
-          hostId: "id-player-1",
-        });
+        yield* gameDriver.given.existingGame(
+          gameDriver,
+          new GameBuilder("id-game-1")
+            .hostedBy("id-player-1")
+            .withPlayers("id-player-2", "id-player-3"),
+        );
 
         yield* gameDriver.when.startingGame({
           gameId: "id-game-1",
@@ -55,11 +60,12 @@ describe("Feature: Starting a game", () => {
         return Effect.gen(function* () {
           const gameDriver = yield* GameDriver;
 
-          yield* gameDriver.given.existingNonStartedGame({
-            gameId: "id-game-1",
-            hostId: "id-player-1",
-            players: ["id-player-1", "id-player-2"],
-          });
+          yield* gameDriver.given.existingGame(
+            gameDriver,
+            new GameBuilder("id-game-1")
+              .hostedBy("id-player-1")
+              .withPlayers("id-player-2"),
+          );
 
           yield* gameDriver.when.startingGame({
             gameId: "id-game-1",
@@ -77,10 +83,12 @@ describe("Feature: Starting a game", () => {
       return Effect.gen(function* () {
         const gameDriver = yield* GameDriver;
 
-        yield* gameDriver.given.existingGameWithMinimumNumberOfPlayers({
-          gameId: "id-game-1",
-          hostId: "id-player-1",
-        });
+        yield* gameDriver.given.existingGame(
+          gameDriver,
+          new GameBuilder("id-game-1")
+            .hostedBy("id-player-1")
+            .withPlayers("id-player-2", "id-player-3"),
+        );
 
         yield* gameDriver.when.startingGame({
           gameId: "id-game-1",
@@ -99,11 +107,12 @@ describe("Feature: Starting a game", () => {
         return Effect.gen(function* () {
           const gameDriver = yield* GameDriver;
 
-          yield* gameDriver.given.existingNonStartedGame({
-            gameId: "id-game-1",
-            hostId: "id-player-1",
-            players: ["id-player-1", "id-player-2", "id-player-3"],
-          });
+          yield* gameDriver.given.existingGame(
+            gameDriver,
+            new GameBuilder("id-game-1")
+              .hostedBy("id-player-1")
+              .withPlayers("id-player-2", "id-player-3"),
+          );
 
           yield* gameDriver.when.startingGameWhileAnotherPlayerLeftInBetween({
             gameId: "id-game-1",
@@ -124,42 +133,13 @@ describe("Feature: Starting a game", () => {
       return Effect.gen(function* () {
         const gameDriver = yield* GameDriver;
 
-        yield* gameDriver.given.existingDeck({
-          id: "id-deck-1",
-          cards: [
-            "id-card-1",
-            "id-card-2",
-            "id-card-3",
-            "id-card-4",
-            "id-card-5",
-            "id-card-6",
-            "id-card-7",
-            "id-card-8",
-            "id-card-9",
-            "id-card-10",
-            "id-card-11",
-            "id-card-12",
-            "id-card-13",
-            "id-card-14",
-            "id-card-15",
-            "id-card-16",
-            "id-card-17",
-            "id-card-18",
-            "id-card-19",
-            "id-card-20",
-            "id-card-21",
-            "id-card-22",
-            "id-card-23",
-            "id-card-24",
-          ],
-          shuffleStrategy: "identity",
-        });
-        yield* gameDriver.given.existingNonStartedGame({
-          gameId: "id-game-1",
-          deckId: "id-deck-1",
-          hostId: "id-player-1",
-          players: ["id-player-1", "id-player-2", "id-player-3", "id-player-4"],
-        });
+        const { deck } = yield* gameDriver.given.existingGame(
+          gameDriver,
+          new GameBuilder("id-game-1")
+            .hostedBy("id-player-1")
+            .withPlayers("id-player-2", "id-player-3", "id-player-4")
+            .withDeck("id-deck-1"),
+        );
 
         yield* gameDriver.when.startingGame({
           gameId: "id-game-1",
@@ -175,47 +155,19 @@ describe("Feature: Starting a game", () => {
           playerHands: [
             {
               playerId: "id-player-1",
-              cards: [
-                "id-card-1",
-                "id-card-2",
-                "id-card-3",
-                "id-card-4",
-                "id-card-5",
-                "id-card-6",
-              ],
+              cards: deck.cards.slice(0, 6),
             },
             {
               playerId: "id-player-2",
-              cards: [
-                "id-card-7",
-                "id-card-8",
-                "id-card-9",
-                "id-card-10",
-                "id-card-11",
-                "id-card-12",
-              ],
+              cards: deck.cards.slice(6, 12),
             },
             {
               playerId: "id-player-3",
-              cards: [
-                "id-card-13",
-                "id-card-14",
-                "id-card-15",
-                "id-card-16",
-                "id-card-17",
-                "id-card-18",
-              ],
+              cards: deck.cards.slice(12, 18),
             },
             {
               playerId: "id-player-4",
-              cards: [
-                "id-card-19",
-                "id-card-20",
-                "id-card-21",
-                "id-card-22",
-                "id-card-23",
-                "id-card-24",
-              ],
+              cards: deck.cards.slice(18, 24),
             },
           ],
         });
@@ -228,42 +180,13 @@ describe("Feature: Starting a game", () => {
         return Effect.gen(function* () {
           const gameDriver = yield* GameDriver;
 
-          yield* gameDriver.given.existingDeck({
-            id: "id-deck-1",
-            cards: [
-              "id-card-1",
-              "id-card-2",
-              "id-card-3",
-              "id-card-4",
-              "id-card-5",
-              "id-card-6",
-              "id-card-7",
-              "id-card-8",
-              "id-card-9",
-              "id-card-10",
-              "id-card-11",
-              "id-card-12",
-              "id-card-13",
-              "id-card-14",
-              "id-card-15",
-              "id-card-16",
-              "id-card-17",
-              "id-card-18",
-              "id-card-19",
-              "id-card-20",
-              "id-card-21",
-              "id-card-22",
-              "id-card-23",
-              "id-card-24",
-            ],
-            shuffleStrategy: "identity",
-          });
-          yield* gameDriver.given.existingNonStartedGame({
-            gameId: "id-game-1",
-            deckId: "id-deck-1",
-            hostId: "id-player-1",
-            players: ["id-player-1", "id-player-2", "id-player-3"],
-          });
+          const { deck } = yield* gameDriver.given.existingGame(
+            gameDriver,
+            new GameBuilder("id-game-1")
+              .hostedBy("id-player-1")
+              .withPlayers("id-player-2", "id-player-3")
+              .withDeck("id-deck-1"),
+          );
 
           yield* gameDriver.when.startingGame({
             gameId: "id-game-1",
@@ -279,39 +202,15 @@ describe("Feature: Starting a game", () => {
             playerHands: [
               {
                 playerId: "id-player-1",
-                cards: [
-                  "id-card-1",
-                  "id-card-2",
-                  "id-card-3",
-                  "id-card-4",
-                  "id-card-5",
-                  "id-card-6",
-                  "id-card-7",
-                ],
+                cards: deck.cards.slice(0, 7),
               },
               {
                 playerId: "id-player-2",
-                cards: [
-                  "id-card-8",
-                  "id-card-9",
-                  "id-card-10",
-                  "id-card-11",
-                  "id-card-12",
-                  "id-card-13",
-                  "id-card-14",
-                ],
+                cards: deck.cards.slice(7, 14),
               },
               {
                 playerId: "id-player-3",
-                cards: [
-                  "id-card-15",
-                  "id-card-16",
-                  "id-card-17",
-                  "id-card-18",
-                  "id-card-19",
-                  "id-card-20",
-                  "id-card-21",
-                ],
+                cards: deck.cards.slice(14, 21),
               },
             ],
           });
@@ -325,20 +224,13 @@ describe("Feature: Starting a game", () => {
         return Effect.gen(function* () {
           const gameDriver = yield* GameDriver;
 
-          yield* gameDriver.given.defaultDeck({
-            id: "id-deck-1",
-          });
-          yield* gameDriver.given.existingNonStartedGame({
-            gameId: "id-game-1",
-            deckId: "id-deck-1",
-            hostId: "id-player-1",
-            players: [
-              "id-player-1",
-              "id-player-2",
-              "id-player-3",
-              "id-player-4",
-            ],
-          });
+          yield* gameDriver.given.existingGame(
+            gameDriver,
+            new GameBuilder("id-game-1")
+              .hostedBy("id-player-1")
+              .withPlayers("id-player-2", "id-player-3", "id-player-4")
+              .withDeck("id-deck-1"),
+          );
 
           yield* gameDriver.when.startingGame({
             gameId: "id-game-1",

@@ -1,6 +1,5 @@
 import { Effect, Option } from "effect";
 import { CardId } from "./deck.entity.js";
-import { GameId } from "./game.entity.js";
 import { GameRepository, InMemoryGameRepository } from "./game.repository.js";
 import { withOptimisticRetry } from "./optimistic-retry.js";
 import { PlayerId } from "./player.entity.js";
