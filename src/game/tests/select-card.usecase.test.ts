@@ -58,7 +58,70 @@ describe("Feature: Selecting a card when the turn is in the selecting-cards phas
     }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
   });
 
-  it.effect("Example: A player cannot select an another card from their hand if they have already selected one", () => {
+  it.effect("Example: A player cannot select another card from their hand if they have already selected one", () => {
+    return Effect.gen(function* () {
+      const gameDriver = yield* GameDriver;
+      const { game } = yield* gameDriver.given.existingGame(
+        gameDriver,
+        new GameBuilder("id-game-1")
+          .hostedBy("id-player-1")
+          .withPlayers("id-player-2", "id-player-3", "id-player-4")
+          .withDeck("id-deck-1")
+          .started()
+          .withSubmittedClueOnCardIndex("A clue", 0)
+          .withSelectedCards([
+            { playerId: "id-player-2", cardIndex: 0 },
+          ]),
+      );
+      const player2hand = getPlayerHand(game, {
+        playerId: "id-player-2",
+      });
+
+      yield* gameDriver.when.selectingCard({
+        gameId: "id-game-1",
+        playerId: "id-player-2",
+        cardId: player2hand[1].id,
+      });
+
+      yield* gameDriver.assert.playerToNotHaveBeenAbleToSelectCard({
+        error: "A player can only select one card",
+      });
+    }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+  });
+
+  it.effect("Example: 3-players game : A player cannot select another card from their hand if they have already selected two", () => {
+    return Effect.gen(function* () {
+      const gameDriver = yield* GameDriver;
+      const { game } = yield* gameDriver.given.existingGame(
+        gameDriver,
+        new GameBuilder("id-game-1")
+          .hostedBy("id-player-1")
+          .withPlayers("id-player-2", "id-player-3")
+          .withDeck("id-deck-1")
+          .started()
+          .withSubmittedClueOnCardIndex("A clue", 0)
+          .withSelectedCards([
+            { playerId: "id-player-2", cardIndex: 0 },
+            { playerId: "id-player-2", cardIndex: 1 },
+          ]),
+      );
+      const player2handWithoutFirstSelectedCard = getPlayerHand(game, {
+        playerId: "id-player-2",
+      });
+
+      yield* gameDriver.when.selectingCard({
+        gameId: "id-game-1",
+        playerId: "id-player-2",
+        cardId: player2handWithoutFirstSelectedCard[0].id,
+      });
+
+      yield* gameDriver.assert.playerToNotHaveBeenAbleToSelectCard({
+        error: "A player can only select two cards",
+      });
+    }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+  });
+
+  it.effect("Example: A player cannot select another card from their hand if they have already selected one", () => {
     return Effect.gen(function* () {
       const gameDriver = yield* GameDriver;
       const { game } = yield* gameDriver.given.existingGame(
@@ -173,6 +236,42 @@ describe("Feature: Selecting a card when the turn is in the selecting-cards phas
           gameId: "id-game-1",
           playerId: "id-player-4",
           cardId: player4hand[0].id,
+        });
+
+        yield* gameDriver.assert.turnToBeInVotingPhase({
+          gameId: "id-game-1",
+        });
+      }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+    },
+  );
+
+  it.effect(
+    "Example: When the last player selects their second card in a 3-players game, the turn phase is updated to voting",
+    () => {
+      return Effect.gen(function* () {
+        const gameDriver = yield* GameDriver;
+        const { game } = yield* gameDriver.given.existingGame(
+          gameDriver,
+          new GameBuilder("id-game-1")
+            .hostedBy("id-player-1")
+            .withPlayers("id-player-2", "id-player-3")
+            .withDeck("id-deck-1")
+            .started()
+            .withSubmittedClueOnCardIndex("A clue", 0)
+            .withSelectedCards([
+              { playerId: "id-player-2", cardIndex: 0 },
+              { playerId: "id-player-2", cardIndex: 1 },
+              { playerId: "id-player-3", cardIndex: 0 },
+            ]),
+        );
+        const player3hand = getPlayerHand(game, {
+          playerId: "id-player-3",
+        });
+
+        yield* gameDriver.when.selectingCard({
+          gameId: "id-game-1",
+          playerId: "id-player-3",
+          cardId: player3hand[0].id,
         });
 
         yield* gameDriver.assert.turnToBeInVotingPhase({

@@ -161,6 +161,14 @@ export class TurnEntity {
       return Effect.fail(new Error("The card is not in the player's hand"));
     }
     if (
+      this.props.playerHands.length === 3 &&
+      this.props.selectedCards.filter((card) => card.playerId === opts.playerId)
+          .length === 2
+    ) {
+      return Effect.fail(new Error("A player can only select two cards"));
+    }
+    if (
+      this.props.playerHands.length > 3 &&
       this.props.selectedCards.some((card) => card.playerId === opts.playerId)
     ) {
       return Effect.fail(new Error("A player can only select one card"));
@@ -179,9 +187,11 @@ export class TurnEntity {
         ...this.props,
         playerHands: turn.playerHands,
         selectedCards: updatedSelectedCards,
-        phase: updatedSelectedCards.length === this.props.playerHands.length - 1
+        phase: (this.props.playerHands.length === 3 &&
+            updatedSelectedCards.length === 4) ||
+            updatedSelectedCards.length === this.props.playerHands.length - 1
           ? "voting"
-          : "selecting-cards", // TODO: handle 3 players case
+          : "selecting-cards",
       });
     });
   }

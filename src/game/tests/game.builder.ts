@@ -80,20 +80,6 @@ export class GameBuilder {
     return this;
   }
 
-  withPlayersOrder(playerIds: Array<string>): this {
-    this.config.playersOrder = playerIds;
-    for (const playerId of playerIds) {
-      this.withPlayer(playerId);
-    }
-    return this;
-  }
-
-  withStoryteller(playerId: string): this {
-    this.config.storyteller = playerId;
-    this.withPlayer(playerId);
-    return this;
-  }
-
   withSubmittedClueOnCardIndex(clue: string, cardIndex: number): this {
     this.config.clue = { clue, cardIndex };
     return this;
@@ -102,9 +88,8 @@ export class GameBuilder {
   withSelectedCard(
     { playerId, cardIndex }: { playerId: string; cardIndex: number },
   ): this {
-    if (!this.config.selectedCards.some((card) => card.playerId === playerId)) {
-      this.config.selectedCards.push({ playerId, cardIndex });
-    }
+    this.config.selectedCards.push({ playerId, cardIndex });
+
     return this;
   }
 
@@ -118,43 +103,6 @@ export class GameBuilder {
       });
     }
     return this;
-  }
-
-  get players(): ReadonlyArray<string> {
-    return this.config.players;
-  }
-
-  get storyteller(): string | undefined {
-    return this.config.storyteller;
-  }
-
-  get selectedCards(): ReadonlyArray<{ playerId: string; cardIndex: number }> {
-    return this.config.selectedCards;
-  }
-
-  get playersWhoCanSelect(): Array<string> {
-    if (!this.config.storyteller) return [];
-
-    return this.config.players.filter(
-      (playerId) =>
-        playerId !== this.config.storyteller &&
-        !this.config.selectedCards.some((card) => card.playerId === playerId),
-    );
-  }
-
-  get allNonStorytellerPlayersHaveSelected(): boolean {
-    if (!this.config.storyteller) return false;
-
-    const nonStorytellerPlayers = this.config.players.filter(
-      (p) => p !== this.config.storyteller,
-    );
-
-    return (
-      nonStorytellerPlayers.length > 0 &&
-      nonStorytellerPlayers.every((playerId) =>
-        this.config.selectedCards.some((card) => card.playerId === playerId)
-      )
-    );
   }
 
   get gameId(): string {
@@ -247,6 +195,13 @@ export const getCardInHandByIndex = (
       throw new Error("Card not found");
     }
     return card.id;
+  }
+  throw new Error("Game is not started");
+};
+
+export const getSelectedCards = (gameSnapshot: GameEntitySnapshot) => {
+  if (isStartedGameSnapshot(gameSnapshot)) {
+    return gameSnapshot.currentTurn.selectedCards;
   }
   throw new Error("Game is not started");
 };
