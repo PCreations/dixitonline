@@ -1,16 +1,16 @@
-import { Context, Data, Effect, Layer, Option } from "effect";
+import { Context, Data, Effect, Layer, Option } from 'effect';
 import {
   GameEntity,
   isNotStartedGame,
   NotStartedGameEntity,
   StartedGameEntity,
-} from "./game.entity.js";
+} from './game.entity.js';
 
 export class OptimisticConcurrencyError extends Data.TaggedError(
-  "OptimisticConcurrencyError",
+  'OptimisticConcurrencyError',
 )<{}> {}
 
-export class GameRepository extends Effect.Tag("game/GameRepository")<
+export class GameRepository extends Effect.Tag('game/GameRepository')<
   GameRepository,
   {
     save: (game: GameEntity) => Effect.Effect<void, OptimisticConcurrencyError>;
@@ -27,9 +27,7 @@ export class GameRepository extends Effect.Tag("game/GameRepository")<
       gameId: string,
       playerId: string,
     ) => Effect.Effect<boolean>;
-    simulateStaleRead: (
-      staleGame: GameEntity,
-    ) => Effect.Effect<void>;
+    simulateStaleRead: (staleGame: GameEntity) => Effect.Effect<void>;
   }
 >() {}
 
@@ -91,9 +89,7 @@ const makeInMemoryGameRepository = (): Context.Tag.Service<GameRepository> => {
       const staleGame = Option.fromNullable(
         staleReads.get(id) as NotStartedGameEntity | undefined,
       );
-      const actualGame = Option.fromNullable(
-        notStartedGames.get(id),
-      );
+      const actualGame = Option.fromNullable(notStartedGames.get(id));
       return Option.match(staleGame, {
         onNone: () => {
           return Effect.succeed(actualGame);

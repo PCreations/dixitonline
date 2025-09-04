@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap");
 
 @font-face {
   font-family: "Dilana";
@@ -110,4 +111,42 @@ body {
     opacity: 1;
     transform: scale(1.05);
   }
+}
+
+.menu-container {
+  @apply absolute top-0 left-0 right-0 flex items-center justify-between px-12 py-6;
+  z-index: 50;
+}
+
+.menu-logo {
+  @apply flex items-center;
+}
+
+.menu-logo-text {
+  font-family: "Dilana", serif;
+  @apply text-white text-2xl tracking-wider;
+}
+
+.menu-items {
+  @apply flex items-center gap-8;
+}
+
+.menu-link {
+  @apply text-white text-sm no-underline;
+  font-family: "Poppins", sans-serif;
+  font-weight: 500;
+  transition: opacity 0.2s;
+}
+
+.menu-link:hover {
+  opacity: 0.8;
+}
+
+.menu-profile-button {
+  @apply p-0 bg-transparent border-none cursor-pointer;
+  transition: opacity 0.2s;
+}
+
+.menu-profile-button:hover {
+  opacity: 0.8;
 }

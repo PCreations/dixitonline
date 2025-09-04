@@ -1,7 +1,7 @@
-import { Context, Effect, Layer, Option } from "effect";
-import { DeckEntity, DeckId } from "./deck.entity.js";
+import { Context, Effect, Layer, Option } from 'effect';
+import { DeckEntity, DeckId } from './deck.entity.js';
 
-export class DeckRepository extends Effect.Tag("game/DeckRepository")<
+export class DeckRepository extends Effect.Tag('game/DeckRepository')<
   DeckRepository,
   {
     save: (props: DeckEntity) => Effect.Effect<void>;
@@ -12,7 +12,7 @@ export class DeckRepository extends Effect.Tag("game/DeckRepository")<
 
 const makeInMemoryDeckRepository = (): Context.Tag.Service<DeckRepository> => {
   const decks = new Map<DeckId, DeckEntity>();
-  let defaultDeckId: Option.Option<DeckId> = Option.some(DeckId("default"));
+  let defaultDeckId: Option.Option<DeckId> = Option.some(DeckId('default'));
 
   return {
     save: (deck: DeckEntity) =>

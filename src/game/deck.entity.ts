@@ -1,10 +1,10 @@
-import { Brand } from "effect";
+import { Brand } from 'effect';
 
-export type DeckId = string & Brand.Brand<"DeckId">;
+export type DeckId = string & Brand.Brand<'DeckId'>;
 
 export const DeckId = Brand.nominal<DeckId>();
 
-export type CardId = string & Brand.Brand<"CardId">;
+export type CardId = string & Brand.Brand<'CardId'>;
 
 export const CardId = Brand.nominal<CardId>();
 
@@ -55,19 +55,17 @@ export class DeckEntity {
     });
   }
 
-  static create(
-    props: {
-      readonly id: DeckId;
-      readonly isDefault: boolean;
-      readonly cards?: ReadonlyArray<Card>;
-      readonly shuffleStrategy?: DeckShuffleStrategy;
-    },
-  ) {
+  static create(props: {
+    readonly id: DeckId;
+    readonly isDefault: boolean;
+    readonly cards?: ReadonlyArray<Card>;
+    readonly shuffleStrategy?: DeckShuffleStrategy;
+  }) {
     return new DeckEntity({
       ...props,
       cards: props.cards ?? [],
-      shuffleStrategy: props.shuffleStrategy ??
-        new IdentityDeckShuffleStrategy(),
+      shuffleStrategy:
+        props.shuffleStrategy ?? new IdentityDeckShuffleStrategy(),
     });
   }
 

@@ -22,7 +22,9 @@
       "mcp__figma-dev-mode-mcp-server__get_image",
       "WebFetch(domain:localhost)",
       "Bash(pnpm css:build:*)",
-      "Bash(pnpm dlx:*)"
+      "Bash(pnpm dlx:*)",
+      "mcp__context7__resolve-library-id",
+      "Bash(pnpm lint:*)"
     ]
   },
   "enableAllProjectMcpServers": false,

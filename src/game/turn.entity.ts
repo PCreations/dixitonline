@@ -1,6 +1,7 @@
 import { Brand, Effect, Option } from "effect";
 import { type Card, CardId } from "./deck.entity.js";
 import { GameId, PlayerHand } from "./game.entity.js";
+import { GameRules, GameRulesFactory } from "./game-rules.js";
 import { PlayerId } from "./player.entity.js";
 
 export type TurnId = string & Brand.Brand<"TurnId">;
@@ -8,6 +9,8 @@ export type TurnId = string & Brand.Brand<"TurnId">;
 export const TurnId = Brand.nominal<TurnId>();
 
 export class TurnEntity {
+  private readonly rules: GameRules;
+
   private constructor(
     private readonly props: {
       readonly id: TurnId;
@@ -27,7 +30,9 @@ export class TurnEntity {
         playerId: PlayerId;
       }>;
     },
-  ) {}
+  ) {
+    this.rules = GameRulesFactory.create(props.playerHands.length);
+  }
 
   static create(props: {
     id: TurnId;
@@ -92,24 +97,8 @@ export class TurnEntity {
     });
   }
 
-  get id() {
-    return this.props.id;
-  }
-
   get playerHands() {
     return this.props.playerHands;
-  }
-
-  get cardsInDrawPile() {
-    return this.props.cardsInDrawPile;
-  }
-
-  get phase() {
-    return this.props.phase;
-  }
-
-  get startedAt() {
-    return this.props.startedAt;
   }
 
   submitClue(opts: {
@@ -149,59 +138,71 @@ export class TurnEntity {
     playerId: PlayerId;
     cardId: CardId;
   }): Effect.Effect<TurnEntity, Error, never> {
-    if (this.props.currentStorytellerId === opts.playerId) {
-      return Effect.fail(new Error("The storyteller cannot select a card"));
-    }
-    if (
-      !this.doesPlayerOwnCard({
-        playerId: opts.playerId,
-        cardId: opts.cardId,
-      })
-    ) {
-      return Effect.fail(new Error("The card is not in the player's hand"));
-    }
-    if (
-      this.props.playerHands.length === 3 &&
-      this.props.selectedCards.filter((card) => card.playerId === opts.playerId)
-          .length === 2
-    ) {
-      return Effect.fail(new Error("A player can only select two cards"));
-    }
-    if (
-      this.props.playerHands.length > 3 &&
-      this.props.selectedCards.some((card) => card.playerId === opts.playerId)
-    ) {
-      return Effect.fail(new Error("A player can only select one card"));
-    }
-    const updatedTurn = this.removeCardFromPlayerHand({
-      playerId: opts.playerId,
-      cardId: opts.cardId,
-    });
+    return Effect.gen(this, function* () {
+      yield* this.guardAgainstStorytellerSelectingCard(opts);
+      yield* this.guardAgainstCardNotInPlayerHand(opts);
+      yield* this.guardAgainstPlayerSelectingMoreCardsThanAllowed(opts);
 
-    return Effect.map(updatedTurn, (turn) => {
-      const updatedSelectedCards = [...this.props.selectedCards, {
-        cardId: opts.cardId,
-        playerId: opts.playerId,
-      }];
+      const updatedTurn = yield* this.removeCardFromPlayerHand(opts);
+
+      const updatedSelectedCards = [
+        ...this.props.selectedCards,
+        {
+          cardId: opts.cardId,
+          playerId: opts.playerId,
+        },
+      ];
+
       return new TurnEntity({
         ...this.props,
-        playerHands: turn.playerHands,
+        playerHands: updatedTurn.playerHands,
         selectedCards: updatedSelectedCards,
-        phase: (this.props.playerHands.length === 3 &&
-            updatedSelectedCards.length === 4) ||
-            updatedSelectedCards.length === this.props.playerHands.length - 1
+        phase: this.rules.isVotingPhase(
+            updatedSelectedCards.length,
+            this.props.playerHands.length,
+          )
           ? "voting"
           : "selecting-cards",
       });
     });
   }
 
+  private guardAgainstStorytellerSelectingCard(opts: {
+    playerId: PlayerId;
+    cardId: CardId;
+  }): Effect.Effect<void, Error, never> {
+    if (this.props.currentStorytellerId === opts.playerId) {
+      return Effect.fail(new Error("The storyteller cannot select a card"));
+    }
+    return Effect.void;
+  }
+
+  private guardAgainstCardNotInPlayerHand(opts: {
+    playerId: PlayerId;
+    cardId: CardId;
+  }): Effect.Effect<void, Error, never> {
+    if (!this.doesPlayerOwnCard(opts)) {
+      return Effect.fail(new Error("The card is not in the player's hand"));
+    }
+    return Effect.void;
+  }
+
+  private guardAgainstPlayerSelectingMoreCardsThanAllowed(opts: {
+    playerId: PlayerId;
+    cardId: CardId;
+  }): Effect.Effect<void, Error, never> {
+    return this.rules.canPlayerSelectMoreCards(
+      this.props.selectedCards,
+      opts.playerId,
+    );
+  }
+
   private removeCardFromPlayerHand(opts: {
     playerId: PlayerId;
     cardId: CardId;
   }): Effect.Effect<TurnEntity, Error, never> {
-    const hand = this.props.playerHands.find((hand) =>
-      hand.playerId === opts.playerId
+    const hand = this.props.playerHands.find(
+      (hand) => hand.playerId === opts.playerId,
     );
     if (!hand) {
       return Effect.fail(new Error("Player hand not found"));
@@ -219,12 +220,9 @@ export class TurnEntity {
     );
   }
 
-  private doesPlayerOwnCard(opts: {
-    playerId: PlayerId;
-    cardId: CardId;
-  }) {
-    const playerHand = this.props.playerHands.find((hand) =>
-      hand.playerId === opts.playerId
+  private doesPlayerOwnCard(opts: { playerId: PlayerId; cardId: CardId }) {
+    const playerHand = this.props.playerHands.find(
+      (hand) => hand.playerId === opts.playerId,
     );
     if (!playerHand) {
       return false;

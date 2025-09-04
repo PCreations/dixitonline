@@ -1,25 +1,25 @@
-import { Effect, Match, Option } from "effect";
-import { DeckId } from "./deck.entity.js";
-import { DeckRepository, InMemoryDeckRepository } from "./deck.repository.js";
+import { Effect, Match, Option } from 'effect';
+import { DeckId } from './deck.entity.js';
+import { DeckRepository, InMemoryDeckRepository } from './deck.repository.js';
 import {
   createLimitOfPointsEndCondition,
   createNumberOfTimesBeingStorytellerEndCondition,
   EndCondition,
   GameId,
   NotStartedGameEntity,
-} from "./game.entity.js";
-import { GameRepository, InMemoryGameRepository } from "./game.repository.js";
-import { PlayerId } from "./player.entity.js";
+} from './game.entity.js';
+import { GameRepository, InMemoryGameRepository } from './game.repository.js';
+import { PlayerId } from './player.entity.js';
 
 type EndConditionDto =
   | {
-    type: "NumberOfTimesBeingStoryteller";
-    numberOfTimes: Option.Option<number>;
-  }
+      type: 'NumberOfTimesBeingStoryteller';
+      numberOfTimes: Option.Option<number>;
+    }
   | {
-    type: "LimitOfPoints";
-    limit: number;
-  };
+      type: 'LimitOfPoints';
+      limit: number;
+    };
 
 export type CreateGameCommand = {
   gameId: string;
@@ -33,26 +33,22 @@ const endConditionDtoToDomain = (
 ): EndCondition => {
   return Match.value(endCondition).pipe(
     Match.withReturnType<EndCondition>(),
-    Match.when(
-      { type: "NumberOfTimesBeingStoryteller" },
-      (endCondition) =>
-        createNumberOfTimesBeingStorytellerEndCondition({
-          numberOfTimes: endCondition.numberOfTimes,
-        }),
+    Match.when({ type: 'NumberOfTimesBeingStoryteller' }, (endCondition) =>
+      createNumberOfTimesBeingStorytellerEndCondition({
+        numberOfTimes: endCondition.numberOfTimes,
+      }),
     ),
-    Match.when(
-      { type: "LimitOfPoints" },
-      (endCondition) =>
-        createLimitOfPointsEndCondition({
-          limit: endCondition.limit,
-        }),
+    Match.when({ type: 'LimitOfPoints' }, (endCondition) =>
+      createLimitOfPointsEndCondition({
+        limit: endCondition.limit,
+      }),
     ),
     Match.exhaustive,
   );
 };
 
 export class CreateGameUseCase extends Effect.Service<CreateGameUseCase>()(
-  "game/CreateGameUseCase",
+  'game/CreateGameUseCase',
   {
     effect: Effect.gen(function* () {
       const gameRepository = yield* GameRepository;
@@ -78,7 +74,8 @@ export class CreateGameUseCase extends Effect.Service<CreateGameUseCase>()(
               createdBy: PlayerId(props.hostId),
               deckId: DeckId(
                 Option.getOrElse(props.deckId, () =>
-                  Option.getOrThrow(defaultDeckId)),
+                  Option.getOrThrow(defaultDeckId),
+                ),
               ),
               endCondition,
             });

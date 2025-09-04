@@ -1,50 +1,50 @@
-import { describe, it } from "@effect/vitest";
-import { Effect } from "effect";
-import { GameDriver, makeGameDriverUnitTestLayer } from "./game.driver.js";
+import { describe, it } from '@effect/vitest';
+import { Effect } from 'effect';
+import { GameDriver, makeGameDriverUnitTestLayer } from './game.driver.js';
 
-describe("Feature: Creating a new game", () => {
+describe('Feature: Creating a new game', () => {
   it.effect(
-    "Example: Creating a new game with the default deck and settings",
+    'Example: Creating a new game with the default deck and settings',
     () => {
       return Effect.gen(function* () {
         const gameDriver = yield* GameDriver;
         yield* gameDriver.given.defaultDeck({
-          id: "id-deck-1",
+          id: 'id-deck-1',
         });
 
         yield* gameDriver.when.creatingGame({
-          gameId: "id-game-1",
-          hostId: "id-player-1",
+          gameId: 'id-game-1',
+          hostId: 'id-player-1',
         });
 
         yield* gameDriver.assert.createdGameToEqual({
-          id: "id-game-1",
-          createdBy: "id-player-1",
-          deckId: "id-deck-1",
-          players: ["id-player-1"],
+          id: 'id-game-1',
+          createdBy: 'id-player-1',
+          deckId: 'id-deck-1',
+          players: ['id-player-1'],
         });
       }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
     },
   );
 
-  it.effect("Example: Creating a new game with a custom deck", () => {
+  it.effect('Example: Creating a new game with a custom deck', () => {
     return Effect.gen(function* () {
       const gameDriver = yield* GameDriver;
       yield* gameDriver.given.existingDeck({
-        id: "id-deck-2",
+        id: 'id-deck-2',
       });
 
       yield* gameDriver.when.creatingGame({
-        gameId: "id-game-1",
-        hostId: "id-player-1",
-        deckId: "id-deck-2",
+        gameId: 'id-game-1',
+        hostId: 'id-player-1',
+        deckId: 'id-deck-2',
       });
 
       yield* gameDriver.assert.createdGameToEqual({
-        id: "id-game-1",
-        createdBy: "id-player-1",
-        deckId: "id-deck-2",
-        players: ["id-player-1"],
+        id: 'id-game-1',
+        createdBy: 'id-player-1',
+        deckId: 'id-deck-2',
+        players: ['id-player-1'],
       });
     }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
   });
@@ -56,27 +56,27 @@ describe("Feature: Creating a new game", () => {
         const gameDriver = yield* GameDriver;
 
         yield* gameDriver.given.defaultDeck({
-          id: "id-deck-1",
+          id: 'id-deck-1',
         });
 
         yield* gameDriver.when.creatingGame({
-          gameId: "id-game-1",
-          hostId: "id-player-1",
+          gameId: 'id-game-1',
+          hostId: 'id-player-1',
           endCondition: {
-            type: "NumberOfTimesBeingStoryteller",
+            type: 'NumberOfTimesBeingStoryteller',
             numberOfTimes: 2,
           },
         });
 
         yield* gameDriver.assert.createdGameToEqual({
-          id: "id-game-1",
-          createdBy: "id-player-1",
-          deckId: "id-deck-1",
+          id: 'id-game-1',
+          createdBy: 'id-player-1',
+          deckId: 'id-deck-1',
           endCondition: {
-            type: "NumberOfTimesBeingStoryteller",
+            type: 'NumberOfTimesBeingStoryteller',
             numberOfTimes: 2,
           },
-          players: ["id-player-1"],
+          players: ['id-player-1'],
         });
       }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
     },
@@ -89,27 +89,27 @@ describe("Feature: Creating a new game", () => {
         const gameDriver = yield* GameDriver;
 
         yield* gameDriver.given.defaultDeck({
-          id: "id-deck-1",
+          id: 'id-deck-1',
         });
 
         yield* gameDriver.when.creatingGame({
-          gameId: "id-game-1",
-          hostId: "id-player-1",
+          gameId: 'id-game-1',
+          hostId: 'id-player-1',
           endCondition: {
-            type: "LimitOfPoints",
+            type: 'LimitOfPoints',
             limit: 10,
           },
         });
 
         yield* gameDriver.assert.createdGameToEqual({
-          id: "id-game-1",
-          createdBy: "id-player-1",
-          deckId: "id-deck-1",
+          id: 'id-game-1',
+          createdBy: 'id-player-1',
+          deckId: 'id-deck-1',
           endCondition: {
-            type: "LimitOfPoints",
+            type: 'LimitOfPoints',
             limit: 10,
           },
-          players: ["id-player-1"],
+          players: ['id-player-1'],
         });
       }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
     },

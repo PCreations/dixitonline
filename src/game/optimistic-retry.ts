@@ -9,7 +9,7 @@ import { OptimisticConcurrencyError } from './game.repository.js';
  */
 export function withOptimisticRetry<A, E, R>(
   operation: Effect.Effect<A, E, R>,
-  maxRetries: number = 3
+  maxRetries: number = 3,
 ): Effect.Effect<A, E, R> {
   return Effect.retry(operation, {
     while: (error) => error instanceof OptimisticConcurrencyError,

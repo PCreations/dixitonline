@@ -1,12 +1,12 @@
-import { Effect, Option } from "effect";
-import { DeckRepository, InMemoryDeckRepository } from "./deck.repository.js";
+import { Effect, Option } from 'effect';
+import { DeckRepository, InMemoryDeckRepository } from './deck.repository.js';
 import {
   NoopRandomizeStrategy,
   PlayersRandomizeStrategy,
-} from "./game.entity.js";
-import { GameRepository, InMemoryGameRepository } from "./game.repository.js";
-import { withOptimisticRetry } from "./optimistic-retry.js";
-import { PlayerId } from "./player.entity.js";
+} from './game.entity.js';
+import { GameRepository, InMemoryGameRepository } from './game.repository.js';
+import { withOptimisticRetry } from './optimistic-retry.js';
+import { PlayerId } from './player.entity.js';
 
 export type StartGameCommand = {
   gameId: string;
@@ -14,7 +14,7 @@ export type StartGameCommand = {
 };
 
 export class StartGameUseCase extends Effect.Service<StartGameUseCase>()(
-  "game/StartGameUseCase",
+  'game/StartGameUseCase',
   {
     effect: Effect.gen(function* () {
       const gameRepository = yield* GameRepository;
@@ -28,13 +28,13 @@ export class StartGameUseCase extends Effect.Service<StartGameUseCase>()(
               props.gameId,
             );
             const gameEntity = yield* Option.match(game, {
-              onNone: () => Effect.fail(new Error("Game not found")),
+              onNone: () => Effect.fail(new Error('Game not found')),
               onSome: Effect.succeed,
             });
 
             const deck = yield* deckRepository.findById(gameEntity.deckId);
             const deckEntity = yield* Option.match(deck, {
-              onNone: () => Effect.fail(new Error("Deck not found")),
+              onNone: () => Effect.fail(new Error('Deck not found')),
               onSome: Effect.succeed,
             });
 
