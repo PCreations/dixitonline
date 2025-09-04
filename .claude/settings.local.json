@@ -16,7 +16,13 @@
       "Bash(pnpm list:*)",
       "Bash(pnpm test:*)",
       "mcp__console-ninja__runtime-errors",
-      "mcp__console-ninja__runtime-logs"
+      "mcp__console-ninja__runtime-logs",
+      "mcp__figma-dev-mode-mcp-server__get_code",
+      "mcp__figma-dev-mode-mcp-server__get_metadata",
+      "mcp__figma-dev-mode-mcp-server__get_image",
+      "WebFetch(domain:localhost)",
+      "Bash(pnpm css:build:*)",
+      "Bash(pnpm dlx:*)"
     ]
   },
   "enableAllProjectMcpServers": false,

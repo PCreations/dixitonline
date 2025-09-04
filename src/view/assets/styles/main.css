@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: "Dilana";
+  src: url("/assets/fonts/fuente-dilana.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+body {
+  position: relative;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(69, 50, 75, 1) 0%,
+    rgba(48, 38, 67, 1) 50%,
+    rgba(27, 26, 59, 1) 100%
+  );
+}
+
+.home-container {
+  @apply fixed inset-0;
+}
+
+.dune-wrapper {
+  @apply absolute bottom-0 left-0 right-0 w-full overflow-hidden pointer-events-none;
+}
+
+.dune-container {
+  @apply relative;
+  min-width: 1440px;
+  aspect-ratio: 1440 / 382;
+  transform: translateX(-50%);
+  left: 50%;
+}
+
+.sand-steps-container {
+  @apply absolute pointer-events-none;
+  top: 0;
+  left: 62%;
+  transform: translateX(-50%);
+  z-index: 10;
+  width: 20%;
+  max-width: 301px;
+}
+
+.logo-container {
+  @apply absolute top-60 left-1/2 transform -translate-x-1/2 z-20;
+}
+
+.logo-text {
+  font-family: "Dilana", serif;
+  @apply text-white;
+  font-size: clamp(3rem, 27vw, 10rem);
+  line-height: 1;
+  letter-spacing: -0.05em;
+}

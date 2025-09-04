@@ -1,31 +1,42 @@
-import { Effect, Either, Option, ParseResult, Schema as S } from 'effect';
-import Fastify, { FastifyInstance } from 'fastify';
-import { CreateGameUseCase } from './game/create-game.usecase.js';
-import { GameLayerLive } from './game/index.js';
-import { h } from 'preact';
-import { renderToString, renderHtmlPage } from './view/render.js';
-import { HelloWorld } from './view/components/HelloWorld.js';
+import { Effect, Either, Option, ParseResult, Schema as S } from "effect";
+import Fastify, { FastifyInstance } from "fastify";
+import fastifyStatic from "@fastify/static";
+import { h } from "preact";
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
+import { CreateGameUseCase } from "./game/create-game.usecase.js";
+import { GameLayerLive } from "./game/index.js";
+import { Home } from "./view/components/Home.js";
+import { renderHtmlPage, renderToString } from "./view/render.js";
 
-const isDev = process.env.NODE_ENV === 'development';
+const isDev = process.env.NODE_ENV === "development";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const fastify: FastifyInstance = Fastify({
   logger: isDev
     ? {
-        transport: {
-          target: 'pino-pretty',
-          options: {
-            translateTime: 'HH:MM:ss Z',
-            ignore: 'pid,hostname',
-            colorize: true,
-            singleLine: false,
-            messageFormat: '{if reqId}[{reqId}] {end}{msg}',
-            errorLikeObjectKeys: ['err', 'error'],
-            errorProps: 'message,stack',
-          },
+      transport: {
+        target: "pino-pretty",
+        options: {
+          translateTime: "HH:MM:ss Z",
+          ignore: "pid,hostname",
+          colorize: true,
+          singleLine: false,
+          messageFormat: "{if reqId}[{reqId}] {end}{msg}",
+          errorLikeObjectKeys: ["err", "error"],
+          errorProps: "message,stack",
         },
-        level: 'debug',
-      }
+      },
+      level: "debug",
+    }
     : true,
+});
+
+// Register static files plugin
+await fastify.register(fastifyStatic, {
+  root: join(__dirname, "view", "assets"),
+  prefix: "/assets/",
 });
 
 const CreateGameBodySchema = S.Struct({
@@ -34,20 +45,20 @@ const CreateGameBodySchema = S.Struct({
 });
 
 fastify.route({
-  method: 'GET',
-  url: '/',
+  method: "GET",
+  url: "/",
   handler: async function handler(_request, reply) {
-    const component = h(HelloWorld, {});
+    const component = h(Home, {});
     const body = renderToString(component);
-    const html = renderHtmlPage('Tixid Online', body);
-    
-    reply.type('text/html').send(html);
+    const html = renderHtmlPage("Tixid Online", body);
+
+    reply.type("text/html").send(html);
   },
 });
 
 fastify.route({
-  method: 'POST',
-  url: '/game/create',
+  method: "POST",
+  url: "/game/create",
   handler: async function handler(request, reply) {
     // First, try to decode the request body
     const decodeResult = S.decodeUnknown(CreateGameBodySchema)(request.body);
@@ -68,9 +79,9 @@ fastify.route({
         onRight: () => reply.status(201).send({ success: true, gameId }),
         onLeft: (error) => {
           // @ts-ignore - pino type issue with FastifyBaseLogger
-          request.log.error({ err: error }, 'Failed to create game');
+          request.log.error({ err: error }, "Failed to create game");
           return reply.status(500).send({
-            error: 'Failed to create game',
+            error: "Failed to create game",
             details: error.message,
           });
         },
@@ -84,26 +95,26 @@ fastify.route({
       if (ParseResult.isParseError(error)) {
         const formatted = ParseResult.TreeFormatter.formatErrorSync(error);
         // @ts-ignore - pino type issue with FastifyBaseLogger
-        request.log.warn({ err: error, formatted }, 'Invalid request body');
+        request.log.warn({ err: error, formatted }, "Invalid request body");
         return reply.status(400).send({
-          error: 'Validation Error',
+          error: "Validation Error",
           details: formatted,
         });
       }
 
       // Handle other errors
       // @ts-ignore - pino type issue with FastifyBaseLogger
-      request.log.error({ err: error }, 'Unexpected error');
+      request.log.error({ err: error }, "Unexpected error");
       return reply.status(500).send({
-        error: 'Internal Server Error',
-        details: error.message || 'An unexpected error occurred',
+        error: "Internal Server Error",
+        details: error.message || "An unexpected error occurred",
       });
     });
   },
 });
 
 try {
-  await fastify.listen({ port: 3000 });
+  await fastify.listen({ port: 3010 });
 } catch (err) {
   console.error(err);
   process.exit(1);
