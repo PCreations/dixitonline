@@ -23,11 +23,12 @@ body {
 
 body {
   position: relative;
-  background: radial-gradient(
-    ellipse at center,
-    rgba(69, 50, 75, 1) 0%,
-    rgba(48, 38, 67, 1) 50%,
-    rgba(27, 26, 59, 1) 100%
+  background: linear-gradient(
+    to bottom,
+    rgba(15, 12, 30, 1) 0%,
+    rgba(27, 26, 59, 1) 30%,
+    rgba(48, 38, 67, 1) 60%,
+    rgba(69, 50, 75, 1) 100%
   );
 }
 
@@ -67,4 +68,46 @@ body {
   font-size: clamp(3rem, 27vw, 10rem);
   line-height: 1;
   letter-spacing: -0.05em;
+}
+
+.stars-container {
+  @apply absolute inset-0 pointer-events-none;
+  z-index: 1;
+}
+
+.star {
+  animation: twinkle 3s ease-in-out infinite;
+  animation-delay: calc(var(--star-index, 0) * 0.2s);
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: inherit;
+  }
+  50% {
+    opacity: calc(var(--opacity, 1) * 0.3);
+  }
+}
+
+.moon-container {
+  @apply absolute;
+  top: 21%;
+  left: 23%;
+  width: 120px;
+  height: 120px;
+  z-index: 2;
+  animation: moonGlow 6s ease-in-out infinite;
+}
+
+@keyframes moonGlow {
+  0%,
+  100% {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
 }
