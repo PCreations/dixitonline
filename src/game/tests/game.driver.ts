@@ -1,14 +1,14 @@
-import { expect } from '@effect/vitest';
-import { Context, Effect, Layer, Option } from 'effect';
-import { CreateGameUseCase } from '../create-game.usecase.js';
+import { expect } from "@effect/vitest";
+import { Context, Effect, Layer, Option } from "effect";
+import { CreateGameUseCase } from "../create-game.usecase.js";
 import {
   Card,
   CardId,
   DeckEntity,
   DeckId,
   IdentityDeckShuffleStrategy,
-} from '../deck.entity.js';
-import { DeckRepository, InMemoryDeckRepository } from '../deck.repository.js';
+} from "../deck.entity.js";
+import { DeckRepository, InMemoryDeckRepository } from "../deck.repository.js";
 import {
   GameEntitySnapshot,
   isStartedGame,
@@ -16,26 +16,26 @@ import {
   NoopRandomizeStrategy,
   PlayersRandomizeStrategy,
   PlayersRandomizeStrategyType,
-} from '../game.entity.js';
-import { GameRepository, InMemoryGameRepository } from '../game.repository.js';
-import { GameLayerWithoutDependencies } from '../index.js';
-import { JoinGameUseCase } from '../join-game.usecase.js';
-import { LeaveGameUseCase } from '../leave-game.usecase.js';
-import { SelectCardUseCase } from '../select-card.usecase.js';
-import { StartGameUseCase } from '../start-game.usecase.js';
-import { SubmitClueUseCase } from '../submit-clue.usecase.js';
-import { VoteOnCardUseCase } from '../vote-on-card.usecase.js';
-import type { GameBuilder } from './game.builder.js';
+} from "../game.entity.js";
+import { GameRepository, InMemoryGameRepository } from "../game.repository.js";
+import { GameLayerWithoutDependencies } from "../index.js";
+import { JoinGameUseCase } from "../join-game.usecase.js";
+import { LeaveGameUseCase } from "../leave-game.usecase.js";
+import { SelectCardUseCase } from "../select-card.usecase.js";
+import { StartGameUseCase } from "../start-game.usecase.js";
+import { SubmitClueUseCase } from "../submit-clue.usecase.js";
+import { VoteOnCardUseCase } from "../vote-on-card.usecase.js";
+import type { GameBuilder } from "./game.builder.js";
 
 type EndConditionDto =
   | {
-      type: 'NumberOfTimesBeingStoryteller';
-      numberOfTimes: number;
-    }
+    type: "NumberOfTimesBeingStoryteller";
+    numberOfTimes: number;
+  }
   | {
-      type: 'LimitOfPoints';
-      limit: number;
-    };
+    type: "LimitOfPoints";
+    limit: number;
+  };
 
 interface GameDriverDSL {
   readonly getGameSnapshot: (
@@ -50,7 +50,7 @@ interface GameDriverDSL {
     readonly existingDeck: (props: {
       id: string;
       cards?: ReadonlyArray<string>;
-      shuffleStrategy?: 'identity' | 'shuffle';
+      shuffleStrategy?: "identity" | "shuffle";
     }) => Effect.Effect<void>;
     readonly existingNonStartedGame: (props: {
       gameId: string;
@@ -186,10 +186,13 @@ interface GameDriverDSL {
     readonly playerToNotHaveBeenAbleToVoteOnCard: (props?: {
       error?: string;
     }) => Effect.Effect<void, never, never>;
+    readonly turnToBeInScoringPhase: (props: {
+      gameId: string;
+    }) => Effect.Effect<void, never, never>;
   };
 }
 
-export class GameDriver extends Context.Tag('GameDriver')<
+export class GameDriver extends Context.Tag("GameDriver")<
   GameDriver,
   GameDriverDSL
 >() {}
@@ -222,7 +225,7 @@ const makeUnitTestGameDriver = ({
     failFast: false,
   };
 
-  const given: GameDriverDSL['given'] = {
+  const given: GameDriverDSL["given"] = {
     defaultDeck: (props) => {
       const deck = DeckEntity.createDefault({
         id: DeckId(props.id),
@@ -237,7 +240,7 @@ const makeUnitTestGameDriver = ({
             Card.create({
               id: CardId(card),
               url: `https://example.com/default-${card}`,
-            }),
+            })
           ),
       });
       return deckRepository.save(deck);
@@ -245,17 +248,16 @@ const makeUnitTestGameDriver = ({
     existingDeck: (props) => {
       /* This will be replaced by the real create deck use case*/
       const cards = (props.cards ?? []).map((card) =>
-        Card.create({ id: CardId(card), url: `https://example.com/${card}` }),
+        Card.create({ id: CardId(card), url: `https://example.com/${card}` })
       );
       return deckRepository.save(
         DeckEntity.create({
           id: DeckId(props.id),
           isDefault: false,
           cards,
-          shuffleStrategy:
-            props.shuffleStrategy === 'identity'
-              ? new IdentityDeckShuffleStrategy()
-              : new IdentityDeckShuffleStrategy(), // TODO: Implement shuffle strategy
+          shuffleStrategy: props.shuffleStrategy === "identity"
+            ? new IdentityDeckShuffleStrategy()
+            : new IdentityDeckShuffleStrategy(), // TODO: Implement shuffle strategy
         }),
       );
     },
@@ -263,8 +265,8 @@ const makeUnitTestGameDriver = ({
       return Effect.gen(function* () {
         let { deckId } = props;
         if (!deckId) {
-          deckId = 'default-deck-id';
-          yield* given.defaultDeck({ id: 'default-deck-id' });
+          deckId = "default-deck-id";
+          yield* given.defaultDeck({ id: "default-deck-id" });
         }
 
         yield* when.creatingGame({
@@ -272,7 +274,7 @@ const makeUnitTestGameDriver = ({
           hostId: props.hostId,
           deckId,
           endCondition: {
-            type: 'NumberOfTimesBeingStoryteller',
+            type: "NumberOfTimesBeingStoryteller",
             numberOfTimes: 3,
           },
         });
@@ -284,7 +286,7 @@ const makeUnitTestGameDriver = ({
               when.joiningGame({
                 gameId: props.gameId,
                 playerId: player,
-              }),
+              })
             ),
         );
       });
@@ -293,7 +295,7 @@ const makeUnitTestGameDriver = ({
       return Effect.gen(function* () {
         yield* given.existingNonStartedGame({
           gameId: props.gameId,
-          hostId: 'id-player-1',
+          hostId: "id-player-1",
           players: Array.from(
             { length: MAX_PLAYERS },
             (_, i) => `id-player-${i + 1}`,
@@ -352,7 +354,7 @@ const makeUnitTestGameDriver = ({
     },
   };
 
-  const when: GameDriverDSL['when'] = {
+  const when: GameDriverDSL["when"] = {
     creatingGame: (props) =>
       createGameUseCase.createGame({
         gameId: props.gameId,
@@ -360,15 +362,15 @@ const makeUnitTestGameDriver = ({
         deckId: Option.fromNullable(props.deckId),
         endCondition: Option.fromNullable(props.endCondition).pipe(
           Option.map((endCondition) =>
-            endCondition.type === 'NumberOfTimesBeingStoryteller'
+            endCondition.type === "NumberOfTimesBeingStoryteller"
               ? {
-                  type: 'NumberOfTimesBeingStoryteller',
-                  numberOfTimes: Option.some(endCondition.numberOfTimes),
-                }
+                type: "NumberOfTimesBeingStoryteller",
+                numberOfTimes: Option.some(endCondition.numberOfTimes),
+              }
               : {
-                  type: 'LimitOfPoints',
-                  limit: endCondition.limit,
-                },
+                type: "LimitOfPoints",
+                limit: endCondition.limit,
+              }
           ),
         ),
       }),
@@ -510,20 +512,20 @@ const makeUnitTestGameDriver = ({
     },
   };
 
-  const assert: GameDriverDSL['assert'] = {
+  const assert: GameDriverDSL["assert"] = {
     createdGameToEqual: (game) =>
       Effect.gen(function* () {
         const createdGame = yield* gameRepository.findById(game.id);
 
         const defaultEndCondition = {
-          type: 'NumberOfTimesBeingStoryteller',
+          type: "NumberOfTimesBeingStoryteller",
           numberOfTimes: 3,
         };
 
         Option.map(createdGame, (gameEntity) =>
           expect(gameEntity.toSnapshot()).toEqual({
             status: {
-              _tag: 'NotStartedGame',
+              _tag: "NotStartedGame",
             },
             id: game.id,
             createdBy: game.createdBy,
@@ -531,8 +533,7 @@ const makeUnitTestGameDriver = ({
             endCondition: game.endCondition ?? defaultEndCondition,
             players: game.players,
             version: 1,
-          }),
-        );
+          }));
       }),
     playerToHaveJoinedGame: (props) =>
       Effect.gen(function* () {
@@ -594,7 +595,7 @@ const makeUnitTestGameDriver = ({
         expect(game.toSnapshot().currentTurn).toEqual(
           expect.objectContaining({
             currentStorytellerId: props.storytellerId,
-            phase: 'storytelling',
+            phase: "storytelling",
             turnNumber: 1,
           }),
         );
@@ -616,7 +617,7 @@ const makeUnitTestGameDriver = ({
             cardId: props.storytellerCardId,
           }),
         );
-        expect(game.toSnapshot().currentTurn.phase).toEqual('selecting-cards');
+        expect(game.toSnapshot().currentTurn.phase).toEqual("selecting-cards");
       });
     },
     turnToHaveSelectedCards: (props) => {
@@ -644,7 +645,20 @@ const makeUnitTestGameDriver = ({
               `Started Game ${props.gameId} not found while asserting turn is in voting phase`,
             ),
         );
-        expect(game.toSnapshot().currentTurn.phase).toEqual('voting');
+        expect(game.toSnapshot().currentTurn.phase).toEqual("voting");
+      });
+    },
+    turnToBeInScoringPhase: (props) => {
+      return Effect.gen(function* () {
+        expect(testState.currentError).toEqual(Option.none());
+        const game = Option.getOrThrowWith(
+          yield* gameRepository.findStartedGameById(props.gameId),
+          () =>
+            new Error(
+              `Started Game ${props.gameId} not found while asserting turn is in scoring phase`,
+            ),
+        );
+        expect(game.toSnapshot().currentTurn.phase).toEqual("scoring");
       });
     },
     playerHandsToEqual: (props) => {
