@@ -1,11 +1,12 @@
-import { Layer } from 'effect';
-import { CreateGameUseCase } from './create-game.usecase.js';
-import { JoinGameUseCase } from './join-game.usecase.js';
-import { LeaveGameUseCase } from './leave-game.usecase.js';
-import { SelectCardUseCase } from './select-card.usecase.js';
-import { StartGameUseCase } from './start-game.usecase.js';
-import { SubmitClueUseCase } from './submit-clue.usecase.js';
-import { VoteOnCardUseCase } from './vote-on-card.usecase.js';
+import { Layer } from "effect";
+import { CreateGameUseCase } from "./create-game.usecase.js";
+import { JoinGameUseCase } from "./join-game.usecase.js";
+import { LeaveGameUseCase } from "./leave-game.usecase.js";
+import { NotifyReadyForNextTurnUseCase } from "./notify-ready-for-next-turn.usecase.js";
+import { SelectCardUseCase } from "./select-card.usecase.js";
+import { StartGameUseCase } from "./start-game.usecase.js";
+import { SubmitClueUseCase } from "./submit-clue.usecase.js";
+import { VoteOnCardUseCase } from "./vote-on-card.usecase.js";
 
 export const GameLayerLive = Layer.mergeAll(
   CreateGameUseCase.Default,
@@ -15,6 +16,7 @@ export const GameLayerLive = Layer.mergeAll(
   SubmitClueUseCase.Default,
   SelectCardUseCase.Default,
   VoteOnCardUseCase.Default,
+  NotifyReadyForNextTurnUseCase.Default,
 );
 
 export const GameLayerWithoutDependencies = Layer.mergeAll(
@@ -25,4 +27,5 @@ export const GameLayerWithoutDependencies = Layer.mergeAll(
   SubmitClueUseCase.DefaultWithoutDependencies,
   SelectCardUseCase.DefaultWithoutDependencies,
   VoteOnCardUseCase.DefaultWithoutDependencies,
+  NotifyReadyForNextTurnUseCase.DefaultWithoutDependencies,
 );

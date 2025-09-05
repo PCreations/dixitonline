@@ -51,6 +51,45 @@ describe("Feature: Voting on a board card", () => {
   });
 
   it.effect(
+    "Example: A player not in game can't vote on a card",
+    () => {
+      return Effect.gen(function* () {
+        const gameDriver = yield* GameDriver;
+
+        yield* gameDriver.given.existingGame(
+          gameDriver,
+          new GameBuilder("id-game-1")
+            .hostedBy("id-player-1")
+            .withPlayers(
+              "id-player-1",
+              "id-player-2",
+              "id-player-3",
+              "id-player-4",
+            )
+            .withDeck("id-deck-1")
+            .started()
+            .withSubmittedClueOnCardIndex("A clue", 0)
+            .withSelectedCards([
+              { playerId: "id-player-2", cardIndex: 0 },
+              { playerId: "id-player-3", cardIndex: 0 },
+              { playerId: "id-player-4", cardIndex: 0 },
+            ]),
+        );
+
+        yield* gameDriver.when.votingOnCard({
+          gameId: "id-game-1",
+          playerId: "id-player-5",
+          cardId: "id-card-not-selected-by-another-player",
+        });
+
+        yield* gameDriver.assert.playerToNotHaveBeenAbleToVoteOnCard({
+          error: "Player not in game",
+        });
+      }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+    },
+  );
+
+  it.effect(
     "Example: A player cannot vote for a card not selected by another player",
     () => {
       return Effect.gen(function* () {

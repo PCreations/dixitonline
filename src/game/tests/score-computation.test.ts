@@ -55,9 +55,6 @@ describe("Score computation rules", () => {
       {
         playerId: "player-id-2",
         points: [{
-          value: 3,
-          reason: YouFoundTheStorytellerCard(),
-        }, {
           value: 2,
           reason: EveryoneFoundTheStorytellerCard(),
         }],
@@ -65,9 +62,6 @@ describe("Score computation rules", () => {
       {
         playerId: "player-id-3",
         points: [{
-          value: 3,
-          reason: YouFoundTheStorytellerCard(),
-        }, {
           value: 2,
           reason: EveryoneFoundTheStorytellerCard(),
         }],
@@ -75,9 +69,6 @@ describe("Score computation rules", () => {
       {
         playerId: "player-id-4",
         points: [{
-          value: 3,
-          reason: YouFoundTheStorytellerCard(),
-        }, {
           value: 2,
           reason: EveryoneFoundTheStorytellerCard(),
         }],

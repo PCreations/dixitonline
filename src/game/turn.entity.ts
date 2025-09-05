@@ -1,5 +1,5 @@
 import { Array as Arr, Brand, Effect, Option } from "effect";
-import { type Card, CardId } from "./deck.entity.js";
+import { Card, CardId } from "./deck.entity.js";
 import { GameId, PlayerHand } from "./game.entity.js";
 import { GameRules, GameRulesFactory, ScoreReason } from "./game-rules.js";
 import { PlayerId } from "./player.entity.js";
@@ -121,6 +121,37 @@ export class TurnEntity {
 
   get playerHands() {
     return this.props.playerHands;
+  }
+
+  get currentStorytellerId() {
+    return this.props.currentStorytellerId;
+  }
+
+  nextTurn(opts: { nextStorytellerId: PlayerId }) {
+    let cardsInDrawPile = this.props.cardsInDrawPile;
+    const updatedPlayerHands: Array<PlayerHand> = [];
+
+    for (const hand of this.props.playerHands) {
+      const result = hand.completeFromDrawPile(
+        cardsInDrawPile,
+        this.rules.getNumberOfCardsInHand(),
+      );
+      updatedPlayerHands.push(result[0]);
+      cardsInDrawPile = result[1];
+    }
+
+    return new TurnEntity({
+      ...this.props,
+      cardsInDrawPile,
+      playerHands: updatedPlayerHands,
+      turnNumber: this.props.turnNumber + 1,
+      phase: "storytelling",
+      currentStorytellerId: opts.nextStorytellerId,
+    });
+  }
+
+  isInScoringPhase() {
+    return this.props.phase === "scoring";
   }
 
   submitClue(opts: {
@@ -355,7 +386,9 @@ export class TurnEntity {
 
   private validateVote(
     opts: { playerId: PlayerId; cardId: CardId },
-    availableCardsToVoteOn: ReadonlyArray<{ cardId: CardId; playerId: PlayerId }>,
+    availableCardsToVoteOn: ReadonlyArray<
+      { cardId: CardId; playerId: PlayerId }
+    >,
   ): Effect.Effect<void, Error, never> {
     return Effect.gen(this, function* () {
       yield* this.guardAgainstPlayerVotingMoreThanOnce(opts);
@@ -383,27 +416,38 @@ export class TurnEntity {
   }
 
   private determineNextPhase(
-    votedCards: ReadonlyArray<{ cardId: CardId; ownedBy: PlayerId; votedBy: PlayerId }>,
+    votedCards: ReadonlyArray<
+      { cardId: CardId; ownedBy: PlayerId; votedBy: PlayerId }
+    >,
   ): "scoring" | "voting" {
     return this.rules.isScoringPhase(
-      votedCards.length,
-      this.props.playerHands.length,
-    )
+        votedCards.length,
+        this.props.playerHands.length,
+      )
       ? "scoring"
       : "voting";
   }
 
   private computePointsIfNeeded(
     nextPhase: "scoring" | "voting",
-    votedCards: ReadonlyArray<{ cardId: CardId; ownedBy: PlayerId; votedBy: PlayerId }>,
-  ): Effect.Effect<Map<PlayerId, ReadonlyArray<{ points: number; reason: ScoreReason }>>, Error, never> {
+    votedCards: ReadonlyArray<
+      { cardId: CardId; ownedBy: PlayerId; votedBy: PlayerId }
+    >,
+  ): Effect.Effect<
+    Map<PlayerId, ReadonlyArray<{ points: number; reason: ScoreReason }>>,
+    Error,
+    never
+  > {
     if (nextPhase !== "scoring") {
       return Effect.succeed(this.props.pointsByPlayer);
     }
 
     return Effect.gen(this, function* () {
       const allAvailableCards = yield* this.getAllAvailableCards();
-      const votes = this.transformVotesToScoreFormat(votedCards, allAvailableCards);
+      const votes = this.transformVotesToScoreFormat(
+        votedCards,
+        allAvailableCards,
+      );
       const playerScores = this.rules.computeScore({
         storytellerId: this.props.currentStorytellerId,
         votes,
@@ -430,9 +474,13 @@ export class TurnEntity {
   }
 
   private transformVotesToScoreFormat(
-    votedCards: ReadonlyArray<{ cardId: CardId; ownedBy: PlayerId; votedBy: PlayerId }>,
+    votedCards: ReadonlyArray<
+      { cardId: CardId; ownedBy: PlayerId; votedBy: PlayerId }
+    >,
     allAvailableCards: ReadonlyArray<{ cardId: CardId; playerId: PlayerId }>,
-  ): ReadonlyArray<{ cardId: CardId; ownedBy: PlayerId; votes: ReadonlyArray<PlayerId> }> {
+  ): ReadonlyArray<
+    { cardId: CardId; ownedBy: PlayerId; votes: ReadonlyArray<PlayerId> }
+  > {
     const votesGroupedByCard = Arr.groupBy(
       votedCards,
       (vote) => vote.cardId,

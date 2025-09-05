@@ -21,6 +21,7 @@ import { GameRepository, InMemoryGameRepository } from "../game.repository.js";
 import { GameLayerWithoutDependencies } from "../index.js";
 import { JoinGameUseCase } from "../join-game.usecase.js";
 import { LeaveGameUseCase } from "../leave-game.usecase.js";
+import { NotifyReadyForNextTurnUseCase } from "../notify-ready-for-next-turn.usecase.js";
 import { SelectCardUseCase } from "../select-card.usecase.js";
 import { StartGameUseCase } from "../start-game.usecase.js";
 import { SubmitClueUseCase } from "../submit-clue.usecase.js";
@@ -116,6 +117,10 @@ interface GameDriverDSL {
       playerId: string;
       cardId: string;
     }) => Effect.Effect<void>;
+    readonly notifyingToBeReadyForNextTurn: (props: {
+      gameId: string;
+      playerId: string;
+    }) => Effect.Effect<void>;
   };
   readonly assert: {
     readonly createdGameToEqual: (game: {
@@ -148,6 +153,18 @@ interface GameDriverDSL {
     readonly currentTurnToBeStarted: (props: {
       gameId: string;
       storytellerId: string;
+    }) => Effect.Effect<void, never, never>;
+    readonly newTurnToBeStarted: (props: {
+      gameId: string;
+      storytellerId: string;
+      playerHands: ReadonlyArray<{
+        playerId: string;
+        cards: ReadonlyArray<string>;
+      }>;
+      cardsInDrawPile: ReadonlyArray<{
+        id: string;
+        url: string;
+      }>;
     }) => Effect.Effect<void, never, never>;
     readonly playerHandsToEqual: (props: {
       gameId: string;
@@ -196,6 +213,13 @@ interface GameDriverDSL {
         score: number;
       }>;
     }) => Effect.Effect<void, never, never>;
+    readonly playersReadyForNextTurnToEqual: (props: {
+      gameId: string;
+      playersReadyForNextTurn: ReadonlyArray<string>;
+    }) => Effect.Effect<void, never, never>;
+    readonly playerToNotHaveBeenAbleToNotifyToBeReadyForNextTurn: (props?: {
+      error?: string;
+    }) => Effect.Effect<void, never, never>;
   };
 }
 
@@ -214,6 +238,7 @@ const makeUnitTestGameDriver = ({
   submitClueUseCase,
   selectCardUseCase,
   voteOnCardUseCase,
+  notifyToBeReadyForNextTurnUseCase,
   gameRepository,
   deckRepository,
 }: {
@@ -224,6 +249,7 @@ const makeUnitTestGameDriver = ({
   submitClueUseCase: SubmitClueUseCase;
   selectCardUseCase: SelectCardUseCase;
   voteOnCardUseCase: VoteOnCardUseCase;
+  notifyToBeReadyForNextTurnUseCase: NotifyReadyForNextTurnUseCase;
   gameRepository: Context.Tag.Service<GameRepository>;
   deckRepository: Context.Tag.Service<DeckRepository>;
 }): GameDriverDSL => {
@@ -517,6 +543,22 @@ const makeUnitTestGameDriver = ({
           }),
         );
     },
+    notifyingToBeReadyForNextTurn: (props) => {
+      return notifyToBeReadyForNextTurnUseCase
+        .notifyReadyForNextTurn({
+          gameId: props.gameId,
+          playerId: props.playerId,
+        })
+        .pipe(
+          Effect.catchAll((error) => {
+            if (testState.failFast) {
+              return Effect.die(new Error(`[GameBuilder] ${error.message}`));
+            }
+            testState.currentError = Option.some(error);
+            return Effect.succeed(void 0);
+          }),
+        );
+    },
   };
 
   const assert: GameDriverDSL["assert"] = {
@@ -605,6 +647,35 @@ const makeUnitTestGameDriver = ({
             phase: "storytelling",
             turnNumber: 1,
           }),
+        );
+      });
+    },
+    newTurnToBeStarted: (props) => {
+      return Effect.gen(function* () {
+        expect(testState.currentError).toEqual(Option.none());
+        const game = Option.getOrThrowWith(
+          yield* gameRepository.findStartedGameById(props.gameId),
+          () =>
+            new Error(
+              `Started Game ${props.gameId} not found while asserting new turn has started`,
+            ),
+        );
+        const expectedPlayerHands = game
+          .toSnapshot()
+          .currentTurn.playerHands.map((hand) => ({
+            playerId: hand.playerId,
+            cards: hand.cards.map((card) => card.id),
+          }));
+        expect(game.toSnapshot().currentTurn.currentStorytellerId).toEqual(
+          props.storytellerId,
+        );
+        expect(game.toSnapshot().currentTurn.phase).toEqual("storytelling");
+        expect(game.toSnapshot().currentTurn.turnNumber).toEqual(2);
+        expect(expectedPlayerHands).toEqual(
+          props.playerHands,
+        );
+        expect(game.toSnapshot().currentTurn.cardsInDrawPile).toEqual(
+          props.cardsInDrawPile,
         );
       });
     },
@@ -737,6 +808,26 @@ const makeUnitTestGameDriver = ({
           Option.some(new Error(props?.error)),
         );
       }),
+    playersReadyForNextTurnToEqual: (props) => {
+      return Effect.gen(function* () {
+        const game = Option.getOrThrowWith(
+          yield* gameRepository.findStartedGameById(props.gameId),
+          () =>
+            new Error(
+              `Started Game ${props.gameId} not found while asserting players ready for next turn are equal`,
+            ),
+        );
+        expect(game.toSnapshot().playersReadyForNextTurn).toEqual(
+          props.playersReadyForNextTurn,
+        );
+      });
+    },
+    playerToNotHaveBeenAbleToNotifyToBeReadyForNextTurn: (props) =>
+      Effect.sync(() => {
+        expect(testState.currentError).toEqual(
+          Option.some(new Error(props?.error)),
+        );
+      }),
   };
 
   const getGameSnapshot = (gameId: string) =>
@@ -772,6 +863,8 @@ export const makeGameDriverUnitTestLayer = (props?: {
       const submitClueUseCase = yield* SubmitClueUseCase;
       const selectCardUseCase = yield* SelectCardUseCase;
       const voteOnCardUseCase = yield* VoteOnCardUseCase;
+      const notifyToBeReadyForNextTurnUseCase =
+        yield* NotifyReadyForNextTurnUseCase;
       const gameRepository = yield* GameRepository;
       const deckRepository = yield* DeckRepository;
 
@@ -783,6 +876,7 @@ export const makeGameDriverUnitTestLayer = (props?: {
         submitClueUseCase,
         selectCardUseCase,
         voteOnCardUseCase,
+        notifyToBeReadyForNextTurnUseCase,
         gameRepository,
         deckRepository,
       });

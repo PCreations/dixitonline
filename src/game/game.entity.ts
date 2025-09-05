@@ -10,6 +10,7 @@ import {
 } from "effect";
 import { NonEmptyReadonlyArray } from "effect/Array";
 import { Card, CardId, DeckEntity, DeckId } from "./deck.entity.js";
+import { GameRulesFactory } from "./game-rules.js";
 import { PlayerId } from "./player.entity.js";
 import { TurnEntity, TurnId } from "./turn.entity.js";
 
@@ -118,6 +119,27 @@ export class PlayerHand {
     return this.props.cards.some((card) => card.id === cardId);
   }
 
+  completeFromDrawPile(
+    cardsInDrawPile: ReadonlyArray<Card>,
+    numberOfCards: number,
+  ) {
+    const [drawnCards, remainingCards] = Arr.splitAt(
+      cardsInDrawPile,
+      numberOfCards - this.props.cards.length,
+    );
+    return [
+      this.addCards(drawnCards),
+      remainingCards,
+    ] as const;
+  }
+
+  private addCards(cards: ReadonlyArray<Card>) {
+    return new PlayerHand({
+      ...this.props,
+      cards: [...this.props.cards, ...cards],
+    });
+  }
+
   removeCard(cardId: CardId) {
     const newCards = this.props.cards.filter(
       (card) => card.id !== cardId,
@@ -133,8 +155,6 @@ export class PlayerHand {
     );
   }
 }
-
-const CARD_PER_PLAYER = 6;
 
 export class PlayersRandomizeStrategy extends Context.Tag(
   "game/PlayersRandomizeStrategy",
@@ -405,6 +425,7 @@ export class NotStartedGameEntity extends GameEntity {
           currentTurn: turn,
           version: this.props.version + 1,
           randomizeStrategy,
+          playersReadyForNextTurn: [],
         }),
       );
     });
@@ -433,9 +454,9 @@ export class NotStartedGameEntity extends GameEntity {
   }
 
   private getNumberOfCardsPerPlayer() {
-    return this.props.players.length === 3
-      ? CARD_PER_PLAYER + 1
-      : CARD_PER_PLAYER;
+    return GameRulesFactory.createForPlayersCount(
+      this.props.players.length,
+    ).getNumberOfCardsInHand();
   }
 
   static fromSnapshot(
@@ -462,24 +483,27 @@ type StartedGameEntityProps = GameEntity["props"] & {
   currentTurn: TurnEntity;
   randomizeStrategy: PlayersRandomizeStrategyType;
   scores: ReadonlyArray<{ playerId: PlayerId; score: number }>;
+  playersReadyForNextTurn: ReadonlyArray<PlayerId>;
 };
 
 export class StartedGameEntity extends GameEntity {
   readonly status = StartedGameStatus();
 
-  private constructor(
-    readonly props: StartedGameEntityProps,
-  ) {
+  private constructor(readonly props: StartedGameEntityProps) {
     super(props);
   }
 
   static create(
     props: Omit<StartedGameEntityProps, "scores"> & {
       scores?: ReadonlyArray<{ playerId: PlayerId; score: number }>;
+      playersReadyForNextTurn?: ReadonlyArray<PlayerId>;
     },
   ) {
     return new StartedGameEntity({
       ...props,
+      playersReadyForNextTurn: props.playersReadyForNextTurn === undefined
+        ? []
+        : props.playersReadyForNextTurn,
       scores: props.scores === undefined
         ? props.players.map((playerId) => ({
           playerId,
@@ -501,6 +525,7 @@ export class StartedGameEntity extends GameEntity {
         playerId,
         score: 0,
       })),
+      playersReadyForNextTurn: [],
     }) as this;
   }
 
@@ -521,6 +546,7 @@ export class StartedGameEntity extends GameEntity {
         ? PlayersRandomizeStrategy.of(makeNoopRandomizeStrategy())
         : PlayersRandomizeStrategy.of(makeShuffleRandomizeStrategy()), // TODO: Implement factory
       scores: snapshot.scores,
+      playersReadyForNextTurn: snapshot.playersReadyForNextTurn,
     });
   }
 
@@ -531,6 +557,7 @@ export class StartedGameEntity extends GameEntity {
       currentTurn: this.props.currentTurn.toSnapshot(),
       randomizeStrategy: this.props.randomizeStrategy.type,
       scores: this.props.scores,
+      playersReadyForNextTurn: this.props.playersReadyForNextTurn,
     };
   }
 
@@ -552,6 +579,10 @@ export class StartedGameEntity extends GameEntity {
 
   selectCard(opts: { playerId: PlayerId; cardId: CardId }) {
     return Effect.gen(this, function* () {
+      if (!this.props.players.includes(opts.playerId)) {
+        return yield* Effect.fail(new Error("Player not in game"));
+      }
+
       const updatedTurn = yield* this.props.currentTurn.selectCard({
         playerId: opts.playerId,
         cardId: opts.cardId,
@@ -567,6 +598,10 @@ export class StartedGameEntity extends GameEntity {
 
   voteOnCard(opts: { playerId: PlayerId; cardId: CardId }) {
     return Effect.gen(this, function* () {
+      if (!this.props.players.includes(opts.playerId)) {
+        return yield* Effect.fail(new Error("Player not in game"));
+      }
+
       const updatedTurn = yield* this.props.currentTurn.voteOnCard({
         playerId: opts.playerId,
         cardId: opts.cardId,
@@ -581,6 +616,48 @@ export class StartedGameEntity extends GameEntity {
         scores: updatedScores,
       });
     });
+  }
+
+  notifyReadyForNextTurn(opts: { playerId: PlayerId }) {
+    if (!this.props.players.includes(opts.playerId)) {
+      return Effect.fail(new Error("Player not in game"));
+    }
+
+    if (!this.props.currentTurn.isInScoringPhase()) {
+      return Effect.fail(new Error("Game is not in scoring phase"));
+    }
+
+    const updatedPlayersReadyForNextTurn = Arr.append(
+      this.props.playersReadyForNextTurn,
+      opts.playerId,
+    );
+
+    if (updatedPlayersReadyForNextTurn.length === this.props.players.length) {
+      const currentStorytellerIndex = this.props.players.indexOf(
+        this.props.currentTurn.currentStorytellerId,
+      );
+      const nextStorytellerId = this.props.players[
+        (currentStorytellerIndex + 1) % this.props.players.length
+      ];
+      return Effect.succeed(
+        StartedGameEntity.create({
+          ...this.props,
+          playersReadyForNextTurn: [],
+          currentTurn: this.props.currentTurn.nextTurn({
+            nextStorytellerId,
+          }),
+          version: this.props.version + 1,
+        }),
+      );
+    }
+
+    return Effect.succeed(
+      StartedGameEntity.create({
+        ...this.props,
+        playersReadyForNextTurn: updatedPlayersReadyForNextTurn,
+        version: this.props.version + 1,
+      }),
+    );
   }
 
   private updateScores(updatedTurn: TurnEntity) {

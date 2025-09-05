@@ -27,6 +27,9 @@ interface GameConfig {
   selectedCards: Array<{ playerId: string; cardIndex: number }>;
   votedCards: Array<{ playerId: string; cardSelectedByPlayer: string }>;
   scores: Array<{ playerId: string; score: number }>;
+  playersReadyForNextTurn: Array<string>;
+  inScoringPhase?: boolean;
+  scoringPhaseStartedAt?: Date;
 }
 
 export class GameBuilder {
@@ -39,6 +42,7 @@ export class GameBuilder {
       selectedCards: [],
       votedCards: [],
       scores: [],
+      playersReadyForNextTurn: [],
     };
   }
 
@@ -126,6 +130,17 @@ export class GameBuilder {
     return this;
   }
 
+  withPlayersReadyForNextTurn(players: Array<string>): this {
+    this.config.playersReadyForNextTurn = players;
+    return this;
+  }
+
+  inScoringPhaseSince(now: Date): this {
+    this.config.inScoringPhase = true;
+    this.config.scoringPhaseStartedAt = now;
+    return this;
+  }
+
   get gameId(): string {
     return this.config.gameId;
   }
@@ -158,7 +173,11 @@ export class GameBuilder {
         players: config.players,
       });
 
-      if (config.started) {
+      if (config.started || config.inScoringPhase) {
+        if (config.inScoringPhase) {
+          config.clue = { clue: "some clue", cardIndex: 0 };
+        }
+
         yield* driver.when.startingGame({
           gameId: config.gameId,
           playerId: config.hostId!,
@@ -170,6 +189,7 @@ export class GameBuilder {
           playerId: storytellerId,
           cardIndex: config.clue?.cardIndex ?? 0,
         });
+
         if (config.clue) {
           yield* driver.when.submittingClue({
             gameId: config.gameId,
@@ -178,6 +198,12 @@ export class GameBuilder {
             clue: config.clue.clue,
           });
           game = yield* driver.getGameSnapshot(config.gameId);
+          if (config.inScoringPhase) {
+            config.selectedCards = config.players.slice(1).map((playerId) => ({
+              playerId,
+              cardIndex: 0,
+            }));
+          }
           for (const selection of config.selectedCards) {
             yield* driver.when.selectingCard({
               gameId: config.gameId,
@@ -189,6 +215,12 @@ export class GameBuilder {
             });
           }
 
+          if (config.inScoringPhase) {
+            config.votedCards = config.players.slice(1).map((playerId) => ({
+              playerId,
+              cardSelectedByPlayer: config.players[0],
+            }));
+          }
           for (const vote of config.votedCards) {
             game = yield* driver.getGameSnapshot(config.gameId);
             const selectedCards = getSelectedCardsByPlayer(game, {
@@ -217,6 +249,13 @@ export class GameBuilder {
               });
             }
           }
+          game = yield* driver.getGameSnapshot(config.gameId);
+          for (const playerId of config.playersReadyForNextTurn) {
+            yield* driver.when.notifyingToBeReadyForNextTurn({
+              gameId: config.gameId,
+              playerId,
+            });
+          }
         }
       }
     });
@@ -225,6 +264,13 @@ export class GameBuilder {
 
 export type { EndConditionDto };
 export type GameBuilderInstance = GameBuilder;
+
+export const getCardsInDrawPile = (gameSnapshot: GameEntitySnapshot) => {
+  if (isStartedGameSnapshot(gameSnapshot)) {
+    return gameSnapshot.currentTurn.cardsInDrawPile;
+  }
+  throw new Error("Game is not started");
+};
 
 export const getCurrentStorytellerId = (gameSnapshot: GameEntitySnapshot) => {
   if (isStartedGameSnapshot(gameSnapshot)) {

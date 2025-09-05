@@ -2,6 +2,8 @@ import { Data, Effect } from "effect";
 import { CardId } from "./deck.entity.js";
 import { PlayerId } from "./player.entity.js";
 
+const CARDS_PER_PLAYER = 6;
+
 export type ScoreReason = Data.TaggedEnum<{
   EveryoneFoundTheStorytellerCard: {};
   NoOneFoundTheStorytellerCard: {};
@@ -43,9 +45,14 @@ export interface GameRules {
       reason: ScoreReason;
     }>;
   }>;
+  getNumberOfCardsInHand: () => number;
 }
 
 export class ThreePlayerRules implements GameRules {
+  getNumberOfCardsInHand(): number {
+    return CARDS_PER_PLAYER + 1;
+  }
+
   canPlayerSelectMoreCards(
     selectedCards: ReadonlyArray<{ playerId: PlayerId; cardId: CardId }>,
     playerId: PlayerId,
@@ -106,6 +113,10 @@ export class ThreePlayerRules implements GameRules {
 }
 
 export class NormalRules implements GameRules {
+  getNumberOfCardsInHand(): number {
+    return CARDS_PER_PLAYER;
+  }
+
   canPlayerSelectMoreCards(
     selectedCards: ReadonlyArray<{ playerId: PlayerId; cardId: CardId }>,
     playerId: PlayerId,
@@ -218,7 +229,7 @@ class ScoreComputer {
     }
 
     return [
-      ...(foundTheStorytellerCard
+      ...(foundTheStorytellerCard && !everyoneFoundTheStorytellerCard
         ? [{
           value: pointsEarnedWhenFoundTheStorytellerCard,
           reason: YouFoundTheStorytellerCard(),
@@ -235,13 +246,12 @@ class ScoreComputer {
           value: 2,
           reason: EveryoneFoundTheStorytellerCard(),
         }]
-        : []),
-      ...opts.votes.map((vote) => ({
-        value: 1,
-        reason: APlayerVotedOnYourCard({
-          playerId: vote,
-        }),
-      })),
+        : opts.votes.map((vote) => ({
+          value: 1,
+          reason: APlayerVotedOnYourCard({
+            playerId: vote,
+          }),
+        }))),
     ];
   }
 }
