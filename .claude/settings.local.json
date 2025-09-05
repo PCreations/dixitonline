@@ -24,7 +24,8 @@
       "Bash(pnpm css:build:*)",
       "Bash(pnpm dlx:*)",
       "mcp__context7__resolve-library-id",
-      "Bash(pnpm lint:*)"
+      "Bash(pnpm lint:*)",
+      "mcp__wallaby__wallaby_allTests"
     ]
   },
   "enableAllProjectMcpServers": false,

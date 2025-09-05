@@ -1,6 +1,6 @@
-import { Effect } from "effect";
-import { CardId } from "./deck.entity.js";
-import { PlayerId } from "./player.entity.js";
+import { Effect } from 'effect';
+import { CardId } from './deck.entity.js';
+import { PlayerId } from './player.entity.js';
 
 export interface GameRules {
   canPlayerSelectMoreCards(
@@ -20,7 +20,7 @@ export class ThreePlayerRules implements GameRules {
     ).length;
 
     if (playerSelectedCount >= 2) {
-      return Effect.fail(new Error("A player can only select two cards"));
+      return Effect.fail(new Error('A player can only select two cards'));
     }
 
     return Effect.void;
@@ -41,7 +41,7 @@ export class NormalRules implements GameRules {
     );
 
     if (hasPlayerSelected) {
-      return Effect.fail(new Error("A player can only select one card"));
+      return Effect.fail(new Error('A player can only select one card'));
     }
 
     return Effect.void;

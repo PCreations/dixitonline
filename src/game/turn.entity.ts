@@ -1,10 +1,10 @@
-import { Brand, Effect, Option } from "effect";
-import { type Card, CardId } from "./deck.entity.js";
-import { GameId, PlayerHand } from "./game.entity.js";
-import { GameRules, GameRulesFactory } from "./game-rules.js";
-import { PlayerId } from "./player.entity.js";
+import { Brand, Effect, Option } from 'effect';
+import { type Card, CardId } from './deck.entity.js';
+import { GameId, PlayerHand } from './game.entity.js';
+import { GameRules, GameRulesFactory } from './game-rules.js';
+import { PlayerId } from './player.entity.js';
 
-export type TurnId = string & Brand.Brand<"TurnId">;
+export type TurnId = string & Brand.Brand<'TurnId'>;
 
 export const TurnId = Brand.nominal<TurnId>();
 
@@ -22,7 +22,7 @@ export class TurnEntity {
         clue: string;
         cardId: CardId;
       }>;
-      readonly phase: "storytelling" | "selecting-cards" | "voting";
+      readonly phase: 'storytelling' | 'selecting-cards' | 'voting';
       readonly playerHands: ReadonlyArray<PlayerHand>;
       readonly cardsInDrawPile: ReadonlyArray<Card>;
       readonly selectedCards: ReadonlyArray<{
@@ -56,7 +56,7 @@ export class TurnEntity {
       cardsInDrawPile: props.cardsInDrawPile,
       startedAt: props.startedAt,
       turnClue: Option.none(),
-      phase: "storytelling",
+      phase: 'storytelling',
       turnNumber: 1,
       selectedCards: [],
       votedCards: [],
@@ -84,7 +84,7 @@ export class TurnEntity {
     };
   }
 
-  static fromSnapshot(snapshot: ReturnType<TurnEntity["toSnapshot"]>) {
+  static fromSnapshot(snapshot: ReturnType<TurnEntity['toSnapshot']>) {
     return new TurnEntity({
       id: TurnId(snapshot.id),
       gameId: GameId(snapshot.gameId),
@@ -115,7 +115,7 @@ export class TurnEntity {
     cardId: CardId;
   }): Effect.Effect<TurnEntity, Error, never> {
     if (this.props.currentStorytellerId !== opts.playerId) {
-      return Effect.fail(new Error("Only the storyteller can submit a clue"));
+      return Effect.fail(new Error('Only the storyteller can submit a clue'));
     }
     if (
       !this.doesPlayerOwnCard({
@@ -138,7 +138,7 @@ export class TurnEntity {
           clue: opts.clue,
           cardId: opts.cardId,
         }),
-        phase: "selecting-cards",
+        phase: 'selecting-cards',
       });
     });
   }
@@ -167,11 +167,11 @@ export class TurnEntity {
         playerHands: updatedTurn.playerHands,
         selectedCards: updatedSelectedCards,
         phase: this.rules.isVotingPhase(
-            updatedSelectedCards.length,
-            this.props.playerHands.length,
-          )
-          ? "voting"
-          : "selecting-cards",
+          updatedSelectedCards.length,
+          this.props.playerHands.length,
+        )
+          ? 'voting'
+          : 'selecting-cards',
       });
     });
   }
@@ -180,28 +180,24 @@ export class TurnEntity {
     playerId: PlayerId;
     cardId: CardId;
   }): Effect.Effect<TurnEntity, Error, never> {
-    const availableCardsToVoteOn = this.props.selectedCards.concat({
-      cardId: Option.getOrThrowWith(this.props.turnClue, () =>
-        new Error("The storyteller has not submitted a clue")).cardId,
-      playerId: this.props.currentStorytellerId,
-    });
+    return Effect.gen(this, function* () {
+      const availableCardsToVoteOn = this.props.selectedCards.concat({
+        cardId: Option.getOrThrowWith(
+          this.props.turnClue,
+          () => new Error('The storyteller has not submitted a clue'),
+        ).cardId,
+        playerId: this.props.currentStorytellerId,
+      });
 
-    const card = availableCardsToVoteOn.find((card) =>
-      card.cardId === opts.cardId
-    );
-
-    if (card === undefined) {
-      return Effect.fail(
-        new Error("The card is not in the cards you can vote on"),
+      yield* this.guardAgainstPlayerVotingMoreThanOnce(opts);
+      yield* this.guardAgainstCardNotAvailableForVoting(
+        opts,
+        availableCardsToVoteOn,
       );
-    }
+      const card = yield* this.getCardToVoteOn(opts, availableCardsToVoteOn);
+      yield* this.guardAgainstPlayerVotingOnOwnCard(opts, card);
 
-    if (card.playerId === opts.playerId) {
-      return Effect.fail(new Error("The player cannot vote on their own card"));
-    }
-
-    return Effect.succeed(
-      new TurnEntity({
+      return new TurnEntity({
         ...this.props,
         votedCards: [
           ...this.props.votedCards,
@@ -211,8 +207,8 @@ export class TurnEntity {
             votedBy: opts.playerId,
           },
         ],
-      }),
-    );
+      });
+    });
   }
 
   private guardAgainstStorytellerSelectingCard(opts: {
@@ -220,7 +216,7 @@ export class TurnEntity {
     cardId: CardId;
   }): Effect.Effect<void, Error, never> {
     if (this.props.currentStorytellerId === opts.playerId) {
-      return Effect.fail(new Error("The storyteller cannot select a card"));
+      return Effect.fail(new Error('The storyteller cannot select a card'));
     }
     return Effect.void;
   }
@@ -253,7 +249,7 @@ export class TurnEntity {
       (hand) => hand.playerId === opts.playerId,
     );
     if (!hand) {
-      return Effect.fail(new Error("Player hand not found"));
+      return Effect.fail(new Error('Player hand not found'));
     }
     const self = this;
     return Effect.map(
@@ -262,7 +258,7 @@ export class TurnEntity {
         new TurnEntity({
           ...self.props,
           playerHands: self.props.playerHands.map((h) =>
-            h.playerId === opts.playerId ? newHand : h
+            h.playerId === opts.playerId ? newHand : h,
           ),
         }),
     );
@@ -276,5 +272,70 @@ export class TurnEntity {
       return false;
     }
     return playerHand.isCardInHand(opts.cardId);
+  }
+
+  private guardAgainstCardNotAvailableForVoting(
+    opts: { playerId: PlayerId; cardId: CardId },
+    availableCardsToVoteOn: ReadonlyArray<{
+      cardId: CardId;
+      playerId: PlayerId;
+    }>,
+  ): Effect.Effect<void, Error, never> {
+    const card = availableCardsToVoteOn.find(
+      (card) => card.cardId === opts.cardId,
+    );
+
+    if (card === undefined) {
+      return Effect.fail(
+        new Error('The card is not in the cards you can vote on'),
+      );
+    }
+
+    return Effect.void;
+  }
+
+  private getCardToVoteOn(
+    opts: { playerId: PlayerId; cardId: CardId },
+    availableCardsToVoteOn: ReadonlyArray<{
+      cardId: CardId;
+      playerId: PlayerId;
+    }>,
+  ): Effect.Effect<{ cardId: CardId; playerId: PlayerId }, Error, never> {
+    const card = availableCardsToVoteOn.find(
+      (card) => card.cardId === opts.cardId,
+    );
+
+    if (card === undefined) {
+      return Effect.fail(
+        new Error('The card is not in the cards you can vote on'),
+      );
+    }
+
+    return Effect.succeed(card);
+  }
+
+  private guardAgainstPlayerVotingOnOwnCard(
+    opts: { playerId: PlayerId; cardId: CardId },
+    card: { cardId: CardId; playerId: PlayerId },
+  ): Effect.Effect<void, Error, never> {
+    if (card.playerId === opts.playerId) {
+      return Effect.fail(new Error('The player cannot vote on their own card'));
+    }
+
+    return Effect.void;
+  }
+
+  private guardAgainstPlayerVotingMoreThanOnce(
+    opts: { playerId: PlayerId; cardId: CardId },
+  ): Effect.Effect<void, Error, never> {
+    const hasPlayerVoted = this.props.votedCards.some(
+      (vote) => vote.votedBy === opts.playerId,
+    );
+
+    if (hasPlayerVoted) {
+      return Effect.fail(new Error('The player cannot vote more than once'));
+    }
+
+    return Effect.void;
   }
 }
