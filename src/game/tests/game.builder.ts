@@ -1,16 +1,17 @@
-import { Context, Effect } from 'effect';
-import { GameEntitySnapshot, isStartedGameSnapshot } from '../game.entity.js';
-import { GameDriver } from './game.driver.js';
+import { Context, Effect, Option } from "effect";
+import { GameEntitySnapshot, isStartedGameSnapshot } from "../game.entity.js";
+import { PlayerId } from "../player.entity.js";
+import { GameDriver } from "./game.driver.js";
 
 type EndConditionDto =
   | {
-      type: 'NumberOfTimesBeingStoryteller';
-      numberOfTimes: number;
-    }
+    type: "NumberOfTimesBeingStoryteller";
+    numberOfTimes: number;
+  }
   | {
-      type: 'LimitOfPoints';
-      limit: number;
-    };
+    type: "LimitOfPoints";
+    limit: number;
+  };
 
 interface GameConfig {
   gameId: string;
@@ -24,6 +25,7 @@ interface GameConfig {
   storyteller?: string;
   clue?: { clue: string; cardIndex: number };
   selectedCards: Array<{ playerId: string; cardIndex: number }>;
+  votedCards: Array<{ playerId: string; cardSelectedByPlayer: string }>;
 }
 
 export class GameBuilder {
@@ -34,6 +36,7 @@ export class GameBuilder {
       gameId,
       players: [],
       selectedCards: [],
+      votedCards: [],
     };
   }
 
@@ -109,12 +112,19 @@ export class GameBuilder {
     return this;
   }
 
+  withVotedCards(
+    votes: Array<{ playerId: string; cardSelectedByPlayer: string }>,
+  ): this {
+    this.config.votedCards = votes;
+    return this;
+  }
+
   get gameId(): string {
     return this.config.gameId;
   }
 
   get deckId(): string {
-    return this.config.deckId ?? 'default-deck-id';
+    return this.config.deckId ?? "default-deck-id";
   }
 
   build(driver: Context.Tag.Service<GameDriver>): Effect.Effect<void> {
@@ -123,7 +133,7 @@ export class GameBuilder {
     return Effect.gen(function* () {
       const config = self.config;
 
-      const deckId = config.deckId ?? 'default-deck-id';
+      const deckId = config.deckId ?? "default-deck-id";
 
       const deckCards = config.deckCards
         ? Array.from({ length: config.deckCards }, (_, i) => `card-${i + 1}`)
@@ -147,7 +157,7 @@ export class GameBuilder {
           playerId: config.hostId!,
         });
 
-        const game = yield* driver.getGameSnapshot(config.gameId);
+        let game = yield* driver.getGameSnapshot(config.gameId);
         const storytellerId = getCurrentStorytellerId(game);
         const storytellerCardId = getCardInHandByIndex(game, {
           playerId: storytellerId,
@@ -160,7 +170,7 @@ export class GameBuilder {
             cardId: storytellerCardId,
             clue: config.clue.clue,
           });
-          const game = yield* driver.getGameSnapshot(config.gameId);
+          game = yield* driver.getGameSnapshot(config.gameId);
           for (const selection of config.selectedCards) {
             yield* driver.when.selectingCard({
               gameId: config.gameId,
@@ -171,6 +181,32 @@ export class GameBuilder {
               }),
             });
           }
+          for (const vote of config.votedCards) {
+            const cardId = getSelectedCardsByPlayer(game, {
+              playerId: vote.playerId,
+            })[0].cardId;
+            if (!cardId) {
+              return yield* Effect.die(
+                new Error(
+                  `[Game Builder] Voted card not found for player ${vote.playerId} for card ${cardId}. Available cards: ${
+                    JSON.stringify(
+                      getSelectedCardsByPlayer(game, {
+                        playerId: vote.playerId,
+                      }),
+                    )
+                  }`,
+                ),
+              );
+            }
+            yield* driver.when.votingOnCard({
+              gameId: config.gameId,
+              playerId: vote.playerId,
+              cardId: getSelectedCardsByPlayer(game, {
+                playerId: vote.playerId,
+              })[0].cardId,
+            });
+          }
+          game = yield* driver.getGameSnapshot(config.gameId);
         }
       }
     });
@@ -184,7 +220,17 @@ export const getCurrentStorytellerId = (gameSnapshot: GameEntitySnapshot) => {
   if (isStartedGameSnapshot(gameSnapshot)) {
     return gameSnapshot.currentTurn.currentStorytellerId;
   }
-  throw new Error('Game is not started');
+  throw new Error("Game is not started");
+};
+
+export const getStorytellerCardId = (gameSnapshot: GameEntitySnapshot) => {
+  if (isStartedGameSnapshot(gameSnapshot)) {
+    return Option.getOrThrowWith(
+      gameSnapshot.currentTurn.turnClue,
+      () => new Error("[Game Builder] Storyteller card not found"),
+    ).cardId;
+  }
+  throw new Error("Game is not started");
 };
 
 export const getCardInHandByIndex = (
@@ -196,18 +242,30 @@ export const getCardInHandByIndex = (
       (hand) => hand.playerId === playerId,
     )?.cards[cardIndex];
     if (!card) {
-      throw new Error('Card not found');
+      throw new Error("Card not found");
     }
     return card.id;
   }
-  throw new Error('Game is not started');
+  throw new Error("Game is not started");
 };
 
-export const getSelectedCards = (gameSnapshot: GameEntitySnapshot) => {
+export const getSelectedCardsByPlayer = (
+  gameSnapshot: GameEntitySnapshot,
+  { playerId }: { playerId: string },
+) => {
   if (isStartedGameSnapshot(gameSnapshot)) {
-    return gameSnapshot.currentTurn.selectedCards;
+    const selectedCards = gameSnapshot.currentTurn.selectedCards.filter(
+      (card) => card.playerId === playerId,
+    );
+    if (Option.isSome(gameSnapshot.currentTurn.turnClue)) {
+      selectedCards.push({
+        cardId: gameSnapshot.currentTurn.turnClue.value.cardId,
+        playerId: PlayerId(gameSnapshot.currentTurn.currentStorytellerId),
+      });
+    }
+    return selectedCards;
   }
-  throw new Error('Game is not started');
+  throw new Error("Game is not started");
 };
 
 export const getPlayerHand = (
@@ -219,9 +277,9 @@ export const getPlayerHand = (
       (hand) => hand.playerId === playerId,
     );
     if (!hand) {
-      throw new Error('Hand not found');
+      throw new Error("Hand not found");
     }
     return hand.cards;
   }
-  throw new Error('Game is not started');
+  throw new Error("Game is not started");
 };

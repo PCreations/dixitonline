@@ -29,6 +29,11 @@ export class TurnEntity {
         cardId: CardId;
         playerId: PlayerId;
       }>;
+      readonly votedCards: ReadonlyArray<{
+        cardId: CardId;
+        ownedBy: PlayerId;
+        votedBy: PlayerId;
+      }>;
     },
   ) {
     this.rules = GameRulesFactory.create(props.playerHands.length);
@@ -54,6 +59,7 @@ export class TurnEntity {
       phase: "storytelling",
       turnNumber: 1,
       selectedCards: [],
+      votedCards: [],
     });
   }
 
@@ -74,6 +80,7 @@ export class TurnEntity {
       turnClue: this.props.turnClue,
       startedAt: this.props.startedAt,
       selectedCards: this.props.selectedCards,
+      votedCards: this.props.votedCards,
     };
   }
 
@@ -94,6 +101,7 @@ export class TurnEntity {
       turnClue: snapshot.turnClue,
       startedAt: snapshot.startedAt,
       selectedCards: snapshot.selectedCards,
+      votedCards: snapshot.votedCards,
     });
   }
 
@@ -122,16 +130,17 @@ export class TurnEntity {
       );
     }
 
-    return Effect.succeed(
-      new TurnEntity({
-        ...this.props,
+    return Effect.gen(this, function* () {
+      const updatedTurn = yield* this.removeCardFromPlayerHand(opts);
+      return new TurnEntity({
+        ...updatedTurn.props,
         turnClue: Option.some({
           clue: opts.clue,
           cardId: opts.cardId,
         }),
         phase: "selecting-cards",
-      }),
-    );
+      });
+    });
   }
 
   selectCard(opts: {
@@ -165,6 +174,45 @@ export class TurnEntity {
           : "selecting-cards",
       });
     });
+  }
+
+  voteOnCard(opts: {
+    playerId: PlayerId;
+    cardId: CardId;
+  }): Effect.Effect<TurnEntity, Error, never> {
+    const availableCardsToVoteOn = this.props.selectedCards.concat({
+      cardId: Option.getOrThrowWith(this.props.turnClue, () =>
+        new Error("The storyteller has not submitted a clue")).cardId,
+      playerId: this.props.currentStorytellerId,
+    });
+
+    const card = availableCardsToVoteOn.find((card) =>
+      card.cardId === opts.cardId
+    );
+
+    if (card === undefined) {
+      return Effect.fail(
+        new Error("The card is not in the cards you can vote on"),
+      );
+    }
+
+    if (card.playerId === opts.playerId) {
+      return Effect.fail(new Error("The player cannot vote on their own card"));
+    }
+
+    return Effect.succeed(
+      new TurnEntity({
+        ...this.props,
+        votedCards: [
+          ...this.props.votedCards,
+          {
+            cardId: opts.cardId,
+            ownedBy: card.playerId,
+            votedBy: opts.playerId,
+          },
+        ],
+      }),
+    );
   }
 
   private guardAgainstStorytellerSelectingCard(opts: {
