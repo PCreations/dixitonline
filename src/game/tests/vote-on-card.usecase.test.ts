@@ -208,7 +208,7 @@ describe("Feature: Voting on a board card", () => {
     }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
   });
 
-  it.effect("Example: When the last player has voted, the turn phase is updated to 'scoring'", () => {
+  it.effect("Example: When the last player has voted, the turn phase is updated to 'scoring' and the scores are computed", () => {
     return Effect.gen(function* () {
       const gameDriver = yield* GameDriver;
 
@@ -233,6 +233,12 @@ describe("Feature: Voting on a board card", () => {
           .withVotedCards([
             { playerId: "id-player-3", cardSelectedByPlayer: "id-player-2" },
             { playerId: "id-player-2", cardSelectedByPlayer: "id-player-1" },
+          ])
+          .withScores([
+            { playerId: "id-player-1", score: 0 },
+            { playerId: "id-player-2", score: 0 },
+            { playerId: "id-player-3", score: 0 },
+            { playerId: "id-player-4", score: 0 },
           ]),
       );
       const storytellerCardId = getStorytellerCardId(game);
@@ -245,6 +251,22 @@ describe("Feature: Voting on a board card", () => {
 
       yield* gameDriver.assert.turnToBeInScoringPhase({
         gameId: "id-game-1",
+      });
+      yield* gameDriver.assert.playersToHaveScore({
+        gameId: "id-game-1",
+        scores: [{
+          playerId: "id-player-1",
+          score: 3,
+        }, {
+          playerId: "id-player-2",
+          score: 4,
+        }, {
+          playerId: "id-player-3",
+          score: 0,
+        }, {
+          playerId: "id-player-4",
+          score: 3,
+        }],
       });
     }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
   });

@@ -189,6 +189,13 @@ interface GameDriverDSL {
     readonly turnToBeInScoringPhase: (props: {
       gameId: string;
     }) => Effect.Effect<void, never, never>;
+    readonly playersToHaveScore: (props: {
+      gameId: string;
+      scores: ReadonlyArray<{
+        playerId: string;
+        score: number;
+      }>;
+    }) => Effect.Effect<void, never, never>;
   };
 }
 
@@ -659,6 +666,18 @@ const makeUnitTestGameDriver = ({
             ),
         );
         expect(game.toSnapshot().currentTurn.phase).toEqual("scoring");
+      });
+    },
+    playersToHaveScore: (props) => {
+      return Effect.gen(function* () {
+        const game = Option.getOrThrowWith(
+          yield* gameRepository.findStartedGameById(props.gameId),
+          () =>
+            new Error(
+              `Started Game ${props.gameId} not found while asserting players have score`,
+            ),
+        );
+        expect(game.toSnapshot().scores).toEqual(props.scores);
       });
     },
     playerHandsToEqual: (props) => {

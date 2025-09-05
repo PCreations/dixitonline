@@ -1,7 +1,7 @@
-import { Brand, Effect, Option } from "effect";
+import { Array as Arr, Brand, Effect, Option } from "effect";
 import { type Card, CardId } from "./deck.entity.js";
 import { GameId, PlayerHand } from "./game.entity.js";
-import { GameRules, GameRulesFactory } from "./game-rules.js";
+import { GameRules, GameRulesFactory, ScoreReason } from "./game-rules.js";
 import { PlayerId } from "./player.entity.js";
 
 export type TurnId = string & Brand.Brand<"TurnId">;
@@ -34,6 +34,12 @@ export class TurnEntity {
         ownedBy: PlayerId;
         votedBy: PlayerId;
       }>;
+      readonly pointsByPlayer: Map<
+        PlayerId,
+        ReadonlyArray<
+          { points: number; reason: ScoreReason }
+        >
+      >;
     },
   ) {
     this.rules = GameRulesFactory.createForPlayersCount(
@@ -62,6 +68,10 @@ export class TurnEntity {
       turnNumber: 1,
       selectedCards: [],
       votedCards: [],
+      pointsByPlayer: new Map(props.playerHands.map((hand) => [
+        hand.playerId,
+        [] as ReadonlyArray<{ points: number; reason: ScoreReason }>,
+      ])),
     });
   }
 
@@ -83,6 +93,7 @@ export class TurnEntity {
       startedAt: this.props.startedAt,
       selectedCards: this.props.selectedCards,
       votedCards: this.props.votedCards,
+      pointsByPlayer: this.props.pointsByPlayer,
     };
   }
 
@@ -104,6 +115,7 @@ export class TurnEntity {
       startedAt: snapshot.startedAt,
       selectedCards: snapshot.selectedCards,
       votedCards: snapshot.votedCards,
+      pointsByPlayer: new Map(snapshot.pointsByPlayer),
     });
   }
 
@@ -183,41 +195,30 @@ export class TurnEntity {
     cardId: CardId;
   }): Effect.Effect<TurnEntity, Error, never> {
     return Effect.gen(this, function* () {
-      const availableCardsToVoteOn = this.props.selectedCards.concat({
-        cardId: Option.getOrThrowWith(
-          this.props.turnClue,
-          () => new Error("The storyteller has not submitted a clue"),
-        ).cardId,
-        playerId: this.props.currentStorytellerId,
-      });
-
-      yield* this.guardAgainstPlayerVotingMoreThanOnce(opts);
-      yield* this.guardAgainstCardNotAvailableForVoting(
-        opts,
-        availableCardsToVoteOn,
-      );
+      const availableCardsToVoteOn = yield* this.getAvailableCardsToVoteOn();
+      yield* this.validateVote(opts, availableCardsToVoteOn);
       const card = yield* this.getCardToVoteOn(opts, availableCardsToVoteOn);
-      yield* this.guardAgainstPlayerVotingOnOwnCard(opts, card);
+      const votedCards = this.addVoteToCards(opts, card);
+      const nextPhase = this.determineNextPhase(votedCards);
+      const updatedPointsByPlayer = yield* this.computePointsIfNeeded(
+        nextPhase,
+        votedCards,
+      );
 
-      const votedCards = [
-        ...this.props.votedCards,
-        {
-          cardId: opts.cardId,
-          ownedBy: card.playerId,
-          votedBy: opts.playerId,
-        },
-      ];
       return new TurnEntity({
         ...this.props,
         votedCards,
-        phase: this.rules.isScoringPhase(
-            votedCards.length,
-            this.props.playerHands.length,
-          )
-          ? "scoring"
-          : "voting",
+        pointsByPlayer: updatedPointsByPlayer,
+        phase: nextPhase,
       });
     });
+  }
+
+  getEarnedPointsForPlayer(playerId: PlayerId) {
+    return this.props.pointsByPlayer.get(playerId)?.reduce(
+      (acc, curr) => acc + curr.points,
+      0,
+    ) ?? 0;
   }
 
   private guardAgainstStorytellerSelectingCard(opts: {
@@ -332,6 +333,135 @@ export class TurnEntity {
     }
 
     return Effect.void;
+  }
+
+  private getAvailableCardsToVoteOn(): Effect.Effect<
+    ReadonlyArray<{ cardId: CardId; playerId: PlayerId }>,
+    Error,
+    never
+  > {
+    return Effect.gen(this, function* () {
+      const storytellerCard = Option.getOrThrowWith(
+        this.props.turnClue,
+        () => new Error("The storyteller has not submitted a clue"),
+      );
+
+      return this.props.selectedCards.concat({
+        cardId: storytellerCard.cardId,
+        playerId: this.props.currentStorytellerId,
+      });
+    });
+  }
+
+  private validateVote(
+    opts: { playerId: PlayerId; cardId: CardId },
+    availableCardsToVoteOn: ReadonlyArray<{ cardId: CardId; playerId: PlayerId }>,
+  ): Effect.Effect<void, Error, never> {
+    return Effect.gen(this, function* () {
+      yield* this.guardAgainstPlayerVotingMoreThanOnce(opts);
+      yield* this.guardAgainstCardNotAvailableForVoting(
+        opts,
+        availableCardsToVoteOn,
+      );
+      const card = yield* this.getCardToVoteOn(opts, availableCardsToVoteOn);
+      yield* this.guardAgainstPlayerVotingOnOwnCard(opts, card);
+    });
+  }
+
+  private addVoteToCards(
+    opts: { playerId: PlayerId; cardId: CardId },
+    card: { cardId: CardId; playerId: PlayerId },
+  ): ReadonlyArray<{ cardId: CardId; ownedBy: PlayerId; votedBy: PlayerId }> {
+    return [
+      ...this.props.votedCards,
+      {
+        cardId: opts.cardId,
+        ownedBy: card.playerId,
+        votedBy: opts.playerId,
+      },
+    ];
+  }
+
+  private determineNextPhase(
+    votedCards: ReadonlyArray<{ cardId: CardId; ownedBy: PlayerId; votedBy: PlayerId }>,
+  ): "scoring" | "voting" {
+    return this.rules.isScoringPhase(
+      votedCards.length,
+      this.props.playerHands.length,
+    )
+      ? "scoring"
+      : "voting";
+  }
+
+  private computePointsIfNeeded(
+    nextPhase: "scoring" | "voting",
+    votedCards: ReadonlyArray<{ cardId: CardId; ownedBy: PlayerId; votedBy: PlayerId }>,
+  ): Effect.Effect<Map<PlayerId, ReadonlyArray<{ points: number; reason: ScoreReason }>>, Error, never> {
+    if (nextPhase !== "scoring") {
+      return Effect.succeed(this.props.pointsByPlayer);
+    }
+
+    return Effect.gen(this, function* () {
+      const allAvailableCards = yield* this.getAllAvailableCards();
+      const votes = this.transformVotesToScoreFormat(votedCards, allAvailableCards);
+      const playerScores = this.rules.computeScore({
+        storytellerId: this.props.currentStorytellerId,
+        votes,
+      });
+
+      return this.updatePointsByPlayer(playerScores);
+    });
+  }
+
+  private getAllAvailableCards(): Effect.Effect<
+    ReadonlyArray<{ cardId: CardId; playerId: PlayerId }>,
+    Error,
+    never
+  > {
+    return Effect.succeed([
+      ...this.props.selectedCards,
+      ...(Option.isSome(this.props.turnClue)
+        ? [{
+          cardId: this.props.turnClue.value.cardId,
+          playerId: this.props.currentStorytellerId,
+        }]
+        : []),
+    ]);
+  }
+
+  private transformVotesToScoreFormat(
+    votedCards: ReadonlyArray<{ cardId: CardId; ownedBy: PlayerId; votedBy: PlayerId }>,
+    allAvailableCards: ReadonlyArray<{ cardId: CardId; playerId: PlayerId }>,
+  ): ReadonlyArray<{ cardId: CardId; ownedBy: PlayerId; votes: ReadonlyArray<PlayerId> }> {
+    const votesGroupedByCard = Arr.groupBy(
+      votedCards,
+      (vote) => vote.cardId,
+    );
+
+    return allAvailableCards.map((card) => ({
+      cardId: card.cardId,
+      ownedBy: card.playerId,
+      votes: votesGroupedByCard[card.cardId]?.map((vote) => vote.votedBy) ?? [],
+    }));
+  }
+
+  private updatePointsByPlayer(
+    playerScores: ReadonlyArray<{
+      playerId: PlayerId;
+      points: ReadonlyArray<{ value: number; reason: ScoreReason }>;
+    }>,
+  ): Map<PlayerId, ReadonlyArray<{ points: number; reason: ScoreReason }>> {
+    const updatedPointsByPlayer = new Map(this.props.pointsByPlayer);
+    for (const playerScore of playerScores) {
+      updatedPointsByPlayer.set(
+        playerScore.playerId,
+        playerScore.points.map((p) => ({
+          points: p.value,
+          reason: p.reason,
+        })),
+      );
+    }
+    return updatedPointsByPlayer;
   }
 
   private guardAgainstPlayerVotingMoreThanOnce(

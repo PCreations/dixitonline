@@ -2,7 +2,7 @@ import { Data, Effect } from "effect";
 import { CardId } from "./deck.entity.js";
 import { PlayerId } from "./player.entity.js";
 
-type ScoreReason = Data.TaggedEnum<{
+export type ScoreReason = Data.TaggedEnum<{
   EveryoneFoundTheStorytellerCard: {};
   NoOneFoundTheStorytellerCard: {};
   AtLeastOnePlayerFoundTheStorytellerCard: {};
@@ -37,8 +37,7 @@ export interface GameRules {
       votes: ReadonlyArray<PlayerId>;
     }>;
   }): ReadonlyArray<{
-    cardId: CardId;
-    ownedBy: PlayerId;
+    playerId: PlayerId;
     points: ReadonlyArray<{
       value: number;
       reason: ScoreReason;
@@ -78,8 +77,7 @@ export class ThreePlayerRules implements GameRules {
       votes: ReadonlyArray<PlayerId>;
     }>;
   }): ReadonlyArray<{
-    cardId: CardId;
-    ownedBy: PlayerId;
+    playerId: PlayerId;
     points: ReadonlyArray<{
       value: number;
       reason: ScoreReason;
@@ -95,8 +93,7 @@ export class ThreePlayerRules implements GameRules {
     }
 
     return board.votes.map((boardCard) => ({
-      cardId: boardCard.cardId,
-      ownedBy: boardCard.ownedBy,
+      playerId: boardCard.ownedBy,
       points: scoreComputer.computePointsForPlayer({
         cardId: boardCard.cardId,
         playerId: boardCard.ownedBy,
@@ -140,8 +137,7 @@ export class NormalRules implements GameRules {
       votes: ReadonlyArray<PlayerId>;
     }>;
   }): ReadonlyArray<{
-    cardId: CardId;
-    ownedBy: PlayerId;
+    playerId: PlayerId;
     points: ReadonlyArray<{
       value: number;
       reason: ScoreReason;
@@ -157,8 +153,7 @@ export class NormalRules implements GameRules {
     }
 
     return board.votes.map((boardCard) => ({
-      cardId: boardCard.cardId,
-      ownedBy: boardCard.ownedBy,
+      playerId: boardCard.ownedBy,
       points: scoreComputer.computePointsForPlayer({
         cardId: boardCard.cardId,
         playerId: boardCard.ownedBy,
