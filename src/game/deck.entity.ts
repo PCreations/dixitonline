@@ -1,10 +1,10 @@
-import { Brand } from 'effect';
+import { Brand } from "effect";
 
-export type DeckId = string & Brand.Brand<'DeckId'>;
+export type DeckId = string & Brand.Brand<"DeckId">;
 
 export const DeckId = Brand.nominal<DeckId>();
 
-export type CardId = string & Brand.Brand<'CardId'>;
+export type CardId = string & Brand.Brand<"CardId">;
 
 export const CardId = Brand.nominal<CardId>();
 
@@ -23,6 +23,13 @@ export class Card {
 
   get url() {
     return this.props.url;
+  }
+
+  toSnapshot() {
+    return {
+      id: this.props.id,
+      url: this.props.url,
+    };
   }
 }
 export interface DeckShuffleStrategy {
@@ -64,8 +71,8 @@ export class DeckEntity {
     return new DeckEntity({
       ...props,
       cards: props.cards ?? [],
-      shuffleStrategy:
-        props.shuffleStrategy ?? new IdentityDeckShuffleStrategy(),
+      shuffleStrategy: props.shuffleStrategy ??
+        new IdentityDeckShuffleStrategy(),
     });
   }
 
@@ -76,4 +83,18 @@ export class DeckEntity {
   getShuffledCards() {
     return this.props.shuffleStrategy.shuffle(this.props.cards);
   }
+
+  toSnapshot() {
+    return {
+      id: this.props.id,
+      isDefault: this.props.isDefault,
+      cards: this.props.cards.map((card) => card.toSnapshot()),
+      cardsById: Object.fromEntries(
+        this.props.cards.map((card) => [card.id, card.toSnapshot()]),
+      ),
+      shuffleStrategy: this.props.shuffleStrategy,
+    };
+  }
 }
+
+export type DeckSnapshot = ReturnType<DeckEntity["toSnapshot"]>;

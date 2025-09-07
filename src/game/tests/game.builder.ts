@@ -16,7 +16,8 @@ type EndConditionDto =
 interface GameConfig {
   gameId: string;
   deckId?: string;
-  deckCards?: number;
+  deckCardsNumber?: number;
+  deckCards?: Array<string>;
   endCondition?: EndConditionDto;
   started?: boolean;
   hostId?: string;
@@ -49,8 +50,14 @@ export class GameBuilder {
   withDeck(id: string, options?: { containingXCards?: number }): this {
     this.config.deckId = id;
     if (options?.containingXCards !== undefined) {
-      this.config.deckCards = options.containingXCards;
+      this.config.deckCardsNumber = options.containingXCards;
     }
+    return this;
+  }
+
+  withDeckCards(opts: { deckId: string; cards: Array<string> }): this {
+    this.config.deckId = opts.deckId;
+    this.config.deckCards = opts.cards;
     return this;
   }
 
@@ -158,7 +165,12 @@ export class GameBuilder {
       const deckId = config.deckId ?? "default-deck-id";
 
       const deckCards = config.deckCards
-        ? Array.from({ length: config.deckCards }, (_, i) => `card-${i + 1}`)
+        ? config.deckCards
+        : config.deckCardsNumber
+        ? Array.from(
+          { length: config.deckCardsNumber },
+          (_, i) => `card-${i + 1}`,
+        )
         : Array.from({ length: 84 }, (_, i) => `card-${i + 1}`);
 
       yield* driver.given.existingDeck({

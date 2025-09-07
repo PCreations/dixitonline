@@ -26,7 +26,8 @@
       "mcp__context7__resolve-library-id",
       "Bash(pnpm lint:*)",
       "mcp__wallaby__wallaby_allTests",
-      "Bash(pnmp check:*)"
+      "Bash(pnmp check:*)",
+      "mcp__wallaby__wallaby_failingTestsForFile"
     ]
   },
   "enableAllProjectMcpServers": false,

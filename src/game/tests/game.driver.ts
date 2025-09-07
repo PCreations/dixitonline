@@ -6,6 +6,7 @@ import {
   CardId,
   DeckEntity,
   DeckId,
+  DeckSnapshot,
   IdentityDeckShuffleStrategy,
 } from "../deck.entity.js";
 import { DeckRepository, InMemoryDeckRepository } from "../deck.repository.js";
@@ -67,7 +68,7 @@ interface GameDriverDSL {
       builder: GameBuilder,
     ) => Effect.Effect<{
       game: GameEntitySnapshot;
-      deck: { id: string; cards: ReadonlyArray<string> };
+      deck: DeckSnapshot;
     }>;
   };
   readonly withFailFastMode: () => GameDriverDSL;
@@ -378,10 +379,7 @@ const makeUnitTestGameDriver = ({
 
         return {
           game: game.toSnapshot(),
-          deck: {
-            id: deck.props.id,
-            cards: deck.props.cards.map((card) => card.id),
-          },
+          deck: deck.toSnapshot(),
         };
       });
     },
