@@ -63,12 +63,9 @@ export class StartGameUseCase extends Effect.Service<StartGameUseCase>()(
             });
 
             yield* gameRepository.save(updatedGame);
-            const gameViewProjector = new GameViewProjector(
-              new TurnBoardCardsShuffler(new IdentityShuffler()),
-              deckEntity.toSnapshot(),
-            );
+            const shuffler = new IdentityShuffler();
             yield* gameView.save(
-              gameViewProjector.project(updatedGame.toSnapshot()),
+              gameViewProjector.project(updatedGame.toSnapshot(), deckEntity.toSnapshot(), shuffler),
             );
           });
 
@@ -81,6 +78,8 @@ export class StartGameUseCase extends Effect.Service<StartGameUseCase>()(
       InMemoryDeckRepository,
       InMemoryGameView,
       NoopRandomizeStrategy,
+      TurnBoardCardsShuffler.Default,
+      GameViewProjector.Default,
     ],
   },
 ) {}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@effect/vitest";
-import { Effect } from "effect";
+import { Effect, Layer } from "effect";
 import { CardId, DeckSnapshot } from "../deck.entity.js";
 import { StartedGameSnapshot } from "../game.entity.js";
 import {
@@ -24,11 +24,11 @@ class IdentityShuffler implements Shuffler {
   }
 }
 
-const createTestGameViewProjector = (
-  deck: DeckSnapshot,
-  shuffler = new IdentityShuffler(),
-) => {
-  return new GameViewProjector(new TurnBoardCardsShuffler(shuffler), deck);
+const makeTestGameViewProjectorLayer = () => {
+  return Layer.merge(
+    TurnBoardCardsShuffler.Default,
+    GameViewProjector.Default,
+  );
 };
 
 describe("Game View Projector", () => {
@@ -84,14 +84,15 @@ describe("Game View Projector", () => {
           )
           .started(),
       );
-      const gameViewProjector = createTestGameViewProjector(deck);
+      const gameViewProjector = yield* GameViewProjector;
+      const shuffler = new IdentityShuffler();
 
       const {
         "id-player-1": player1view,
         "id-player-2": player2view,
         "id-player-3": player3view,
         "id-player-4": player4view,
-      } = gameViewProjector.project(game as StartedGameSnapshot);
+      } = gameViewProjector.project(game as StartedGameSnapshot, deck, shuffler);
 
       expect(player1view).toEqual({
         gameId: "id-game-1",
@@ -181,7 +182,10 @@ describe("Game View Projector", () => {
           { id: "card-24", url: "https://example.com/card-24" },
         ],
       });
-    }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+    }).pipe(
+      Effect.provide(makeGameDriverUnitTestLayer()),
+      Effect.provide(makeTestGameViewProjectorLayer()),
+    );
   });
 
   it.effect("Example: selecting cards phase, more than 3 players-game", () => {
@@ -241,14 +245,15 @@ describe("Game View Projector", () => {
             { playerId: "id-player-3", cardIndex: 0 },
           ]),
       );
-      const gameViewProjector = createTestGameViewProjector(deck);
+      const gameViewProjector = yield* GameViewProjector;
+      const shuffler = new IdentityShuffler();
 
       const {
         "id-player-1": player1view,
         "id-player-2": player2view,
         "id-player-3": player3view,
         "id-player-4": player4view,
-      } = gameViewProjector.project(game as StartedGameSnapshot);
+      } = gameViewProjector.project(game as StartedGameSnapshot, deck, shuffler);
 
       expect(player1view).toEqual({
         gameId: "id-game-1",
@@ -335,7 +340,10 @@ describe("Game View Projector", () => {
           { id: "card-24", url: "https://example.com/card-24" },
         ],
       });
-    }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+    }).pipe(
+      Effect.provide(makeGameDriverUnitTestLayer()),
+      Effect.provide(makeTestGameViewProjectorLayer()),
+    );
   });
 
   it.effect("Example: voting cards phase", () => {
@@ -409,17 +417,15 @@ describe("Game View Projector", () => {
             { playerId: "id-player-2", cardSelectedByPlayer: "id-player-1" },
           ]),
       );
-      const gameViewProjector = createTestGameViewProjector(
-        deck,
-        new SpyShuffler(),
-      );
+      const gameViewProjector = yield* GameViewProjector;
+      const shuffler = new SpyShuffler();
 
       const {
         "id-player-1": player1view,
         "id-player-2": player2view,
         "id-player-3": player3view,
         "id-player-4": player4view,
-      } = gameViewProjector.project(game as StartedGameSnapshot);
+      } = gameViewProjector.project(game as StartedGameSnapshot, deck, shuffler);
 
       expect(shufflerCalls).toBe(1);
       expect(player1view).toEqual({
@@ -530,7 +536,10 @@ describe("Game View Projector", () => {
           { id: "card-24", url: "https://example.com/card-24" },
         ],
       });
-    }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+    }).pipe(
+      Effect.provide(makeGameDriverUnitTestLayer()),
+      Effect.provide(makeTestGameViewProjectorLayer()),
+    );
   });
 
   it.effect("Example: scoring cards phase", () => {
@@ -604,14 +613,15 @@ describe("Game View Projector", () => {
           ])
           .withPlayersReadyForNextTurn(["id-player-2"]),
       );
-      const gameViewProjector = createTestGameViewProjector(deck);
+      const gameViewProjector = yield* GameViewProjector;
+      const shuffler = new IdentityShuffler();
 
       const {
         "id-player-1": player1view,
         "id-player-2": player2view,
         "id-player-3": player3view,
         "id-player-4": player4view,
-      } = gameViewProjector.project(game as StartedGameSnapshot);
+      } = gameViewProjector.project(game as StartedGameSnapshot, deck, shuffler);
 
       expect(player1view).toEqual({
         gameId: "id-game-1",
@@ -770,6 +780,9 @@ describe("Game View Projector", () => {
           { id: "card-24", url: "https://example.com/card-24" },
         ],
       });
-    }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+    }).pipe(
+      Effect.provide(makeGameDriverUnitTestLayer()),
+      Effect.provide(makeTestGameViewProjectorLayer()),
+    );
   });
 });

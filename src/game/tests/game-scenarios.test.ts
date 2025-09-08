@@ -1,5 +1,5 @@
 import { describe, it } from "@effect/vitest";
-import { Effect } from "effect";
+import { Effect, Layer } from "effect";
 import { CardId } from "../deck.entity.js";
 import {
   GameViewProjector,
@@ -119,10 +119,8 @@ describe("Game Scenarios", () => {
         hostId: "alice",
         deckId: "deck-id",
       });
-      const gameViewProjector = new GameViewProjector(
-        new TurnBoardCardsShuffler(new IdentityShuffler()),
-        deck,
-      ); // TODO: le mettre dans le layer
+      const gameViewProjector = yield* GameViewProjector;
+      const shuffler = new IdentityShuffler();
       yield* gameDriver.when.joiningGame({
         gameId: "game-id",
         playerId: "bob",
@@ -141,7 +139,7 @@ describe("Game Scenarios", () => {
       });
       let game = yield* gameDriver.getStartedGameSnapshot("game-id");
       yield* gameDriver.assert.gameViewToEqual({
-        gameView: gameViewProjector.project(game),
+        gameView: gameViewProjector.project(game, deck, shuffler),
         gameId: "game-id",
       });
 
@@ -180,9 +178,15 @@ describe("Game Scenarios", () => {
       });
       game = yield* gameDriver.getStartedGameSnapshot("game-id");
       yield* gameDriver.assert.gameViewToEqual({
-        gameView: gameViewProjector.project(game),
+        gameView: gameViewProjector.project(game, deck, shuffler),
         gameId: "game-id",
       });
-    }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+    }).pipe(
+      Effect.provide(makeGameDriverUnitTestLayer()),
+      Effect.provide(Layer.merge(
+        TurnBoardCardsShuffler.Default,
+        GameViewProjector.Default,
+      )),
+    );
   });
 });
