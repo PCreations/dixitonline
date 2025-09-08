@@ -12,13 +12,17 @@ import {
 import { DeckRepository, InMemoryDeckRepository } from "../deck.repository.js";
 import {
   GameEntitySnapshot,
+  GameId,
   isStartedGame,
   MAX_PLAYERS,
   NoopRandomizeStrategy,
   PlayersRandomizeStrategy,
   PlayersRandomizeStrategyType,
+  StartedGameSnapshot,
 } from "../game.entity.js";
 import { GameRepository, InMemoryGameRepository } from "../game.repository.js";
+import { GameView, InMemoryGameView } from "../game-view.js";
+import { GameViewValueObject } from "../game-view-projector.js";
 import { GameLayerWithoutDependencies } from "../index.js";
 import { JoinGameUseCase } from "../join-game.usecase.js";
 import { LeaveGameUseCase } from "../leave-game.usecase.js";
@@ -43,6 +47,9 @@ interface GameDriverDSL {
   readonly getGameSnapshot: (
     gameId: string,
   ) => Effect.Effect<GameEntitySnapshot>;
+  readonly getStartedGameSnapshot: (
+    gameId: string,
+  ) => Effect.Effect<StartedGameSnapshot>;
   readonly given: {
     readonly defaultDeck: (props: {
       id: string;
@@ -53,7 +60,7 @@ interface GameDriverDSL {
       id: string;
       cards?: ReadonlyArray<string>;
       shuffleStrategy?: "identity" | "shuffle";
-    }) => Effect.Effect<void>;
+    }) => Effect.Effect<DeckSnapshot>;
     readonly existingNonStartedGame: (props: {
       gameId: string;
       hostId: string;
@@ -221,6 +228,10 @@ interface GameDriverDSL {
     readonly playerToNotHaveBeenAbleToNotifyToBeReadyForNextTurn: (props?: {
       error?: string;
     }) => Effect.Effect<void, never, never>;
+    readonly gameViewToEqual: (props: {
+      gameId: string;
+      gameView: GameViewValueObject;
+    }) => Effect.Effect<void, never, never>;
   };
 }
 
@@ -242,6 +253,7 @@ const makeUnitTestGameDriver = ({
   notifyToBeReadyForNextTurnUseCase,
   gameRepository,
   deckRepository,
+  gameView,
 }: {
   createGameUseCase: CreateGameUseCase;
   joinGameUseCase: JoinGameUseCase;
@@ -253,6 +265,7 @@ const makeUnitTestGameDriver = ({
   notifyToBeReadyForNextTurnUseCase: NotifyReadyForNextTurnUseCase;
   gameRepository: Context.Tag.Service<GameRepository>;
   deckRepository: Context.Tag.Service<DeckRepository>;
+  gameView: Context.Tag.Service<GameView>;
 }): GameDriverDSL => {
   const testState = {
     currentError: Option.none<Error>(),
@@ -280,20 +293,22 @@ const makeUnitTestGameDriver = ({
       return deckRepository.save(deck);
     },
     existingDeck: (props) => {
-      /* This will be replaced by the real create deck use case*/
-      const cards = (props.cards ?? []).map((card) =>
-        Card.create({ id: CardId(card), url: `https://example.com/${card}` })
-      );
-      return deckRepository.save(
-        DeckEntity.create({
+      return Effect.gen(function* () {
+        /* This will be replaced by the real create deck use case*/
+        const cards = (props.cards ?? []).map((card) =>
+          Card.create({ id: CardId(card), url: `https://example.com/${card}` })
+        );
+        const deck = DeckEntity.create({
           id: DeckId(props.id),
           isDefault: false,
           cards,
           shuffleStrategy: props.shuffleStrategy === "identity"
             ? new IdentityDeckShuffleStrategy()
             : new IdentityDeckShuffleStrategy(), // TODO: Implement shuffle strategy
-        }),
-      );
+        });
+        yield* deckRepository.save(deck);
+        return deck.toSnapshot();
+      });
     },
     existingNonStartedGame: (props) => {
       return Effect.gen(function* () {
@@ -669,9 +684,7 @@ const makeUnitTestGameDriver = ({
         );
         expect(game.toSnapshot().currentTurn.phase).toEqual("storytelling");
         expect(game.toSnapshot().currentTurn.turnNumber).toEqual(2);
-        expect(expectedPlayerHands).toEqual(
-          props.playerHands,
-        );
+        expect(expectedPlayerHands).toEqual(props.playerHands);
         expect(game.toSnapshot().currentTurn.cardsInDrawPile).toEqual(
           props.cardsInDrawPile,
         );
@@ -826,6 +839,12 @@ const makeUnitTestGameDriver = ({
           Option.some(new Error(props?.error)),
         );
       }),
+    gameViewToEqual: (props) => {
+      return Effect.gen(function* () {
+        const gameViewValueObject = yield* gameView.get(GameId(props.gameId));
+        expect(gameViewValueObject).toEqual(props.gameView);
+      });
+    },
   };
 
   const getGameSnapshot = (gameId: string) =>
@@ -840,12 +859,38 @@ const makeUnitTestGameDriver = ({
       return game.toSnapshot();
     });
 
+  const getStartedGameSnapshot = (gameId: string) =>
+    Effect.gen(function* () {
+      const game = Option.getOrThrowWith(
+        yield* gameRepository.findStartedGameById(gameId),
+        () =>
+          new Error(
+            `Started Game ${gameId} not found while getting started game snapshot`,
+          ),
+      );
+      return game.toSnapshot();
+    });
+
   const withFailFastMode = (): GameDriverDSL => {
     testState.failFast = true;
-    return { given, when, assert, withFailFastMode, getGameSnapshot };
+    return {
+      given,
+      when,
+      assert,
+      withFailFastMode,
+      getGameSnapshot,
+      getStartedGameSnapshot,
+    };
   };
 
-  return { given, when, assert, withFailFastMode, getGameSnapshot };
+  return {
+    given,
+    when,
+    assert,
+    withFailFastMode,
+    getGameSnapshot,
+    getStartedGameSnapshot,
+  };
 };
 
 export const makeGameDriverUnitTestLayer = (props?: {
@@ -865,6 +910,7 @@ export const makeGameDriverUnitTestLayer = (props?: {
         yield* NotifyReadyForNextTurnUseCase;
       const gameRepository = yield* GameRepository;
       const deckRepository = yield* DeckRepository;
+      const gameView = yield* GameView;
 
       return makeUnitTestGameDriver({
         createGameUseCase,
@@ -877,6 +923,7 @@ export const makeGameDriverUnitTestLayer = (props?: {
         notifyToBeReadyForNextTurnUseCase,
         gameRepository,
         deckRepository,
+        gameView,
       });
     }),
   ).pipe(
@@ -885,6 +932,7 @@ export const makeGameDriverUnitTestLayer = (props?: {
       Layer.mergeAll(
         InMemoryGameRepository,
         InMemoryDeckRepository,
+        InMemoryGameView,
         props?.randomizeStrategy
           ? Layer.succeed(PlayersRandomizeStrategy, props.randomizeStrategy)
           : NoopRandomizeStrategy,

@@ -1,4 +1,4 @@
-import { Option } from "effect";
+import { Effect, Layer, Option } from "effect";
 import { CardId, DeckSnapshot } from "./deck.entity.js";
 import { StartedGameSnapshot } from "./game.entity.js";
 import { PlayerId } from "./player.entity.js";
@@ -10,34 +10,65 @@ export interface Shuffler {
   ): ReadonlyArray<{ id: CardId; url: string }>;
 }
 
-export class TurnBoardCardsShuffler {
-  private readonly boardCardsForTurn: Map<
-    TurnId,
-    ReadonlyArray<{ id: CardId; url: string }>
-  > = new Map();
+export class TurnBoardCardsShuffler extends Effect.Service<TurnBoardCardsShuffler>()(
+  "TurnBoardCardsShuffler",
+  {
+    effect: Effect.gen(function* () {
+      const boardCardsForTurn = new Map<
+        TurnId,
+        ReadonlyArray<{ id: CardId; url: string }>
+      >();
 
-  constructor(private readonly shuffler: Shuffler) {}
+      return {
+        shuffleForTurn: (
+          turnId: TurnId,
+          cards: ReadonlyArray<{ id: CardId; url: string }>,
+          shuffler: Shuffler,
+        ): ReadonlyArray<{ id: CardId; url: string }> => {
+          if (boardCardsForTurn.has(turnId)) {
+            return boardCardsForTurn.get(turnId) ?? [];
+          }
 
-  shuffleForTurn(
-    turnId: TurnId,
-    cards: ReadonlyArray<{ id: CardId; url: string }>,
-  ): ReadonlyArray<{ id: CardId; url: string }> {
-    if (this.boardCardsForTurn.has(turnId)) {
-      return this.boardCardsForTurn.get(turnId) ?? [];
-    }
+          boardCardsForTurn.set(turnId, shuffler.shuffle(cards));
+          return boardCardsForTurn.get(turnId)!;
+        },
+      };
+    }),
+  },
+) {}
 
-    this.boardCardsForTurn.set(turnId, this.shuffler.shuffle(cards));
-    return this.boardCardsForTurn.get(turnId)!;
-  }
-}
+export class GameViewProjector extends Effect.Service<GameViewProjector>()(
+  "GameViewProjector",
+  {
+    effect: Effect.gen(function* () {
+      const boardCardsShuffler = yield* TurnBoardCardsShuffler;
+      return {
+        project: (game: StartedGameSnapshot, deck: DeckSnapshot, shuffler: Shuffler) => {
+          const impl = new GameViewProjectorImpl(boardCardsShuffler, deck, shuffler);
+          return impl.project(game);
+        },
+      };
+    }),
+    dependencies: [TurnBoardCardsShuffler.Default],
+  },
+) {}
 
-export class GameViewProjector {
+export type GameViewValueObject = ReturnType<GameViewProjectorImpl["project"]>;
+
+class GameViewProjectorImpl {
   constructor(
-    private readonly boardCardsShuffler: TurnBoardCardsShuffler,
+    private readonly boardCardsShuffler: {
+      readonly shuffleForTurn: (
+        turnId: TurnId,
+        cards: ReadonlyArray<{ id: CardId; url: string }>,
+        shuffler: Shuffler,
+      ) => ReadonlyArray<{ id: CardId; url: string }>;
+    },
     private readonly deck: DeckSnapshot,
+    private readonly shuffler: Shuffler,
   ) {}
 
-  public project(game: StartedGameSnapshot) {
+    public project(game: StartedGameSnapshot) {
     const playerStatus = Object.fromEntries(
       game.players.map((playerId) => [
         playerId,
@@ -52,6 +83,7 @@ export class GameViewProjector {
       game.players.map((playerId) => [
         playerId,
         {
+          gameId: game.id,
           id: playerId,
           name: playerId,
           score:
@@ -76,7 +108,7 @@ export class GameViewProjector {
     );
   }
 
-  private isPlayerReadyForNextPhase(opts: {
+    private isPlayerReadyForNextPhase(opts: {
     game: StartedGameSnapshot;
     playerId: string;
   }) {
@@ -112,7 +144,7 @@ export class GameViewProjector {
     return false;
   }
 
-  private getBoardCards(opts: { game: StartedGameSnapshot }) {
+    private getBoardCards(opts: { game: StartedGameSnapshot }) {
     if (
       ["storytelling", "selecting-cards"].includes(opts.game.currentTurn.phase)
     ) {
@@ -144,13 +176,14 @@ export class GameViewProjector {
         boardCards: this.boardCardsShuffler.shuffleForTurn(
           TurnId(opts.game.currentTurn.id),
           allAvailableCards,
+          this.shuffler,
         ),
       };
     }
     return {};
   }
 
-  private getVotes(opts: { game: StartedGameSnapshot }) {
+    private getVotes(opts: { game: StartedGameSnapshot }) {
     const votes: Record<CardId, Array<PlayerId>> = {};
     if (opts.game.currentTurn.phase === "scoring") {
       for (const vote of opts.game.currentTurn.votedCards) {
@@ -167,7 +200,7 @@ export class GameViewProjector {
       : {};
   }
 
-  private getPoints(opts: { game: StartedGameSnapshot; playerId: string }) {
+    private getPoints(opts: { game: StartedGameSnapshot; playerId: string }) {
     if (opts.game.currentTurn.phase === "scoring") {
       return {
         points:

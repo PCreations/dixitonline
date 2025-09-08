@@ -94,6 +94,7 @@ describe("Game View Projector", () => {
       } = gameViewProjector.project(game as StartedGameSnapshot);
 
       expect(player1view).toEqual({
+        gameId: "id-game-1",
         id: "id-player-1",
         name: "id-player-1",
         storyteller: "id-player-1",
@@ -115,6 +116,7 @@ describe("Game View Projector", () => {
         ],
       });
       expect(player2view).toEqual({
+        gameId: "id-game-1",
         id: "id-player-2",
         name: "id-player-2",
         storyteller: "id-player-1",
@@ -136,6 +138,7 @@ describe("Game View Projector", () => {
         ],
       });
       expect(player3view).toEqual({
+        gameId: "id-game-1",
         id: "id-player-3",
         name: "id-player-3",
         storyteller: "id-player-1",
@@ -157,6 +160,7 @@ describe("Game View Projector", () => {
         ],
       });
       expect(player4view).toEqual({
+        gameId: "id-game-1",
         id: "id-player-4",
         name: "id-player-4",
         storyteller: "id-player-1",
@@ -247,6 +251,7 @@ describe("Game View Projector", () => {
       } = gameViewProjector.project(game as StartedGameSnapshot);
 
       expect(player1view).toEqual({
+        gameId: "id-game-1",
         id: "id-player-1",
         name: "id-player-1",
         storyteller: "id-player-1",
@@ -267,6 +272,7 @@ describe("Game View Projector", () => {
         ],
       });
       expect(player2view).toEqual({
+        gameId: "id-game-1",
         id: "id-player-2",
         name: "id-player-2",
         storyteller: "id-player-1",
@@ -287,6 +293,7 @@ describe("Game View Projector", () => {
         ],
       });
       expect(player3view).toEqual({
+        gameId: "id-game-1",
         id: "id-player-3",
         name: "id-player-3",
         storyteller: "id-player-1",
@@ -307,6 +314,7 @@ describe("Game View Projector", () => {
         ],
       });
       expect(player4view).toEqual({
+        gameId: "id-game-1",
         id: "id-player-4",
         name: "id-player-4",
         storyteller: "id-player-1",
@@ -415,6 +423,7 @@ describe("Game View Projector", () => {
 
       expect(shufflerCalls).toBe(1);
       expect(player1view).toEqual({
+        gameId: "id-game-1",
         id: "id-player-1",
         name: "id-player-1",
         storyteller: "id-player-1",
@@ -441,6 +450,7 @@ describe("Game View Projector", () => {
         ],
       });
       expect(player2view).toEqual({
+        gameId: "id-game-1",
         id: "id-player-2",
         name: "id-player-2",
         storyteller: "id-player-1",
@@ -467,6 +477,7 @@ describe("Game View Projector", () => {
         ],
       });
       expect(player3view).toEqual({
+        gameId: "id-game-1",
         id: "id-player-3",
         name: "id-player-3",
         storyteller: "id-player-1",
@@ -493,6 +504,7 @@ describe("Game View Projector", () => {
         ],
       });
       expect(player4view).toEqual({
+        gameId: "id-game-1",
         id: "id-player-4",
         name: "id-player-4",
         storyteller: "id-player-1",
@@ -602,6 +614,7 @@ describe("Game View Projector", () => {
       } = gameViewProjector.project(game as StartedGameSnapshot);
 
       expect(player1view).toEqual({
+        gameId: "id-game-1",
         id: "id-player-1",
         name: "id-player-1",
         storyteller: "id-player-1",
@@ -640,6 +653,7 @@ describe("Game View Projector", () => {
         ],
       });
       expect(player2view).toEqual({
+        gameId: "id-game-1",
         id: "id-player-2",
         name: "id-player-2",
         storyteller: "id-player-1",
@@ -684,6 +698,7 @@ describe("Game View Projector", () => {
         ],
       });
       expect(player3view).toEqual({
+        gameId: "id-game-1",
         id: "id-player-3",
         name: "id-player-3",
         storyteller: "id-player-1",
@@ -717,6 +732,7 @@ describe("Game View Projector", () => {
         ],
       });
       expect(player4view).toEqual({
+        gameId: "id-game-1",
         id: "id-player-4",
         name: "id-player-4",
         storyteller: "id-player-1",
