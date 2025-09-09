@@ -1,7 +1,7 @@
-import { Effect, Option } from 'effect';
-import { GameRepository, InMemoryGameRepository } from './game.repository.js';
-import { withOptimisticRetry } from './optimistic-retry.js';
-import { PlayerId } from './player.entity.js';
+import { Effect, Option } from "effect";
+import { GameRepository, InMemoryGameRepository } from "./game.repository.js";
+import { withOptimisticRetry } from "./optimistic-retry.js";
+import { PlayerId } from "./player.entity.js";
 
 export type JoinGameCommand = {
   gameId: string;
@@ -9,7 +9,7 @@ export type JoinGameCommand = {
 };
 
 export class JoinGameUseCase extends Effect.Service<JoinGameUseCase>()(
-  'game/JoinGameUseCase',
+  "game/JoinGameUseCase",
   {
     effect: Effect.gen(function* () {
       const gameRepository = yield* GameRepository;
@@ -22,7 +22,7 @@ export class JoinGameUseCase extends Effect.Service<JoinGameUseCase>()(
             );
 
             return yield* Option.match(game, {
-              onNone: () => Effect.fail(new Error('Game not found')),
+              onNone: () => Effect.fail(new Error("Game not found")),
               onSome: (gameEntity) =>
                 Effect.gen(function* () {
                   const updatedGame = yield* gameEntity.addPlayer(

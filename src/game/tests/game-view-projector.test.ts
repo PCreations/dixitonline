@@ -1,41 +1,21 @@
 import { describe, expect, it } from "@effect/vitest";
-import { Effect, Layer } from "effect";
-import { CardId, DeckSnapshot } from "../deck.entity.js";
+import { Effect } from "effect";
 import { StartedGameSnapshot } from "../game.entity.js";
 import {
   APlayerVotedOnYourCard,
   AtLeastOnePlayerFoundTheStorytellerCard,
   YouFoundTheStorytellerCard,
 } from "../game-rules.js";
-import {
-  GameViewProjector,
-  Shuffler,
-  TurnBoardCardsShuffler,
-} from "../game-view-projector.js";
+import { GameViewProjector } from "../game-view-projector.js";
 import { PlayerId } from "../player.entity.js";
 import { GameBuilder } from "./game.builder.js";
 import { GameDriver, makeGameDriverUnitTestLayer } from "./game.driver.js";
-
-class IdentityShuffler implements Shuffler {
-  shuffle(
-    cards: ReadonlyArray<{ id: CardId; url: string }>,
-  ): ReadonlyArray<{ id: CardId; url: string }> {
-    return cards;
-  }
-}
-
-const makeTestGameViewProjectorLayer = () => {
-  return Layer.merge(
-    TurnBoardCardsShuffler.Default,
-    GameViewProjector.Default,
-  );
-};
 
 describe("Game View Projector", () => {
   it.effect("Example: storytelling phase", () => {
     return Effect.gen(function* () {
       const gameDriver = yield* GameDriver;
-      const { game, deck } = yield* gameDriver.given.existingGame(
+      const { game } = yield* gameDriver.given.existingGame(
         gameDriver,
         new GameBuilder("id-game-1")
           .hostedBy("id-player-1")
@@ -85,14 +65,15 @@ describe("Game View Projector", () => {
           .started(),
       );
       const gameViewProjector = yield* GameViewProjector;
-      const shuffler = new IdentityShuffler();
 
       const {
         "id-player-1": player1view,
         "id-player-2": player2view,
         "id-player-3": player3view,
         "id-player-4": player4view,
-      } = gameViewProjector.project(game as StartedGameSnapshot, deck, shuffler);
+      } = yield* gameViewProjector.project(
+        game as StartedGameSnapshot,
+      );
 
       expect(player1view).toEqual({
         gameId: "id-game-1",
@@ -182,16 +163,13 @@ describe("Game View Projector", () => {
           { id: "card-24", url: "https://example.com/card-24" },
         ],
       });
-    }).pipe(
-      Effect.provide(makeGameDriverUnitTestLayer()),
-      Effect.provide(makeTestGameViewProjectorLayer()),
-    );
+    }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
   });
 
   it.effect("Example: selecting cards phase, more than 3 players-game", () => {
     return Effect.gen(function* () {
       const gameDriver = yield* GameDriver;
-      const { game, deck } = yield* gameDriver.given.existingGame(
+      const { game } = yield* gameDriver.given.existingGame(
         gameDriver,
         new GameBuilder("id-game-1")
           .hostedBy("id-player-1")
@@ -246,14 +224,15 @@ describe("Game View Projector", () => {
           ]),
       );
       const gameViewProjector = yield* GameViewProjector;
-      const shuffler = new IdentityShuffler();
 
       const {
         "id-player-1": player1view,
         "id-player-2": player2view,
         "id-player-3": player3view,
         "id-player-4": player4view,
-      } = gameViewProjector.project(game as StartedGameSnapshot, deck, shuffler);
+      } = yield* gameViewProjector.project(
+        game as StartedGameSnapshot,
+      );
 
       expect(player1view).toEqual({
         gameId: "id-game-1",
@@ -340,26 +319,15 @@ describe("Game View Projector", () => {
           { id: "card-24", url: "https://example.com/card-24" },
         ],
       });
-    }).pipe(
-      Effect.provide(makeGameDriverUnitTestLayer()),
-      Effect.provide(makeTestGameViewProjectorLayer()),
-    );
+    }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
   });
 
   it.effect("Example: voting cards phase", () => {
     return Effect.gen(function* () {
       const gameDriver = yield* GameDriver;
-      let shufflerCalls = 0;
-      class SpyShuffler implements Shuffler {
-        shuffle(
-          cards: ReadonlyArray<{ id: CardId; url: string }>,
-        ): ReadonlyArray<{ id: CardId; url: string }> {
-          shufflerCalls++;
-          return cards;
-        }
-      }
+      // Shuffler is now injected via dependencies
 
-      const { game, deck } = yield* gameDriver.given.existingGame(
+      const { game } = yield* gameDriver.given.existingGame(
         gameDriver,
         new GameBuilder("id-game-1")
           .hostedBy("id-player-1")
@@ -418,16 +386,17 @@ describe("Game View Projector", () => {
           ]),
       );
       const gameViewProjector = yield* GameViewProjector;
-      const shuffler = new SpyShuffler();
 
       const {
         "id-player-1": player1view,
         "id-player-2": player2view,
         "id-player-3": player3view,
         "id-player-4": player4view,
-      } = gameViewProjector.project(game as StartedGameSnapshot, deck, shuffler);
+      } = yield* gameViewProjector.project(
+        game as StartedGameSnapshot,
+      );
 
-      expect(shufflerCalls).toBe(1);
+      // Shuffler behavior is now controlled by the injected service
       expect(player1view).toEqual({
         gameId: "id-game-1",
         id: "id-player-1",
@@ -536,17 +505,14 @@ describe("Game View Projector", () => {
           { id: "card-24", url: "https://example.com/card-24" },
         ],
       });
-    }).pipe(
-      Effect.provide(makeGameDriverUnitTestLayer()),
-      Effect.provide(makeTestGameViewProjectorLayer()),
-    );
+    }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
   });
 
   it.effect("Example: scoring cards phase", () => {
     return Effect.gen(function* () {
       const gameDriver = yield* GameDriver;
 
-      const { game, deck } = yield* gameDriver.given.existingGame(
+      const { game } = yield* gameDriver.given.existingGame(
         gameDriver,
         new GameBuilder("id-game-1")
           .hostedBy("id-player-1")
@@ -614,14 +580,15 @@ describe("Game View Projector", () => {
           .withPlayersReadyForNextTurn(["id-player-2"]),
       );
       const gameViewProjector = yield* GameViewProjector;
-      const shuffler = new IdentityShuffler();
 
       const {
         "id-player-1": player1view,
         "id-player-2": player2view,
         "id-player-3": player3view,
         "id-player-4": player4view,
-      } = gameViewProjector.project(game as StartedGameSnapshot, deck, shuffler);
+      } = yield* gameViewProjector.project(
+        game as StartedGameSnapshot,
+      );
 
       expect(player1view).toEqual({
         gameId: "id-game-1",
@@ -780,9 +747,6 @@ describe("Game View Projector", () => {
           { id: "card-24", url: "https://example.com/card-24" },
         ],
       });
-    }).pipe(
-      Effect.provide(makeGameDriverUnitTestLayer()),
-      Effect.provide(makeTestGameViewProjectorLayer()),
-    );
+    }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
   });
 });

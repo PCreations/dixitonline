@@ -1,5 +1,6 @@
-import { Effect, Layer, Option } from "effect";
-import { CardId, DeckSnapshot } from "./deck.entity.js";
+import { Effect, Option } from "effect";
+import { CardId, DeckId, DeckSnapshot } from "./deck.entity.js";
+import { DeckRepository, InMemoryDeckRepository } from "./deck.repository.js";
 import { StartedGameSnapshot } from "./game.entity.js";
 import { PlayerId } from "./player.entity.js";
 import { TurnId } from "./turn.entity.js";
@@ -10,46 +11,66 @@ export interface Shuffler {
   ): ReadonlyArray<{ id: CardId; url: string }>;
 }
 
-export class TurnBoardCardsShuffler extends Effect.Service<TurnBoardCardsShuffler>()(
-  "TurnBoardCardsShuffler",
-  {
-    effect: Effect.gen(function* () {
-      const boardCardsForTurn = new Map<
-        TurnId,
-        ReadonlyArray<{ id: CardId; url: string }>
-      >();
+export class ShufflerService extends Effect.Service<Shuffler>()("Shuffler", {
+  effect: Effect.succeed({
+    shuffle: (cards: ReadonlyArray<{ id: CardId; url: string }>) => cards,
+  }),
+}) {}
 
-      return {
-        shuffleForTurn: (
-          turnId: TurnId,
-          cards: ReadonlyArray<{ id: CardId; url: string }>,
-          shuffler: Shuffler,
-        ): ReadonlyArray<{ id: CardId; url: string }> => {
-          if (boardCardsForTurn.has(turnId)) {
-            return boardCardsForTurn.get(turnId) ?? [];
-          }
+export class TurnBoardCardsShuffler
+  extends Effect.Service<TurnBoardCardsShuffler>()(
+    "TurnBoardCardsShuffler",
+    {
+      effect: Effect.gen(function* () {
+        const boardCardsForTurn = new Map<
+          TurnId,
+          ReadonlyArray<{ id: CardId; url: string }>
+        >();
 
-          boardCardsForTurn.set(turnId, shuffler.shuffle(cards));
-          return boardCardsForTurn.get(turnId)!;
-        },
-      };
-    }),
-  },
-) {}
+        return {
+          shuffleForTurn: (
+            turnId: TurnId,
+            cards: ReadonlyArray<{ id: CardId; url: string }>,
+            shuffler: Shuffler,
+          ): ReadonlyArray<{ id: CardId; url: string }> => {
+            if (boardCardsForTurn.has(turnId)) {
+              return boardCardsForTurn.get(turnId) ?? [];
+            }
+
+            boardCardsForTurn.set(turnId, shuffler.shuffle(cards));
+            return boardCardsForTurn.get(turnId)!;
+          },
+        };
+      }),
+    },
+  ) {}
 
 export class GameViewProjector extends Effect.Service<GameViewProjector>()(
   "GameViewProjector",
   {
     effect: Effect.gen(function* () {
       const boardCardsShuffler = yield* TurnBoardCardsShuffler;
+      const deckRepository = yield* DeckRepository;
+      const shuffler = yield* ShufflerService;
       return {
-        project: (game: StartedGameSnapshot, deck: DeckSnapshot, shuffler: Shuffler) => {
-          const impl = new GameViewProjectorImpl(boardCardsShuffler, deck, shuffler);
-          return impl.project(game);
-        },
+        project: (game: StartedGameSnapshot) => 
+          Effect.gen(function* () {
+            const deckEntity = yield* deckRepository.findById(DeckId(game.deckId));
+            const deck = yield* Option.match(deckEntity, {
+              onNone: () => Effect.fail(new Error(`Deck ${game.deckId} not found`)),
+              onSome: (d) => Effect.succeed(d.toSnapshot()),
+            });
+            
+            const impl = new GameViewProjectorImpl(
+              boardCardsShuffler,
+              deck,
+              shuffler,
+            );
+            return impl.project(game);
+          }),
       };
     }),
-    dependencies: [TurnBoardCardsShuffler.Default],
+    dependencies: [TurnBoardCardsShuffler.Default, InMemoryDeckRepository, ShufflerService.Default],
   },
 ) {}
 
@@ -68,7 +89,7 @@ class GameViewProjectorImpl {
     private readonly shuffler: Shuffler,
   ) {}
 
-    public project(game: StartedGameSnapshot) {
+  public project(game: StartedGameSnapshot) {
     const playerStatus = Object.fromEntries(
       game.players.map((playerId) => [
         playerId,
@@ -108,7 +129,7 @@ class GameViewProjectorImpl {
     );
   }
 
-    private isPlayerReadyForNextPhase(opts: {
+  private isPlayerReadyForNextPhase(opts: {
     game: StartedGameSnapshot;
     playerId: string;
   }) {
@@ -144,7 +165,7 @@ class GameViewProjectorImpl {
     return false;
   }
 
-    private getBoardCards(opts: { game: StartedGameSnapshot }) {
+  private getBoardCards(opts: { game: StartedGameSnapshot }) {
     if (
       ["storytelling", "selecting-cards"].includes(opts.game.currentTurn.phase)
     ) {
@@ -183,7 +204,7 @@ class GameViewProjectorImpl {
     return {};
   }
 
-    private getVotes(opts: { game: StartedGameSnapshot }) {
+  private getVotes(opts: { game: StartedGameSnapshot }) {
     const votes: Record<CardId, Array<PlayerId>> = {};
     if (opts.game.currentTurn.phase === "scoring") {
       for (const vote of opts.game.currentTurn.votedCards) {
@@ -200,7 +221,7 @@ class GameViewProjectorImpl {
       : {};
   }
 
-    private getPoints(opts: { game: StartedGameSnapshot; playerId: string }) {
+  private getPoints(opts: { game: StartedGameSnapshot; playerId: string }) {
     if (opts.game.currentTurn.phase === "scoring") {
       return {
         points:

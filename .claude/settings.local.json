@@ -28,7 +28,8 @@
       "mcp__wallaby__wallaby_allTests",
       "Bash(pnmp check:*)",
       "mcp__wallaby__wallaby_failingTestsForFile",
-      "mcp__context7__get-library-docs"
+      "mcp__context7__get-library-docs",
+      "mcp__wallaby__wallaby_failingTests"
     ]
   },
   "enableAllProjectMcpServers": false,

@@ -1,5 +1,4 @@
 import { Effect, Option } from "effect";
-import { CardId } from "./deck.entity.js";
 import { DeckRepository, InMemoryDeckRepository } from "./deck.repository.js";
 import {
   NoopRandomizeStrategy,
@@ -9,7 +8,7 @@ import { GameRepository, InMemoryGameRepository } from "./game.repository.js";
 import { GameView, InMemoryGameView } from "./game-view.js";
 import {
   GameViewProjector,
-  Shuffler,
+  ShufflerService,
   TurnBoardCardsShuffler,
 } from "./game-view-projector.js";
 import { withOptimisticRetry } from "./optimistic-retry.js";
@@ -19,14 +18,6 @@ export type StartGameCommand = {
   gameId: string;
   playerId: string;
 };
-
-class IdentityShuffler implements Shuffler {
-  shuffle(
-    cards: ReadonlyArray<{ id: CardId; url: string }>,
-  ): ReadonlyArray<{ id: CardId; url: string }> {
-    return cards;
-  }
-}
 
 export class StartGameUseCase extends Effect.Service<StartGameUseCase>()(
   "game/StartGameUseCase",
@@ -63,9 +54,10 @@ export class StartGameUseCase extends Effect.Service<StartGameUseCase>()(
             });
 
             yield* gameRepository.save(updatedGame);
-            const shuffler = new IdentityShuffler();
             yield* gameView.save(
-              gameViewProjector.project(updatedGame.toSnapshot(), deckEntity.toSnapshot(), shuffler),
+              yield* gameViewProjector.project(
+                updatedGame.toSnapshot(),
+              ),
             );
           });
 
@@ -80,6 +72,7 @@ export class StartGameUseCase extends Effect.Service<StartGameUseCase>()(
       NoopRandomizeStrategy,
       TurnBoardCardsShuffler.Default,
       GameViewProjector.Default,
+      ShufflerService.Default,
     ],
   },
 ) {}

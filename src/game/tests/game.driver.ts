@@ -22,7 +22,7 @@ import {
 } from "../game.entity.js";
 import { GameRepository, InMemoryGameRepository } from "../game.repository.js";
 import { GameView, InMemoryGameView } from "../game-view.js";
-import { GameViewValueObject } from "../game-view-projector.js";
+import { GameViewValueObject, GameViewProjector, ShufflerService, TurnBoardCardsShuffler } from "../game-view-projector.js";
 import { GameLayerWithoutDependencies } from "../index.js";
 import { JoinGameUseCase } from "../join-game.usecase.js";
 import { LeaveGameUseCase } from "../leave-game.usecase.js";
@@ -895,47 +895,55 @@ const makeUnitTestGameDriver = ({
 
 export const makeGameDriverUnitTestLayer = (props?: {
   randomizeStrategy?: PlayersRandomizeStrategyType;
-}) =>
-  Layer.effect(
-    GameDriver,
-    Effect.gen(function* () {
-      const createGameUseCase = yield* CreateGameUseCase;
-      const joinGameUseCase = yield* JoinGameUseCase;
-      const leaveGameUseCase = yield* LeaveGameUseCase;
-      const startGameUseCase = yield* StartGameUseCase;
-      const submitClueUseCase = yield* SubmitClueUseCase;
-      const selectCardUseCase = yield* SelectCardUseCase;
-      const voteOnCardUseCase = yield* VoteOnCardUseCase;
-      const notifyToBeReadyForNextTurnUseCase =
-        yield* NotifyReadyForNextTurnUseCase;
-      const gameRepository = yield* GameRepository;
-      const deckRepository = yield* DeckRepository;
-      const gameView = yield* GameView;
-
-      return makeUnitTestGameDriver({
-        createGameUseCase,
-        joinGameUseCase,
-        leaveGameUseCase,
-        startGameUseCase,
-        submitClueUseCase,
-        selectCardUseCase,
-        voteOnCardUseCase,
-        notifyToBeReadyForNextTurnUseCase,
-        gameRepository,
-        deckRepository,
-        gameView,
-      });
-    }),
-  ).pipe(
-    Layer.provide(GameLayerWithoutDependencies),
-    Layer.provide(
-      Layer.mergeAll(
-        InMemoryGameRepository,
-        InMemoryDeckRepository,
-        InMemoryGameView,
-        props?.randomizeStrategy
-          ? Layer.succeed(PlayersRandomizeStrategy, props.randomizeStrategy)
-          : NoopRandomizeStrategy,
-      ),
-    ),
+}) => {
+  const dependencies = Layer.mergeAll(
+    InMemoryGameRepository,
+    InMemoryDeckRepository,
+    InMemoryGameView,
+    TurnBoardCardsShuffler.Default,
+    GameViewProjector.Default,
+    ShufflerService.Default,
+    props?.randomizeStrategy
+      ? Layer.succeed(PlayersRandomizeStrategy, props.randomizeStrategy)
+      : NoopRandomizeStrategy,
   );
+  
+  return Layer.merge(
+    Layer.effect(
+      GameDriver,
+      Effect.gen(function* () {
+        const createGameUseCase = yield* CreateGameUseCase;
+        const joinGameUseCase = yield* JoinGameUseCase;
+        const leaveGameUseCase = yield* LeaveGameUseCase;
+        const startGameUseCase = yield* StartGameUseCase;
+        const submitClueUseCase = yield* SubmitClueUseCase;
+        const selectCardUseCase = yield* SelectCardUseCase;
+        const voteOnCardUseCase = yield* VoteOnCardUseCase;
+        const notifyToBeReadyForNextTurnUseCase =
+          yield* NotifyReadyForNextTurnUseCase;
+        const gameRepository = yield* GameRepository;
+        const deckRepository = yield* DeckRepository;
+        const gameView = yield* GameView;
+
+        return makeUnitTestGameDriver({
+          createGameUseCase,
+          joinGameUseCase,
+          leaveGameUseCase,
+          startGameUseCase,
+          submitClueUseCase,
+          selectCardUseCase,
+          voteOnCardUseCase,
+          notifyToBeReadyForNextTurnUseCase,
+          gameRepository,
+          deckRepository,
+          gameView,
+        });
+      }),
+    ).pipe(
+      Layer.provide(GameLayerWithoutDependencies),
+      Layer.provide(dependencies),
+    ),
+    // Also expose GameViewProjector and TurnBoardCardsShuffler directly for tests
+    Layer.merge(GameViewProjector.Default, TurnBoardCardsShuffler.Default),
+  ).pipe(Layer.provide(dependencies));
+};

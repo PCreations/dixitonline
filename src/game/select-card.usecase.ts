@@ -1,8 +1,10 @@
-import { Effect, Option } from 'effect';
-import { CardId } from './deck.entity.js';
-import { GameRepository, InMemoryGameRepository } from './game.repository.js';
-import { withOptimisticRetry } from './optimistic-retry.js';
-import { PlayerId } from './player.entity.js';
+import { Effect, Option } from "effect";
+import { CardId } from "./deck.entity.js";
+import { GameRepository, InMemoryGameRepository } from "./game.repository.js";
+import { GameView } from "./game-view.js";
+import { GameViewProjector } from "./game-view-projector.js";
+import { withOptimisticRetry } from "./optimistic-retry.js";
+import { PlayerId } from "./player.entity.js";
 
 export type SelectCardCommand = {
   gameId: string;
@@ -11,10 +13,12 @@ export type SelectCardCommand = {
 };
 
 export class SelectCardUseCase extends Effect.Service<SelectCardUseCase>()(
-  'game/SelectCardUseCase',
+  "game/SelectCardUseCase",
   {
     effect: Effect.gen(function* () {
       const gameRepository = yield* GameRepository;
+      const gameView = yield* GameView;
+      const gameViewProjector = yield* GameViewProjector;
 
       return {
         selectCard: (props: SelectCardCommand) => {
@@ -24,7 +28,7 @@ export class SelectCardUseCase extends Effect.Service<SelectCardUseCase>()(
             );
 
             return yield* Option.match(game, {
-              onNone: () => Effect.fail(new Error('Game not found')),
+              onNone: () => Effect.fail(new Error("Game not found")),
               onSome: (gameEntity) =>
                 Effect.gen(function* () {
                   const updatedGame = yield* gameEntity.selectCard({
@@ -33,6 +37,9 @@ export class SelectCardUseCase extends Effect.Service<SelectCardUseCase>()(
                   });
 
                   yield* gameRepository.save(updatedGame);
+                  yield* gameView.save(
+                    yield* gameViewProjector.project(updatedGame.toSnapshot()),
+                  );
                 }),
             });
           });

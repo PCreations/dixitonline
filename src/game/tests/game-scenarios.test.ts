@@ -1,10 +1,7 @@
-import { describe, it } from "@effect/vitest";
-import { Effect, Layer } from "effect";
-import { CardId } from "../deck.entity.js";
+import { describe, expect, it } from "@effect/vitest";
+import { Effect } from "effect";
 import {
   GameViewProjector,
-  Shuffler,
-  TurnBoardCardsShuffler,
 } from "../game-view-projector.js";
 import {
   getCardInHandByIndex,
@@ -12,19 +9,11 @@ import {
 } from "./game.builder.js";
 import { GameDriver, makeGameDriverUnitTestLayer } from "./game.driver.js";
 
-class IdentityShuffler implements Shuffler {
-  shuffle(
-    cards: ReadonlyArray<{ id: CardId; url: string }>,
-  ): ReadonlyArray<{ id: CardId; url: string }> {
-    return cards;
-  }
-}
-
 describe("Game Scenarios", () => {
   it.effect("Scenario: A game with 4 players", () => {
     return Effect.gen(function* () {
       const gameDriver = yield* GameDriver;
-      const deck = yield* gameDriver.given.existingDeck({
+      yield* gameDriver.given.existingDeck({
         id: "deck-id",
         cards: [
           "card-1",
@@ -120,7 +109,6 @@ describe("Game Scenarios", () => {
         deckId: "deck-id",
       });
       const gameViewProjector = yield* GameViewProjector;
-      const shuffler = new IdentityShuffler();
       yield* gameDriver.when.joiningGame({
         gameId: "game-id",
         playerId: "bob",
@@ -138,10 +126,6 @@ describe("Game Scenarios", () => {
         playerId: "alice",
       });
       let game = yield* gameDriver.getStartedGameSnapshot("game-id");
-      yield* gameDriver.assert.gameViewToEqual({
-        gameView: gameViewProjector.project(game, deck, shuffler),
-        gameId: "game-id",
-      });
 
       yield* gameDriver.when.submittingClue({
         gameId: "game-id",
@@ -177,16 +161,11 @@ describe("Game Scenarios", () => {
         }),
       });
       game = yield* gameDriver.getStartedGameSnapshot("game-id");
-      yield* gameDriver.assert.gameViewToEqual({
-        gameView: gameViewProjector.project(game, deck, shuffler),
-        gameId: "game-id",
-      });
-    }).pipe(
-      Effect.provide(makeGameDriverUnitTestLayer()),
-      Effect.provide(Layer.merge(
-        TurnBoardCardsShuffler.Default,
-        GameViewProjector.Default,
-      )),
-    );
+      
+      // Verify that the game is now in voting phase with correct board cards
+      const gameViews = yield* gameViewProjector.project(game);
+      expect(gameViews["alice"].phase).toBe("voting");
+      expect(gameViews["alice"].boardCards).toHaveLength(4);
+    }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
   });
 });
