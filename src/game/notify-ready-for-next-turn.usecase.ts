@@ -1,7 +1,9 @@
 import { Effect, Option } from "effect";
+import { InMemoryDeckRepository } from "./deck.repository.js";
+import { isStartedGame } from "./game.entity.js";
 import { GameRepository, InMemoryGameRepository } from "./game.repository.js";
-import { GameView } from "./game-view.js";
-import { GameViewProjector } from "./game-view-projector.js";
+import { GameView, InMemoryGameView } from "./game-view.js";
+import { GameViewProjector, ShufflerService, TurnBoardCardsShuffler } from "./game-view-projector.js";
 import { withOptimisticRetry } from "./optimistic-retry.js";
 import { PlayerId } from "./player.entity.js";
 
@@ -36,11 +38,15 @@ export class NotifyReadyForNextTurnUseCase
                       });
 
                     yield* gameRepository.save(updatedGame);
-                    yield* gameView.save(
-                      yield* gameViewProjector.project(
-                        updatedGame.toSnapshot(),
-                      ),
-                    );
+                    
+                    // Only update game view if the game is still in progress
+                    if (isStartedGame(updatedGame)) {
+                      yield* gameView.save(
+                        yield* gameViewProjector.project(
+                          updatedGame.toSnapshot(),
+                        ),
+                      );
+                    }
                   }),
               });
             });
@@ -49,6 +55,13 @@ export class NotifyReadyForNextTurnUseCase
           },
         };
       }),
-      dependencies: [InMemoryGameRepository],
+      dependencies: [
+        InMemoryGameRepository,
+        InMemoryGameView,
+        GameViewProjector.Default,
+        TurnBoardCardsShuffler.Default,
+        InMemoryDeckRepository,
+        ShufflerService.Default,
+      ],
     },
   ) {}

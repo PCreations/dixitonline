@@ -1,8 +1,9 @@
 import { Effect, Option } from "effect";
 import { CardId } from "./deck.entity.js";
+import { InMemoryDeckRepository } from "./deck.repository.js";
 import { GameRepository, InMemoryGameRepository } from "./game.repository.js";
-import { GameView } from "./game-view.js";
-import { GameViewProjector } from "./game-view-projector.js";
+import { GameView, InMemoryGameView } from "./game-view.js";
+import { GameViewProjector, ShufflerService, TurnBoardCardsShuffler } from "./game-view-projector.js";
 import { withOptimisticRetry } from "./optimistic-retry.js";
 import { PlayerId } from "./player.entity.js";
 
@@ -48,6 +49,13 @@ export class SelectCardUseCase extends Effect.Service<SelectCardUseCase>()(
         },
       };
     }),
-    dependencies: [InMemoryGameRepository],
+    dependencies: [
+      InMemoryGameRepository,
+      InMemoryGameView,
+      GameViewProjector.Default,
+      TurnBoardCardsShuffler.Default,
+      InMemoryDeckRepository,
+      ShufflerService.Default,
+    ],
   },
 ) {}

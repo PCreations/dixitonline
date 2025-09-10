@@ -1,5 +1,9 @@
 import { Context, Effect, Option } from "effect";
-import { GameEntitySnapshot, isStartedGameSnapshot } from "../game.entity.js";
+import {
+  GameEntitySnapshot,
+  isStartedGameSnapshot,
+  StartedGameEntity,
+} from "../game.entity.js";
 import { PlayerId } from "../player.entity.js";
 import { GameDriver } from "./game.driver.js";
 
@@ -31,6 +35,10 @@ interface GameConfig {
   playersReadyForNextTurn: Array<string>;
   inScoringPhase?: boolean;
   scoringPhaseStartedAt?: Date;
+  playersHavingBeenStorytellerXNumberOfTimes: Map<
+    string,
+    number
+  >;
 }
 
 export class GameBuilder {
@@ -44,6 +52,7 @@ export class GameBuilder {
       votedCards: [],
       scores: [],
       playersReadyForNextTurn: [],
+      playersHavingBeenStorytellerXNumberOfTimes: new Map(),
     };
   }
 
@@ -142,6 +151,13 @@ export class GameBuilder {
     return this;
   }
 
+  withPlayersHavingBeenStorytellerXNumberOfTimes(
+    players: Map<string, number>,
+  ): this {
+    this.config.playersHavingBeenStorytellerXNumberOfTimes = players;
+    return this;
+  }
+
   inScoringPhaseSince(now: Date): this {
     this.config.inScoringPhase = true;
     this.config.scoringPhaseStartedAt = now;
@@ -183,93 +199,136 @@ export class GameBuilder {
         hostId: config.hostId!,
         deckId,
         players: config.players,
+        endCondition: config.endCondition ?? {
+          type: "NumberOfTimesBeingStoryteller",
+          numberOfTimes: 3,
+        },
       });
 
-      if (config.started || config.inScoringPhase) {
-        if (config.inScoringPhase) {
-          config.clue = { clue: "some clue", cardIndex: 0 };
-        }
+      const runTurn = () => {
+        return Effect.gen(function* () {
+          if (config.started || config.inScoringPhase) {
+            if (config.inScoringPhase) {
+              config.clue = { clue: "some clue", cardIndex: 0 };
+            }
 
-        yield* driver.when.startingGame({
-          gameId: config.gameId,
-          playerId: config.hostId!,
-        });
-
-        let game = yield* driver.getGameSnapshot(config.gameId);
-        const storytellerId = getCurrentStorytellerId(game);
-        const storytellerCardId = getCardInHandByIndex(game, {
-          playerId: storytellerId,
-          cardIndex: config.clue?.cardIndex ?? 0,
-        });
-
-        if (config.clue) {
-          yield* driver.when.submittingClue({
-            gameId: config.gameId,
-            playerId: storytellerId,
-            cardId: storytellerCardId,
-            clue: config.clue.clue,
-          });
-          game = yield* driver.getGameSnapshot(config.gameId);
-          if (config.inScoringPhase) {
-            config.selectedCards = config.players.slice(1).map((playerId) => ({
-              playerId,
-              cardIndex: 0,
-            }));
-          }
-          for (const selection of config.selectedCards) {
-            yield* driver.when.selectingCard({
+            yield* driver.when.startingGame({
               gameId: config.gameId,
-              playerId: selection.playerId,
-              cardId: getCardInHandByIndex(game, {
-                playerId: selection.playerId,
-                cardIndex: selection.cardIndex,
-              }),
-            });
-          }
-
-          if (config.inScoringPhase) {
-            config.votedCards = config.players.slice(1).map((playerId) => ({
-              playerId,
-              cardSelectedByPlayer: config.players[0],
-            }));
-          }
-          for (const vote of config.votedCards) {
-            game = yield* driver.getGameSnapshot(config.gameId);
-            const selectedCards = getSelectedCardsByPlayer(game, {
-              playerId: vote.cardSelectedByPlayer,
+              playerId: config.hostId!,
             });
 
-            if (selectedCards.length === 0) {
-              return yield* Effect.die(
-                new Error(
-                  `[Game Builder] No selected cards found for player ${vote.cardSelectedByPlayer}. Available cards: ${
-                    JSON.stringify(
-                      getSelectedCardsByPlayer(game, {
-                        playerId: vote.cardSelectedByPlayer,
-                      }),
-                    )
-                  }`,
-                ),
+            if (config.playersHavingBeenStorytellerXNumberOfTimes.size > 0) {
+              const gameSnapshot = yield* driver.getStartedGameSnapshot(
+                config.gameId,
               );
+              const updatedGameEntity = StartedGameEntity.fromSnapshot({
+                ...gameSnapshot,
+                playersHavingBeenStoryteller: Object.fromEntries(
+                  config.playersHavingBeenStorytellerXNumberOfTimes.entries(),
+                ),
+                version: gameSnapshot.version + 1,
+              });
+              yield* driver.unsafe__saveGameEntity(updatedGameEntity);
             }
 
-            for (const selectedCard of selectedCards) {
-              yield* driver.when.votingOnCard({
-                gameId: config.gameId,
-                playerId: vote.playerId,
-                cardId: selectedCard.cardId,
+            if (config.scores.length > 0) {
+              const gameSnapshot = yield* driver.getStartedGameSnapshot(
+                config.gameId,
+              );
+              const updatedGameEntity = StartedGameEntity.fromSnapshot({
+                ...gameSnapshot,
+                scores: config.scores.map(({ playerId, score }) => ({
+                  playerId: PlayerId(playerId),
+                  score,
+                })),
+                version: gameSnapshot.version + 1,
               });
+              yield* driver.unsafe__saveGameEntity(updatedGameEntity);
+            }
+
+            let game = yield* driver.getGameSnapshot(config.gameId);
+            const storytellerId = getCurrentStorytellerId(game);
+            const storytellerCardId = getCardInHandByIndex(game, {
+              playerId: storytellerId,
+              cardIndex: config.clue?.cardIndex ?? 0,
+            });
+
+            if (config.clue) {
+              yield* driver.when.submittingClue({
+                gameId: config.gameId,
+                playerId: storytellerId,
+                cardId: storytellerCardId,
+                clue: config.clue.clue,
+              });
+              game = yield* driver.getGameSnapshot(config.gameId);
+              if (config.inScoringPhase) {
+                config.selectedCards = config.players.slice(1).map((
+                  playerId,
+                ) => ({
+                  playerId,
+                  cardIndex: 0,
+                }));
+              }
+              for (const selection of config.selectedCards) {
+                yield* driver.when.selectingCard({
+                  gameId: config.gameId,
+                  playerId: selection.playerId,
+                  cardId: getCardInHandByIndex(game, {
+                    playerId: selection.playerId,
+                    cardIndex: selection.cardIndex,
+                  }),
+                });
+              }
+
+              if (config.inScoringPhase) {
+                config.votedCards = config.players.slice(1).map((playerId) => ({
+                  playerId,
+                  cardSelectedByPlayer: config.players[0],
+                }));
+              }
+              for (const vote of config.votedCards) {
+                game = yield* driver.getGameSnapshot(config.gameId);
+                const selectedCards = getSelectedCardsByPlayer(game, {
+                  playerId: vote.cardSelectedByPlayer,
+                });
+
+                if (selectedCards.length === 0) {
+                  return yield* Effect.die(
+                    new Error(
+                      `[Game Builder] No selected cards found for player ${vote.cardSelectedByPlayer}. Available cards: ${
+                        JSON.stringify(
+                          getSelectedCardsByPlayer(game, {
+                            playerId: vote.cardSelectedByPlayer,
+                          }),
+                        )
+                      }`,
+                    ),
+                  );
+                }
+
+                for (const selectedCard of selectedCards) {
+                  yield* driver.when.votingOnCard({
+                    gameId: config.gameId,
+                    playerId: vote.playerId,
+                    cardId: selectedCard.cardId,
+                  });
+                }
+              }
+              game = yield* driver.getGameSnapshot(config.gameId);
+              for (const playerId of config.playersReadyForNextTurn) {
+                yield* driver.when.notifyingToBeReadyForNextTurn({
+                  gameId: config.gameId,
+                  playerId,
+                });
+              }
             }
           }
-          game = yield* driver.getGameSnapshot(config.gameId);
-          for (const playerId of config.playersReadyForNextTurn) {
-            yield* driver.when.notifyingToBeReadyForNextTurn({
-              gameId: config.gameId,
-              playerId,
-            });
-          }
-        }
-      }
+        });
+      };
+
+      yield* runTurn();
+
+      return yield* Effect.succeed(void 0);
     });
   }
 }

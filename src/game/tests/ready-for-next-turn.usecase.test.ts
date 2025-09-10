@@ -186,8 +186,112 @@ describe("Feature: Notifying to be ready for the next turn", () => {
               ],
             },
           ],
+          playersHavingBeenStoryteller: {
+            "id-player-1": 1,
+            "id-player-2": 0,
+            "id-player-3": 0,
+            "id-player-4": 0,
+          },
         });
       }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
     },
   );
+
+  describe("End game conditions", () => {
+    it.effect(
+      "Example: Number of time storyteller, when the last player notifies to be ready for the next turn and everyone has been storyteller x number of times, the game is ended",
+      () => {
+        return Effect.gen(function* () {
+          const gameDriver = yield* GameDriver;
+          const now = new Date();
+
+          yield* gameDriver.given.existingGame(
+            gameDriver,
+            new GameBuilder("id-game-1")
+              .hostedBy("id-player-1")
+              .withEndCondition({
+                type: "NumberOfTimesBeingStoryteller",
+                numberOfTimes: 2,
+              })
+              .withPlayers(
+                "id-player-1",
+                "id-player-2",
+                "id-player-3",
+                "id-player-4",
+              )
+              .withPlayersHavingBeenStorytellerXNumberOfTimes(
+                new Map([
+                  ["id-player-1", 1], // Player is the storyteller for the last turn, so it will make it to 2
+                  ["id-player-2", 2],
+                  ["id-player-3", 2],
+                  ["id-player-4", 2],
+                ]),
+              )
+              .inScoringPhaseSince(now)
+              .withPlayersReadyForNextTurn([
+                "id-player-1",
+                "id-player-2",
+                "id-player-3",
+              ]),
+          );
+
+          yield* gameDriver.when.notifyingToBeReadyForNextTurn({
+            gameId: "id-game-1",
+            playerId: "id-player-4",
+          });
+
+          yield* gameDriver.assert.gameToBeEnded({
+            gameId: "id-game-1",
+          });
+        }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+      },
+    );
+
+    it.effect(
+      "Example: Number of points, when the last player notifies to be ready for the next turn and a player has reached the point limit, the game is ended",
+      () => {
+        return Effect.gen(function* () {
+          const gameDriver = yield* GameDriver;
+          const now = new Date();
+
+          yield* gameDriver.given.existingGame(
+            gameDriver,
+            new GameBuilder("id-game-1")
+              .hostedBy("id-player-1")
+              .withEndCondition({
+                type: "LimitOfPoints",
+                limit: 10,
+              })
+              .withPlayers(
+                "id-player-1",
+                "id-player-2",
+                "id-player-3",
+                "id-player-4",
+              )
+              .withScores([
+                { playerId: "id-player-1", score: 10 },
+                { playerId: "id-player-2", score: 0 },
+                { playerId: "id-player-3", score: 0 },
+                { playerId: "id-player-4", score: 0 },
+              ])
+              .inScoringPhaseSince(now)
+              .withPlayersReadyForNextTurn([
+                "id-player-1",
+                "id-player-2",
+                "id-player-3",
+              ]),
+          );
+
+          yield* gameDriver.when.notifyingToBeReadyForNextTurn({
+            gameId: "id-game-1",
+            playerId: "id-player-4",
+          });
+
+          yield* gameDriver.assert.gameToBeEnded({
+            gameId: "id-game-1",
+          });
+        }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+      },
+    );
+  });
 });

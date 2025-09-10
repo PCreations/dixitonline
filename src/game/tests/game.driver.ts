@@ -11,6 +11,7 @@ import {
 } from "../deck.entity.js";
 import { DeckRepository, InMemoryDeckRepository } from "../deck.repository.js";
 import {
+  GameEntity,
   GameEntitySnapshot,
   GameId,
   isStartedGame,
@@ -21,8 +22,14 @@ import {
   StartedGameSnapshot,
 } from "../game.entity.js";
 import { GameRepository, InMemoryGameRepository } from "../game.repository.js";
+import { ScoreReason } from "../game-rules.js";
 import { GameView, InMemoryGameView } from "../game-view.js";
-import { GameViewValueObject, GameViewProjector, ShufflerService, TurnBoardCardsShuffler } from "../game-view-projector.js";
+import {
+  GameViewProjector,
+  GameViewValueObject,
+  ShufflerService,
+  TurnBoardCardsShuffler,
+} from "../game-view-projector.js";
 import { GameLayerWithoutDependencies } from "../index.js";
 import { JoinGameUseCase } from "../join-game.usecase.js";
 import { LeaveGameUseCase } from "../leave-game.usecase.js";
@@ -50,6 +57,7 @@ interface GameDriverDSL {
   readonly getStartedGameSnapshot: (
     gameId: string,
   ) => Effect.Effect<StartedGameSnapshot>;
+  readonly unsafe__saveGameEntity: (game: GameEntity) => Effect.Effect<void>;
   readonly given: {
     readonly defaultDeck: (props: {
       id: string;
@@ -66,6 +74,7 @@ interface GameDriverDSL {
       hostId: string;
       deckId?: string;
       players?: ReadonlyArray<string>;
+      endCondition?: EndConditionDto;
     }) => Effect.Effect<void>;
     readonly existingFullGame: (props: {
       gameId: string;
@@ -173,6 +182,9 @@ interface GameDriverDSL {
         id: string;
         url: string;
       }>;
+      playersHavingBeenStoryteller: {
+        [playerId: string]: number;
+      };
     }) => Effect.Effect<void, never, never>;
     readonly playerHandsToEqual: (props: {
       gameId: string;
@@ -231,6 +243,9 @@ interface GameDriverDSL {
     readonly gameViewToEqual: (props: {
       gameId: string;
       gameView: GameViewValueObject;
+    }) => Effect.Effect<void, never, never>;
+    readonly gameToBeEnded: (props: {
+      gameId: string;
     }) => Effect.Effect<void, never, never>;
   };
 }
@@ -322,7 +337,7 @@ const makeUnitTestGameDriver = ({
           gameId: props.gameId,
           hostId: props.hostId,
           deckId,
-          endCondition: {
+          endCondition: props.endCondition ?? {
             type: "NumberOfTimesBeingStoryteller",
             numberOfTimes: 3,
           },
@@ -479,7 +494,9 @@ const makeUnitTestGameDriver = ({
         .pipe(
           Effect.catchAll((error) => {
             if (testState.failFast) {
-              return Effect.die(new Error(`[GameBuilder] ${error.message}`));
+              return Effect.die(
+                new Error(`[GameBuilder] ${error.message} when starting game`),
+              );
             }
             testState.currentError = Option.some(error);
             return Effect.succeed(void 0);
@@ -683,6 +700,21 @@ const makeUnitTestGameDriver = ({
           props.storytellerId,
         );
         expect(game.toSnapshot().currentTurn.phase).toEqual("storytelling");
+        expect(game.toSnapshot().currentTurn.turnClue).toEqual(Option.none());
+        expect(game.toSnapshot().currentTurn.selectedCards).toEqual([]);
+        expect(game.toSnapshot().currentTurn.votedCards).toEqual([]);
+        expect(game.toSnapshot().playersHavingBeenStoryteller).toEqual(
+          props.playersHavingBeenStoryteller,
+        );
+        expect(game.toSnapshot().currentTurn.pointsByPlayer).toEqual(
+          new Map(
+            props.playerHands.map((hand) => [
+              hand.playerId,
+              [] as ReadonlyArray<{ points: number; reason: ScoreReason }>,
+            ]),
+          ),
+        );
+        expect(game.toSnapshot().currentTurn.gameId).toEqual(props.gameId);
         expect(game.toSnapshot().currentTurn.turnNumber).toEqual(2);
         expect(expectedPlayerHands).toEqual(props.playerHands);
         expect(game.toSnapshot().currentTurn.cardsInDrawPile).toEqual(
@@ -845,6 +877,18 @@ const makeUnitTestGameDriver = ({
         expect(gameViewValueObject).toEqual(props.gameView);
       });
     },
+    gameToBeEnded: (props) => {
+      return Effect.gen(function* () {
+        const game = Option.getOrThrowWith(
+          yield* gameRepository.findById(props.gameId),
+          () =>
+            new Error(
+              `Game ${props.gameId} not found while asserting game is ended`,
+            ),
+        );
+        expect(game.toSnapshot().status._tag).toEqual("EndedGame");
+      });
+    },
   };
 
   const getGameSnapshot = (gameId: string) =>
@@ -871,6 +915,24 @@ const makeUnitTestGameDriver = ({
       return game.toSnapshot();
     });
 
+  const unsafe__saveGameEntity = (game: GameEntity) =>
+    Effect.gen(function* () {
+      yield* gameRepository.save(game).pipe(
+        Effect.catchAll((error) => {
+          if (testState.failFast) {
+            console.error(error);
+            return Effect.die(
+              new Error(
+                `[GameDriver] while calling unsafe__saveGameEntity ${error.message}`,
+              ),
+            );
+          }
+          testState.currentError = Option.some(error);
+          return Effect.succeed(void 0);
+        }),
+      );
+    });
+
   const withFailFastMode = (): GameDriverDSL => {
     testState.failFast = true;
     return {
@@ -880,6 +942,7 @@ const makeUnitTestGameDriver = ({
       withFailFastMode,
       getGameSnapshot,
       getStartedGameSnapshot,
+      unsafe__saveGameEntity,
     };
   };
 
@@ -890,6 +953,7 @@ const makeUnitTestGameDriver = ({
     withFailFastMode,
     getGameSnapshot,
     getStartedGameSnapshot,
+    unsafe__saveGameEntity,
   };
 };
 
@@ -907,7 +971,7 @@ export const makeGameDriverUnitTestLayer = (props?: {
       ? Layer.succeed(PlayersRandomizeStrategy, props.randomizeStrategy)
       : NoopRandomizeStrategy,
   );
-  
+
   return Layer.merge(
     Layer.effect(
       GameDriver,

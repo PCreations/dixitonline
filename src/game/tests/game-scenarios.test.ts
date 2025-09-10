@@ -1,18 +1,18 @@
-import { describe, expect, it } from "@effect/vitest";
+import { describe, it } from "@effect/vitest";
 import { Effect } from "effect";
-import {
-  GameViewProjector,
-} from "../game-view-projector.js";
+import { GameViewProjector } from "../game-view-projector.js";
 import {
   getCardInHandByIndex,
   getCurrentStorytellerId,
+  getSelectedCardsByPlayer,
 } from "./game.builder.js";
 import { GameDriver, makeGameDriverUnitTestLayer } from "./game.driver.js";
 
 describe("Game Scenarios", () => {
   it.effect("Scenario: A game with 4 players", () => {
     return Effect.gen(function* () {
-      const gameDriver = yield* GameDriver;
+      let gameDriver = yield* GameDriver;
+      gameDriver = gameDriver.withFailFastMode();
       yield* gameDriver.given.existingDeck({
         id: "deck-id",
         cards: [
@@ -126,6 +126,7 @@ describe("Game Scenarios", () => {
         playerId: "alice",
       });
       let game = yield* gameDriver.getStartedGameSnapshot("game-id");
+      let gameViews = yield* gameViewProjector.project(game);
 
       yield* gameDriver.when.submittingClue({
         gameId: "game-id",
@@ -136,6 +137,13 @@ describe("Game Scenarios", () => {
         }),
         clue: "A clue",
       });
+      game = yield* gameDriver.getStartedGameSnapshot("game-id");
+      gameViews = yield* gameViewProjector.project(game);
+      yield* gameDriver.assert.gameViewToEqual({
+        gameId: "game-id",
+        gameView: gameViews,
+      });
+
       yield* gameDriver.when.selectingCard({
         gameId: "game-id",
         playerId: "bob",
@@ -161,11 +169,62 @@ describe("Game Scenarios", () => {
         }),
       });
       game = yield* gameDriver.getStartedGameSnapshot("game-id");
-      
-      // Verify that the game is now in voting phase with correct board cards
-      const gameViews = yield* gameViewProjector.project(game);
-      expect(gameViews["alice"].phase).toBe("voting");
-      expect(gameViews["alice"].boardCards).toHaveLength(4);
+      gameViews = yield* gameViewProjector.project(game);
+      yield* gameDriver.assert.gameViewToEqual({
+        gameId: "game-id",
+        gameView: gameViews,
+      });
+
+      yield* gameDriver.when.votingOnCard({
+        gameId: "game-id",
+        playerId: "alice",
+        cardId: getSelectedCardsByPlayer(game, {
+          playerId: "bob",
+        })[0].cardId,
+      });
+      yield* gameDriver.when.votingOnCard({
+        gameId: "game-id",
+        playerId: "charlie",
+        cardId: getSelectedCardsByPlayer(game, {
+          playerId: "alice",
+        })[0].cardId,
+      });
+      yield* gameDriver.when.votingOnCard({
+        gameId: "game-id",
+        playerId: "dave",
+        cardId: getSelectedCardsByPlayer(game, {
+          playerId: "alice",
+        })[0].cardId,
+      });
+      game = yield* gameDriver.getStartedGameSnapshot("game-id");
+      gameViews = yield* gameViewProjector.project(game);
+      yield* gameDriver.assert.gameViewToEqual({
+        gameId: "game-id",
+        gameView: gameViews,
+      });
+
+      yield* gameDriver.when.notifyingToBeReadyForNextTurn({
+        gameId: "game-id",
+        playerId: "alice",
+      });
+      yield* gameDriver.when.notifyingToBeReadyForNextTurn({
+        gameId: "game-id",
+        playerId: "bob",
+      });
+      yield* gameDriver.when.notifyingToBeReadyForNextTurn({
+        gameId: "game-id",
+        playerId: "charlie",
+      });
+      yield* gameDriver.when.notifyingToBeReadyForNextTurn({
+        gameId: "game-id",
+        playerId: "dave",
+      });
+      game = yield* gameDriver.getStartedGameSnapshot("game-id");
+      gameViews = yield* gameViewProjector.project(game);
+      yield* gameDriver.assert.gameViewToEqual({
+        gameId: "game-id",
+        gameView: gameViews,
+      });
     }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
   });
 });

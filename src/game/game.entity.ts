@@ -201,12 +201,14 @@ export const ShuffleRandomizeStrategy = Layer.sync(
 export type GameStatus = Data.TaggedEnum<{
   NotStartedGame: {};
   StartedGame: {};
+  EndedGame: {};
 }>;
 
 const {
   $is,
   NotStartedGame: NotStartedGameStatus,
   StartedGame: StartedGameStatus,
+  EndedGame: EndedGameStatus,
 } = Data.taggedEnum<GameStatus>();
 
 export const isNotStartedGame = (
@@ -426,6 +428,13 @@ export class NotStartedGameEntity extends GameEntity {
           version: this.props.version + 1,
           randomizeStrategy,
           playersReadyForNextTurn: [],
+          playersHavingBeenStoryteller: this.props.players.reduce(
+            (acc, playerId) => {
+              acc[playerId] = 0;
+              return acc;
+            },
+            {} as { [playerId: string]: number },
+          ),
         }),
       );
     });
@@ -484,6 +493,9 @@ type StartedGameEntityProps = GameEntity["props"] & {
   randomizeStrategy: PlayersRandomizeStrategyType;
   scores: ReadonlyArray<{ playerId: PlayerId; score: number }>;
   playersReadyForNextTurn: ReadonlyArray<PlayerId>;
+  playersHavingBeenStoryteller: {
+    [playerId: string]: number;
+  };
 };
 
 export class StartedGameEntity extends GameEntity {
@@ -526,6 +538,7 @@ export class StartedGameEntity extends GameEntity {
         score: 0,
       })),
       playersReadyForNextTurn: [],
+      playersHavingBeenStoryteller: {},
     }) as this;
   }
 
@@ -547,6 +560,7 @@ export class StartedGameEntity extends GameEntity {
         : PlayersRandomizeStrategy.of(makeShuffleRandomizeStrategy()), // TODO: Implement factory
       scores: snapshot.scores,
       playersReadyForNextTurn: snapshot.playersReadyForNextTurn,
+      playersHavingBeenStoryteller: snapshot.playersHavingBeenStoryteller,
     });
   }
 
@@ -558,6 +572,7 @@ export class StartedGameEntity extends GameEntity {
       randomizeStrategy: this.props.randomizeStrategy.type,
       scores: this.props.scores,
       playersReadyForNextTurn: this.props.playersReadyForNextTurn,
+      playersHavingBeenStoryteller: this.props.playersHavingBeenStoryteller,
     };
   }
 
@@ -618,7 +633,9 @@ export class StartedGameEntity extends GameEntity {
     });
   }
 
-  notifyReadyForNextTurn(opts: { playerId: PlayerId }) {
+  notifyReadyForNextTurn(
+    opts: { playerId: PlayerId },
+  ): Effect.Effect<GameEntity, Error> {
     if (!this.props.players.includes(opts.playerId)) {
       return Effect.fail(new Error("Player not in game"));
     }
@@ -639,6 +656,29 @@ export class StartedGameEntity extends GameEntity {
       const nextStorytellerId = this.props.players[
         (currentStorytellerIndex + 1) % this.props.players.length
       ];
+      const updatedPlayersHavingBeenStoryteller = Object.fromEntries(
+        Object.entries(
+          this.props.playersHavingBeenStoryteller,
+        ).map((
+          [playerId, numberOfTimes],
+        ) => [
+          playerId,
+          playerId === this.props.currentTurn.currentStorytellerId
+            ? numberOfTimes + 1
+            : numberOfTimes,
+        ]),
+      );
+
+      if (this.shouldGameEnd(updatedPlayersHavingBeenStoryteller)) {
+        return Effect.succeed(
+          new EndedGameEntity({
+            ...this.props,
+            version: this.props.version + 1,
+            scores: this.props.scores,
+          }),
+        );
+      }
+
       return Effect.succeed(
         StartedGameEntity.create({
           ...this.props,
@@ -647,6 +687,7 @@ export class StartedGameEntity extends GameEntity {
             nextStorytellerId,
           }),
           version: this.props.version + 1,
+          playersHavingBeenStoryteller: updatedPlayersHavingBeenStoryteller,
         }),
       );
     }
@@ -660,6 +701,21 @@ export class StartedGameEntity extends GameEntity {
     );
   }
 
+  private shouldGameEnd(
+    updatedPlayersHavingBeenStoryteller: Record<string, number>,
+  ): boolean {
+    return $matchEndCondition(this.props.endCondition, {
+      NumberOfTimesBeingStoryteller: (condition) => {
+        return Object.values(updatedPlayersHavingBeenStoryteller).every(
+          (times) => times >= condition.numberOfTimes,
+        );
+      },
+      LimitOfPoints: (condition) => {
+        return this.props.scores.some(({ score }) => score >= condition.limit);
+      },
+    });
+  }
+
   private updateScores(updatedTurn: TurnEntity) {
     return this.props.scores.map(({ playerId, score }) => {
       return {
@@ -667,6 +723,51 @@ export class StartedGameEntity extends GameEntity {
         score: score + updatedTurn.getEarnedPointsForPlayer(playerId),
       };
     });
+  }
+}
+
+type EndedGameEntityProps = GameEntity["props"] & {
+  scores: ReadonlyArray<{ playerId: PlayerId; score: number }>;
+};
+
+export class EndedGameEntity extends GameEntity {
+  readonly status = EndedGameStatus();
+
+  protected readonly props: EndedGameEntityProps;
+
+  constructor(props: EndedGameEntityProps) {
+    super(props);
+    this.props = props;
+  }
+
+  protected createInstance(props: EndedGameEntityProps): this {
+    return new EndedGameEntity(props) as this;
+  }
+
+  static fromSnapshot(
+    snapshot: Omit<ReturnType<EndedGameEntity["toSnapshot"]>, "status"> & {
+      scores: ReadonlyArray<{ playerId: PlayerId; score: number }>;
+    },
+  ) {
+    return new EndedGameEntity({
+      id: GameId(snapshot.id),
+      createdBy: PlayerId(snapshot.createdBy),
+      deckId: DeckId(snapshot.deckId),
+      endCondition: endConditionFromSnapshot(snapshot.endCondition),
+      players: snapshot.players.map((playerId) =>
+        PlayerId(playerId)
+      ) as unknown as NonEmptyReadonlyArray<PlayerId>,
+      version: snapshot.version,
+      scores: snapshot.scores,
+    });
+  }
+
+  toSnapshot() {
+    return {
+      ...super.toSnapshot(),
+      players: this.props.players as ReadonlyArray<string>,
+      scores: this.props.scores,
+    };
   }
 }
 

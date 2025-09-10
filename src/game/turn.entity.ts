@@ -141,10 +141,19 @@ export class TurnEntity {
     }
 
     return new TurnEntity({
-      ...this.props,
+      gameId: this.props.gameId,
+      id: TurnId(`${this.props.gameId}-${this.props.turnNumber + 1}`),
+      startedAt: new Date(),
       cardsInDrawPile,
       playerHands: updatedPlayerHands,
       turnNumber: this.props.turnNumber + 1,
+      turnClue: Option.none(),
+      selectedCards: [],
+      votedCards: [],
+      pointsByPlayer: new Map(updatedPlayerHands.map((hand) => [
+        hand.playerId,
+        [] as ReadonlyArray<{ points: number; reason: ScoreReason }>,
+      ])),
       phase: "storytelling",
       currentStorytellerId: opts.nextStorytellerId,
     });

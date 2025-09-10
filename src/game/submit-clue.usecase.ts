@@ -1,8 +1,9 @@
 import { Effect, Option } from "effect";
 import { CardId } from "./deck.entity.js";
+import { InMemoryDeckRepository } from "./deck.repository.js";
 import { GameRepository, InMemoryGameRepository } from "./game.repository.js";
-import { GameView } from "./game-view.js";
-import { GameViewProjector } from "./game-view-projector.js";
+import { GameView, InMemoryGameView } from "./game-view.js";
+import { GameViewProjector, ShufflerService, TurnBoardCardsShuffler } from "./game-view-projector.js";
 import { withOptimisticRetry } from "./optimistic-retry.js";
 import { PlayerId } from "./player.entity.js";
 
@@ -36,7 +37,7 @@ export class SubmitClueUseCase extends Effect.Service<SubmitClueUseCase>()(
                     playerId: PlayerId(props.playerId),
                     cardId: CardId(props.cardId),
                     clue: props.clue,
-                  });
+                  }); //?
 
                   yield* gameRepository.save(updatedGame);
                   yield* gameView.save(
@@ -50,6 +51,13 @@ export class SubmitClueUseCase extends Effect.Service<SubmitClueUseCase>()(
         },
       };
     }),
-    dependencies: [InMemoryGameRepository],
+    dependencies: [
+      InMemoryGameRepository,
+      InMemoryGameView,
+      GameViewProjector.Default,
+      TurnBoardCardsShuffler.Default,
+      InMemoryDeckRepository,
+      ShufflerService.Default,
+    ],
   },
 ) {}
