@@ -775,7 +775,11 @@ export type NotStartedGameSnapshot = ReturnType<
   NotStartedGameEntity["toSnapshot"]
 >;
 export type StartedGameSnapshot = ReturnType<StartedGameEntity["toSnapshot"]>;
-export type GameEntitySnapshot = NotStartedGameSnapshot | StartedGameSnapshot;
+export type EndedGameSnapshot = ReturnType<EndedGameEntity["toSnapshot"]>;
+export type GameEntitySnapshot =
+  | NotStartedGameSnapshot
+  | StartedGameSnapshot
+  | EndedGameSnapshot;
 
 export const isNotStartedGameSnapshot = (
   snapshot: GameEntitySnapshot,
@@ -787,4 +791,10 @@ export const isStartedGameSnapshot = (
   snapshot: GameEntitySnapshot,
 ): snapshot is StartedGameSnapshot => {
   return snapshot.status._tag === "StartedGame";
+};
+
+export const isEndedGameSnapshot = (
+  snapshot: GameEntitySnapshot,
+): snapshot is EndedGameSnapshot => {
+  return snapshot.status._tag === "EndedGame";
 };

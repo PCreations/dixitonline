@@ -107,6 +107,10 @@ describe("Game Scenarios", () => {
         gameId: "game-id",
         hostId: "alice",
         deckId: "deck-id",
+        endCondition: {
+          type: "LimitOfPoints",
+          limit: 7,
+        },
       });
       const gameViewProjector = yield* GameViewProjector;
       yield* gameDriver.when.joiningGame({
@@ -224,6 +228,103 @@ describe("Game Scenarios", () => {
       yield* gameDriver.assert.gameViewToEqual({
         gameId: "game-id",
         gameView: gameViews,
+      });
+
+      yield* gameDriver.when.submittingClue({
+        gameId: game.id,
+        playerId: getCurrentStorytellerId(game),
+        cardId: getCardInHandByIndex(game, {
+          playerId: getCurrentStorytellerId(game),
+          cardIndex: 0,
+        }),
+        clue: "A clue for second turn",
+      });
+      game = yield* gameDriver.getStartedGameSnapshot("game-id");
+      gameViews = yield* gameViewProjector.project(game);
+      yield* gameDriver.assert.gameViewToEqual({
+        gameId: "game-id",
+        gameView: gameViews,
+      });
+
+      yield* gameDriver.when.selectingCard({
+        gameId: game.id,
+        playerId: "alice",
+        cardId: getCardInHandByIndex(game, {
+          playerId: "alice",
+          cardIndex: 0,
+        }),
+      });
+      yield* gameDriver.when.selectingCard({
+        gameId: game.id,
+        playerId: "dave",
+        cardId: getCardInHandByIndex(game, {
+          playerId: "dave",
+          cardIndex: 1,
+        }),
+      });
+      yield* gameDriver.when.selectingCard({
+        gameId: game.id,
+        playerId: "charlie",
+        cardId: getCardInHandByIndex(game, {
+          playerId: "charlie",
+          cardIndex: 1,
+        }),
+      });
+      game = yield* gameDriver.getStartedGameSnapshot("game-id");
+      gameViews = yield* gameViewProjector.project(game);
+      yield* gameDriver.assert.gameViewToEqual({
+        gameId: "game-id",
+        gameView: gameViews,
+      });
+
+      yield* gameDriver.when.votingOnCard({
+        gameId: game.id,
+        playerId: "alice",
+        cardId: getSelectedCardsByPlayer(game, {
+          playerId: "bob",
+        })[0].cardId,
+      });
+      yield* gameDriver.when.votingOnCard({
+        gameId: game.id,
+        playerId: "dave",
+        cardId: getSelectedCardsByPlayer(game, {
+          playerId: "alice",
+        })[0].cardId,
+      });
+      yield* gameDriver.when.votingOnCard({
+        gameId: game.id,
+        playerId: "charlie",
+        cardId: getSelectedCardsByPlayer(game, {
+          playerId: "alice",
+        })[0].cardId,
+      });
+      game = yield* gameDriver.getStartedGameSnapshot("game-id");
+      gameViews = yield* gameViewProjector.project(game);
+      yield* gameDriver.assert.gameViewToEqual({
+        gameId: "game-id",
+        gameView: gameViews,
+      });
+
+      yield* gameDriver.when.notifyingToBeReadyForNextTurn({
+        gameId: game.id,
+        playerId: "alice",
+      });
+      yield* gameDriver.when.notifyingToBeReadyForNextTurn({
+        gameId: game.id,
+        playerId: "bob",
+      });
+      yield* gameDriver.when.notifyingToBeReadyForNextTurn({
+        gameId: game.id,
+        playerId: "charlie",
+      });
+      yield* gameDriver.when.notifyingToBeReadyForNextTurn({
+        gameId: game.id,
+        playerId: "dave",
+      });
+      game = yield* gameDriver.getStartedGameSnapshot("game-id");
+      gameViews = yield* gameViewProjector.project(game);
+      yield* gameDriver.assert.gameToBeEnded({
+        gameId: "game-id",
       });
     }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
   });

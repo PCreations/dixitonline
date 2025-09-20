@@ -1,7 +1,11 @@
 import { Effect, Option } from "effect";
 import { CardId, DeckId, DeckSnapshot } from "./deck.entity.js";
 import { DeckRepository, InMemoryDeckRepository } from "./deck.repository.js";
-import { StartedGameSnapshot } from "./game.entity.js";
+import {
+  EndedGameSnapshot,
+  isStartedGameSnapshot,
+  StartedGameSnapshot,
+} from "./game.entity.js";
 import { PlayerId } from "./player.entity.js";
 import { TurnId } from "./turn.entity.js";
 
@@ -53,14 +57,17 @@ export class GameViewProjector extends Effect.Service<GameViewProjector>()(
       const deckRepository = yield* DeckRepository;
       const shuffler = yield* ShufflerService;
       return {
-        project: (game: StartedGameSnapshot) => 
+        project: (game: StartedGameSnapshot | EndedGameSnapshot) =>
           Effect.gen(function* () {
-            const deckEntity = yield* deckRepository.findById(DeckId(game.deckId));
+            const deckEntity = yield* deckRepository.findById(
+              DeckId(game.deckId),
+            );
             const deck = yield* Option.match(deckEntity, {
-              onNone: () => Effect.fail(new Error(`Deck ${game.deckId} not found`)),
+              onNone: () =>
+                Effect.fail(new Error(`Deck ${game.deckId} not found`)),
               onSome: (d) => Effect.succeed(d.toSnapshot()),
             });
-            
+
             const impl = new GameViewProjectorImpl(
               boardCardsShuffler,
               deck,
@@ -70,7 +77,11 @@ export class GameViewProjector extends Effect.Service<GameViewProjector>()(
           }),
       };
     }),
-    dependencies: [TurnBoardCardsShuffler.Default, InMemoryDeckRepository, ShufflerService.Default],
+    dependencies: [
+      TurnBoardCardsShuffler.Default,
+      InMemoryDeckRepository,
+      ShufflerService.Default,
+    ],
   },
 ) {}
 
@@ -89,17 +100,48 @@ class GameViewProjectorImpl {
     private readonly shuffler: Shuffler,
   ) {}
 
-  public project(game: StartedGameSnapshot) {
-    const playerStatus = Object.fromEntries(
-      game.players.map((playerId) => [
-        playerId,
-        this.isPlayerReadyForNextPhase({ game, playerId })
-          ? "ready"
-          : "not-ready",
-      ]),
-    );
-    const boardCards = this.getBoardCards({ game });
-    const votes = this.getVotes({ game });
+  public project(game: StartedGameSnapshot | EndedGameSnapshot) {
+    if (isStartedGameSnapshot(game)) {
+      const playerStatus = Object.fromEntries(
+        game.players.map((playerId) => [
+          playerId,
+          this.isPlayerReadyForNextPhase({ game, playerId })
+            ? "ready"
+            : "not-ready",
+        ]),
+      );
+      const boardCards = this.getBoardCards({ game });
+      const votes = this.getVotes({ game });
+      return Object.fromEntries(
+        game.players.map((playerId) => [
+          playerId,
+          {
+            gameId: game.id,
+            id: playerId,
+            name: playerId,
+            score: game.scores.find((score) =>
+              score.playerId === playerId
+            )?.score ??
+              0,
+            cards: (
+              game.currentTurn.playerHands.find(
+                (hand) => hand.playerId === playerId,
+              )?.cards ?? []
+            ).map((card) => ({
+              id: card.id,
+              url: card.url,
+            })),
+            storyteller: game.currentTurn.currentStorytellerId,
+            phase: game.currentTurn.phase,
+            playerStatus,
+            ...boardCards,
+            ...votes,
+            ...this.getPoints({ game, playerId }),
+          },
+        ]),
+      );
+    }
+
     return Object.fromEntries(
       game.players.map((playerId) => [
         playerId,
@@ -110,20 +152,7 @@ class GameViewProjectorImpl {
           score:
             game.scores.find((score) => score.playerId === playerId)?.score ??
               0,
-          cards: (
-            game.currentTurn.playerHands.find(
-              (hand) => hand.playerId === playerId,
-            )?.cards ?? []
-          ).map((card) => ({
-            id: card.id,
-            url: card.url,
-          })),
-          storyteller: game.currentTurn.currentStorytellerId,
-          phase: game.currentTurn.phase,
-          playerStatus,
-          ...boardCards,
-          ...votes,
-          ...this.getPoints({ game, playerId }),
+          phase: "ended",
         },
       ]),
     );

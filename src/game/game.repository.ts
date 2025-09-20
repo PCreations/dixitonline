@@ -1,16 +1,17 @@
-import { Context, Data, Effect, Layer, Option } from 'effect';
+import { Context, Data, Effect, Layer, Option } from "effect";
 import {
+  EndedGameEntity,
   GameEntity,
   isNotStartedGame,
   NotStartedGameEntity,
   StartedGameEntity,
-} from './game.entity.js';
+} from "./game.entity.js";
 
 export class OptimisticConcurrencyError extends Data.TaggedError(
-  'OptimisticConcurrencyError',
+  "OptimisticConcurrencyError",
 )<{}> {}
 
-export class GameRepository extends Effect.Tag('game/GameRepository')<
+export class GameRepository extends Effect.Tag("game/GameRepository")<
   GameRepository,
   {
     save: (game: GameEntity) => Effect.Effect<void, OptimisticConcurrencyError>;
@@ -23,6 +24,9 @@ export class GameRepository extends Effect.Tag('game/GameRepository')<
     findStartedGameById: (
       id: string,
     ) => Effect.Effect<Option.Option<StartedGameEntity>>;
+    findEndedGameById: (
+      id: string,
+    ) => Effect.Effect<Option.Option<EndedGameEntity>>;
     isPlayerInGame: (
       gameId: string,
       playerId: string,
@@ -34,6 +38,7 @@ export class GameRepository extends Effect.Tag('game/GameRepository')<
 const makeInMemoryGameRepository = (): Context.Tag.Service<GameRepository> => {
   const notStartedGames = new Map<string, NotStartedGameEntity>();
   const startedGames = new Map<string, StartedGameEntity>();
+  const endedGames = new Map<string, EndedGameEntity>();
   const staleReads = new Map<string, GameEntity>();
 
   const shouldThrowOptimisticConcurrencyError = (
@@ -105,6 +110,21 @@ const makeInMemoryGameRepository = (): Context.Tag.Service<GameRepository> => {
         staleReads.get(id) as StartedGameEntity | undefined,
       );
       const actualGame = Option.fromNullable(startedGames.get(id));
+      return Option.match(staleGame, {
+        onNone: () => {
+          return Effect.succeed(actualGame);
+        },
+        onSome: () => {
+          staleReads.delete(id);
+          return Effect.succeed(staleGame);
+        },
+      });
+    },
+    findEndedGameById: (id: string) => {
+      const staleGame = Option.fromNullable(
+        staleReads.get(id) as EndedGameEntity | undefined,
+      );
+      const actualGame = Option.fromNullable(endedGames.get(id));
       return Option.match(staleGame, {
         onNone: () => {
           return Effect.succeed(actualGame);

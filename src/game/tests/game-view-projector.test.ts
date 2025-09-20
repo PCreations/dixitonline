@@ -1,6 +1,6 @@
 import { describe, expect, it } from "@effect/vitest";
 import { Effect } from "effect";
-import { StartedGameSnapshot } from "../game.entity.js";
+import { isEndedGameSnapshot, StartedGameSnapshot } from "../game.entity.js";
 import {
   APlayerVotedOnYourCard,
   AtLeastOnePlayerFoundTheStorytellerCard,
@@ -746,6 +746,82 @@ describe("Game View Projector", () => {
           { id: "card-23", url: "https://example.com/card-23" },
           { id: "card-24", url: "https://example.com/card-24" },
         ],
+      });
+    }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+  });
+
+  it.effect("Example: ended game", () => {
+    return Effect.gen(function* () {
+      const gameDriver = yield* GameDriver;
+      const { game } = yield* gameDriver.given.existingGame(
+        gameDriver,
+        new GameBuilder("id-game-1")
+          .hostedBy("id-player-1")
+          .withEndCondition({
+            type: "LimitOfPoints",
+            limit: 10,
+          })
+          .withPlayers(
+            "id-player-1",
+            "id-player-2",
+            "id-player-3",
+            "id-player-4",
+          )
+          .withScores([
+            { playerId: "id-player-1", score: 10 },
+            { playerId: "id-player-2", score: 3 },
+            { playerId: "id-player-3", score: 4 },
+            { playerId: "id-player-4", score: 5 },
+          ])
+          .inScoringPhaseSince(new Date())
+          .withPlayersReadyForNextTurn([
+            "id-player-1",
+            "id-player-2",
+            "id-player-3",
+            "id-player-4",
+          ]),
+      );
+      if (!isEndedGameSnapshot(game)) {
+        throw new Error("Game is not ended");
+      }
+
+      const gameViewProjector = yield* GameViewProjector;
+
+      const {
+        "id-player-1": player1view,
+        "id-player-2": player2view,
+        "id-player-3": player3view,
+        "id-player-4": player4view,
+      } = yield* gameViewProjector.project(
+        game,
+      );
+      expect(player1view).toEqual({
+        gameId: "id-game-1",
+        id: "id-player-1",
+        name: "id-player-1",
+        phase: "ended",
+        score: 10,
+      });
+      expect(player2view).toEqual({
+        gameId: "id-game-1",
+        id: "id-player-2",
+        name: "id-player-2",
+        phase: "ended",
+        score: 5,
+      });
+      expect(player3view).toEqual({
+        gameId: "id-game-1",
+        id: "id-player-3",
+        name: "id-player-3",
+        phase: "ended",
+        score: 6,
+      });
+      expect(player4view).toEqual({
+        gameId: "id-game-1",
+        id: "id-player-4",
+        name: "id-player-4",
+        phase: "ended",
+        score: 7,
       });
     }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
   });

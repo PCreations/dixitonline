@@ -11,6 +11,7 @@ import {
 } from "../deck.entity.js";
 import { DeckRepository, InMemoryDeckRepository } from "../deck.repository.js";
 import {
+  EndedGameSnapshot,
   GameEntity,
   GameEntitySnapshot,
   GameId,
@@ -57,6 +58,9 @@ interface GameDriverDSL {
   readonly getStartedGameSnapshot: (
     gameId: string,
   ) => Effect.Effect<StartedGameSnapshot>;
+  readonly gameEndedGameSnapshot: (
+    gameId: string,
+  ) => Effect.Effect<EndedGameSnapshot>;
   readonly unsafe__saveGameEntity: (game: GameEntity) => Effect.Effect<void>;
   readonly given: {
     readonly defaultDeck: (props: {
@@ -915,6 +919,18 @@ const makeUnitTestGameDriver = ({
       return game.toSnapshot();
     });
 
+  const gameEndedGameSnapshot = (gameId: string) =>
+    Effect.gen(function* () {
+      const game = Option.getOrThrowWith(
+        yield* gameRepository.findEndedGameById(gameId),
+        () =>
+          new Error(
+            `Ended Game ${gameId} not found while getting ended game snapshot`,
+          ),
+      );
+      return game.toSnapshot();
+    });
+
   const unsafe__saveGameEntity = (game: GameEntity) =>
     Effect.gen(function* () {
       yield* gameRepository.save(game).pipe(
@@ -942,6 +958,7 @@ const makeUnitTestGameDriver = ({
       withFailFastMode,
       getGameSnapshot,
       getStartedGameSnapshot,
+      gameEndedGameSnapshot,
       unsafe__saveGameEntity,
     };
   };
@@ -953,6 +970,7 @@ const makeUnitTestGameDriver = ({
     withFailFastMode,
     getGameSnapshot,
     getStartedGameSnapshot,
+    gameEndedGameSnapshot,
     unsafe__saveGameEntity,
   };
 };
