@@ -204,7 +204,7 @@ export type GameStatus = Data.TaggedEnum<{
   EndedGame: {};
 }>;
 
-const {
+export const {
   $is,
   NotStartedGame: NotStartedGameStatus,
   StartedGame: StartedGameStatus,
@@ -567,7 +567,6 @@ export class StartedGameEntity extends GameEntity {
   toSnapshot() {
     return {
       ...super.toSnapshot(),
-      players: this.props.players as ReadonlyArray<string>,
       currentTurn: this.props.currentTurn.toSnapshot(),
       randomizeStrategy: this.props.randomizeStrategy.type,
       scores: this.props.scores,
@@ -765,7 +764,6 @@ export class EndedGameEntity extends GameEntity {
   toSnapshot() {
     return {
       ...super.toSnapshot(),
-      players: this.props.players as ReadonlyArray<string>,
       scores: this.props.scores,
     };
   }
