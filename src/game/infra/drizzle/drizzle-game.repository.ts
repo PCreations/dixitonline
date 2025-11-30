@@ -1,18 +1,21 @@
 import { eq } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { Context, Effect, Option } from 'effect';
+import { Context, Effect, Option, Schema } from 'effect';
 import {
   EndedGameEntity,
-  EndedGameSnapshot,
   GameEntity,
   isNotStartedGame,
   isStartedGame,
   NotStartedGameEntity,
-  NotStartedGameSnapshot,
   StartedGameEntity,
   StartedGameSnapshot,
 } from 'src/game/game.entity.js';
 import { GameRepository, OptimisticConcurrencyError } from 'src/game/game.repository.js';
+import {
+  EndedGameSnapshotSchema,
+  NotStartedGameSnapshotSchema,
+  StartedGameSnapshotSchema,
+} from 'src/game/game-snapshot.schema.js';
 import { gamesTable } from 'src/infra/db/schema.js';
 
 export const makeDrizzleGameRepository = ({
@@ -23,9 +26,21 @@ export const makeDrizzleGameRepository = ({
   return {
     save: (game: GameEntity) => {
       return Effect.gen(function* () {
+        const now = new Date();
         const snapshot = game.toSnapshot();
-        const now = new Date()
 
+        // Encode the snapshot to JSONB-compatible format
+        // This transforms Maps to objects and validates the snapshot structure
+        let encodedSnapshot;
+        if (isNotStartedGame(game)) {
+          encodedSnapshot = yield* Schema.encodeUnknown(NotStartedGameSnapshotSchema)(snapshot);
+        } else if (isStartedGame(game)) {
+          encodedSnapshot = yield* Schema.encodeUnknown(StartedGameSnapshotSchema)(snapshot);
+        } else {
+          encodedSnapshot = yield* Schema.encodeUnknown(EndedGameSnapshotSchema)(snapshot);
+        }
+
+        // Insert/update in database
         const result = yield* Effect.tryPromise(async () => {
           // Always use onConflictDoUpdate to handle both new games and updates
           // For version 1 with no existing row: INSERT succeeds
@@ -40,13 +55,13 @@ export const makeDrizzleGameRepository = ({
                 createdAt: now,
                 updatedAt: now,
                 status: 'NotStartedGame',
-                data: snapshot,
+                data: encodedSnapshot,
                 version: snapshot.version,
               })
               .onConflictDoUpdate({
                 target: gamesTable.id,
                 set: {
-                  data: snapshot,
+                  data: encodedSnapshot,
                   status: 'NotStartedGame',
                   version: snapshot.version,
                   updatedAt: now,
@@ -63,13 +78,13 @@ export const makeDrizzleGameRepository = ({
                 createdAt: now,
                 updatedAt: now,
                 status: 'StartedGame',
-                data: snapshot,
+                data: encodedSnapshot,
                 version: snapshot.version,
               })
               .onConflictDoUpdate({
                 target: gamesTable.id,
                 set: {
-                  data: snapshot,
+                  data: encodedSnapshot,
                   status: 'StartedGame',
                   version: snapshot.version,
                   updatedAt: now,
@@ -86,13 +101,13 @@ export const makeDrizzleGameRepository = ({
               createdAt: now,
               updatedAt: now,
               status: 'EndedGame',
-              data: snapshot,
+              data: encodedSnapshot,
               version: snapshot.version,
             })
             .onConflictDoUpdate({
               target: gamesTable.id,
               set: {
-                data: snapshot,
+                data: encodedSnapshot,
                 status: 'EndedGame',
                 version: snapshot.version,
                 updatedAt: now,
@@ -128,21 +143,25 @@ export const makeDrizzleGameRepository = ({
         const row = result[0];
 
         if (row.status === 'NotStartedGame') {
-          return Option.some(NotStartedGameEntity.fromSnapshot(row.data as NotStartedGameSnapshot));
+          const snapshot = yield* Schema.decodeUnknown(NotStartedGameSnapshotSchema)(row.data);
+          return Option.some(NotStartedGameEntity.fromSnapshot(snapshot));
         }
 
         if (row.status === 'StartedGame') {
-          const snapshot = row.data as StartedGameSnapshot;
-          // Convert pointsByPlayer from JSONB object to Map-compatible format
-          // JSONB stores Maps as objects, so we need to convert back to entries array
-          const normalizedSnapshot = {
+          // Decode from JSONB format - this automatically converts objects to Maps
+          const snapshot = yield* Schema.decodeUnknown(StartedGameSnapshotSchema)(row.data);
+          // Schema.Map decodes to a Map, but we need to ensure nested Maps are proper Map instances
+          const snapshotWithMap = {
             ...snapshot,
             currentTurn: {
               ...snapshot.currentTurn,
-              pointsByPlayer: Object.entries(snapshot.currentTurn.pointsByPlayer),
+              pointsByPlayer: snapshot.currentTurn.pointsByPlayer instanceof Map
+                ? snapshot.currentTurn.pointsByPlayer
+                : new Map(Object.entries(snapshot.currentTurn.pointsByPlayer)),
             },
-          } as unknown as Omit<StartedGameSnapshot, 'status'>;
-          return Option.some(StartedGameEntity.fromSnapshot(normalizedSnapshot));
+          };
+          // Cast to remove readonly modifiers - the schema returns readonly types for safety
+          return Option.some(StartedGameEntity.fromSnapshot(snapshotWithMap as unknown as Omit<StartedGameSnapshot, 'status'>));
         }
 
         return Option.none();
@@ -162,7 +181,8 @@ export const makeDrizzleGameRepository = ({
           return Option.none();
         }
 
-        return Option.some(NotStartedGameEntity.fromSnapshot(result[0].data as NotStartedGameSnapshot));
+        const snapshot = yield* Schema.decodeUnknown(NotStartedGameSnapshotSchema)(result[0].data);
+        return Option.some(NotStartedGameEntity.fromSnapshot(snapshot));
       });
     },
     findStartedGameById: (id: string) => {
@@ -179,17 +199,20 @@ export const makeDrizzleGameRepository = ({
           return Option.none();
         }
 
-        const snapshot = result[0].data as StartedGameSnapshot;
-        // Convert pointsByPlayer from JSONB object to Map-compatible format
-        // JSONB stores Maps as objects, so we need to convert back to entries array
-        const normalizedSnapshot = {
+        // Decode from JSONB format - this automatically converts objects to Maps
+        const snapshot = yield* Schema.decodeUnknown(StartedGameSnapshotSchema)(result[0].data);
+        // Schema.Map decodes to a Map, but we need to ensure nested Maps are proper Map instances
+        const snapshotWithMap = {
           ...snapshot,
           currentTurn: {
             ...snapshot.currentTurn,
-            pointsByPlayer: Object.entries(snapshot.currentTurn.pointsByPlayer),
+            pointsByPlayer: snapshot.currentTurn.pointsByPlayer instanceof Map
+              ? snapshot.currentTurn.pointsByPlayer
+              : new Map(Object.entries(snapshot.currentTurn.pointsByPlayer)),
           },
-        } as unknown as Omit<StartedGameSnapshot, 'status'>;
-        return Option.some(StartedGameEntity.fromSnapshot(normalizedSnapshot));
+        };
+        // Cast to remove readonly modifiers - the schema returns readonly types for safety
+        return Option.some(StartedGameEntity.fromSnapshot(snapshotWithMap as unknown as Omit<StartedGameSnapshot, 'status'>));
       });
     },
     findEndedGameById: (id: string) => {
@@ -206,7 +229,8 @@ export const makeDrizzleGameRepository = ({
           return Option.none();
         }
 
-        return Option.some(EndedGameEntity.fromSnapshot(result[0].data as EndedGameSnapshot));
+        const snapshot = yield* Schema.decodeUnknown(EndedGameSnapshotSchema)(result[0].data);
+        return Option.some(EndedGameEntity.fromSnapshot(snapshot));
       });
     },
     isPlayerInGame: (gameId: string, playerId: string) => {

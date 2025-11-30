@@ -1,4 +1,4 @@
-import { Context, Data, Effect, Layer, Option } from "effect";
+import { Context, Data, Effect, Layer, Option, ParseResult } from "effect";
 import { UnknownException } from "effect/Cause";
 import {
   EndedGameEntity,
@@ -15,19 +15,19 @@ export class OptimisticConcurrencyError extends Data.TaggedError(
 export class GameRepository extends Effect.Tag("game/GameRepository")<
   GameRepository,
   {
-    save: (game: GameEntity) => Effect.Effect<void, OptimisticConcurrencyError | UnknownException>;
+    save: (game: GameEntity) => Effect.Effect<void, OptimisticConcurrencyError | UnknownException | ParseResult.ParseError>;
     findById: (
       id: string,
-    ) => Effect.Effect<Option.Option<NotStartedGameEntity | StartedGameEntity>>;
+    ) => Effect.Effect<Option.Option<NotStartedGameEntity | StartedGameEntity>, ParseResult.ParseError>;
     findNotStartedGameById: (
       id: string,
-    ) => Effect.Effect<Option.Option<NotStartedGameEntity>>;
+    ) => Effect.Effect<Option.Option<NotStartedGameEntity>, ParseResult.ParseError>;
     findStartedGameById: (
       id: string,
-    ) => Effect.Effect<Option.Option<StartedGameEntity>>;
+    ) => Effect.Effect<Option.Option<StartedGameEntity>, ParseResult.ParseError>;
     findEndedGameById: (
       id: string,
-    ) => Effect.Effect<Option.Option<EndedGameEntity>>;
+    ) => Effect.Effect<Option.Option<EndedGameEntity>, ParseResult.ParseError>;
     isPlayerInGame: (
       gameId: string,
       playerId: string,

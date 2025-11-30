@@ -94,7 +94,12 @@ export const StartedGameSnapshotSchema = Schema.Struct({
       Schema.Literal('scoring'),
     ),
     turnNumber: Schema.Number,
-    turnClue: Schema.String,
+    turnClue: Schema.Option(
+      Schema.Struct({
+        clue: Schema.String,
+        cardId: Schema.String.pipe(Schema.fromBrand(CardId)),
+      }),
+    ),
     startedAt: Schema.Date,
     selectedCards: Schema.Array(
       Schema.Struct({
