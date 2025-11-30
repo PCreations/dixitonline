@@ -422,4 +422,205 @@ describe("DrizzleGameRepository", () => {
       expect(result.left).toBeInstanceOf(OptimisticConcurrencyError);
     }
   });
+
+  it("should find a started game by id", async () => {
+    const gameSnapshot = {
+      id: gameId(4),
+      status: {
+        _tag: "StartedGame",
+      },
+      createdBy: playerId(1),
+      deckId: deckId(1),
+      endCondition: {
+        type: "NumberOfTimesBeingStoryteller",
+        numberOfTimes: 1,
+      },
+      players: [playerId(1), playerId(2), playerId(3), playerId(4)],
+      version: 1,
+      currentTurn: {
+        id: turnId(4),
+        gameId: gameId(4),
+        turnNumber: 1,
+        currentStorytellerId: playerId(1),
+        playerHands: [
+          {
+            playerId: playerId(1),
+            cards: [
+              { id: CardId(cardId(2)), url: "https://example.com/card-2" },
+            ],
+          },
+        ],
+        cardsInDrawPile: [],
+        phase: "scoring",
+        turnClue: Option.some({
+          clue: "clue-1",
+          cardId: CardId(cardId(1)),
+        }),
+        selectedCards: [],
+        votedCards: [],
+        pointsByPlayer: new Map(),
+        startedAt: new Date(),
+      },
+      playersHavingBeenStoryteller: {
+        [playerId(1)]: 1,
+        [playerId(2)]: 0,
+        [playerId(3)]: 0,
+        [playerId(4)]: 0,
+      },
+      playersReadyForNextTurn: [],
+      scores: [],
+      randomizeStrategy: "noop",
+    } satisfies StartedGameSnapshot;
+
+    const game = StartedGameEntity.fromSnapshot(gameSnapshot);
+    const db = getTestDb();
+    const gameRepository = makeDrizzleGameRepository({ db });
+
+    // Save the game
+    await Effect.runPromise(gameRepository.save(game));
+
+    // Find the game by id
+    const foundGame = await Effect.runPromise(gameRepository.findById(gameId(4)));
+
+    expect(Option.isSome(foundGame)).toBe(true);
+    if (Option.isSome(foundGame)) {
+      expect(foundGame.value.id).toBe(gameId(4));
+      expect(foundGame.value.version).toBe(1);
+    }
+  });
+
+  it("should return None when game not found", async () => {
+    const db = getTestDb();
+    const gameRepository = makeDrizzleGameRepository({ db });
+
+    const foundGame = await Effect.runPromise(gameRepository.findById(gameId(999)));
+
+    expect(Option.isNone(foundGame)).toBe(true);
+  });
+
+  it("should find a started game by id using findStartedGameById", async () => {
+    const gameSnapshot = {
+      id: gameId(5),
+      status: {
+        _tag: "StartedGame",
+      },
+      createdBy: playerId(1),
+      deckId: deckId(1),
+      endCondition: {
+        type: "NumberOfTimesBeingStoryteller",
+        numberOfTimes: 1,
+      },
+      players: [playerId(1), playerId(2)],
+      version: 1,
+      currentTurn: {
+        id: turnId(5),
+        gameId: gameId(5),
+        turnNumber: 1,
+        currentStorytellerId: playerId(1),
+        playerHands: [
+          {
+            playerId: playerId(1),
+            cards: [
+              { id: CardId(cardId(2)), url: "https://example.com/card-2" },
+            ],
+          },
+        ],
+        cardsInDrawPile: [],
+        phase: "scoring",
+        turnClue: Option.some({
+          clue: "clue-1",
+          cardId: CardId(cardId(1)),
+        }),
+        selectedCards: [],
+        votedCards: [],
+        pointsByPlayer: new Map(),
+        startedAt: new Date(),
+      },
+      playersHavingBeenStoryteller: {
+        [playerId(1)]: 1,
+        [playerId(2)]: 0,
+      },
+      playersReadyForNextTurn: [],
+      scores: [],
+      randomizeStrategy: "noop",
+    } satisfies StartedGameSnapshot;
+
+    const game = StartedGameEntity.fromSnapshot(gameSnapshot);
+    const db = getTestDb();
+    const gameRepository = makeDrizzleGameRepository({ db });
+
+    await Effect.runPromise(gameRepository.save(game));
+
+    const foundGame = await Effect.runPromise(gameRepository.findStartedGameById(gameId(5)));
+
+    expect(Option.isSome(foundGame)).toBe(true);
+    if (Option.isSome(foundGame)) {
+      expect(foundGame.value.id).toBe(gameId(5));
+    }
+  });
+
+  it("should check if player is in game", async () => {
+    const gameSnapshot = {
+      id: gameId(6),
+      status: {
+        _tag: "StartedGame",
+      },
+      createdBy: playerId(1),
+      deckId: deckId(1),
+      endCondition: {
+        type: "NumberOfTimesBeingStoryteller",
+        numberOfTimes: 1,
+      },
+      players: [playerId(1), playerId(2), playerId(3)],
+      version: 1,
+      currentTurn: {
+        id: turnId(6),
+        gameId: gameId(6),
+        turnNumber: 1,
+        currentStorytellerId: playerId(1),
+        playerHands: [
+          {
+            playerId: playerId(1),
+            cards: [
+              { id: CardId(cardId(2)), url: "https://example.com/card-2" },
+            ],
+          },
+        ],
+        cardsInDrawPile: [],
+        phase: "scoring",
+        turnClue: Option.some({
+          clue: "clue-1",
+          cardId: CardId(cardId(1)),
+        }),
+        selectedCards: [],
+        votedCards: [],
+        pointsByPlayer: new Map(),
+        startedAt: new Date(),
+      },
+      playersHavingBeenStoryteller: {
+        [playerId(1)]: 1,
+        [playerId(2)]: 0,
+        [playerId(3)]: 0,
+      },
+      playersReadyForNextTurn: [],
+      scores: [],
+      randomizeStrategy: "noop",
+    } satisfies StartedGameSnapshot;
+
+    const game = StartedGameEntity.fromSnapshot(gameSnapshot);
+    const db = getTestDb();
+    const gameRepository = makeDrizzleGameRepository({ db });
+
+    await Effect.runPromise(gameRepository.save(game));
+
+    const isPlayer1InGame = await Effect.runPromise(
+      gameRepository.isPlayerInGame(gameId(6), playerId(1))
+    );
+    const isPlayer4InGame = await Effect.runPromise(
+      gameRepository.isPlayerInGame(gameId(6), playerId(4))
+    );
+
+    expect(isPlayer1InGame).toBe(true);
+    expect(isPlayer4InGame).toBe(false);
+  });
 });
