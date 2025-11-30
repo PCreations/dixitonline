@@ -6,6 +6,7 @@ export default defineConfig({
   test: {
     setupFiles: [path.join(__dirname, "setupTests.ts")],
     include: ["./src/**/*.test.ts"],
+    exclude: ["./src/**/*.int.test.ts"],
     globals: true,
   },
 });

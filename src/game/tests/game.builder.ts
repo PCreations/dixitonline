@@ -172,7 +172,7 @@ export class GameBuilder {
     return this.config.deckId ?? "default-deck-id";
   }
 
-  build(driver: Context.Tag.Service<GameDriver>): Effect.Effect<void> {
+  build(driver: Context.Tag.Service<GameDriver>): Effect.Effect<GameEntitySnapshot> {
     const self = this;
 
     return Effect.gen(function* () {
@@ -328,7 +328,7 @@ export class GameBuilder {
 
       yield* runTurn();
 
-      return yield* Effect.succeed(void 0);
+      return yield* driver.getGameSnapshot(config.gameId);
     });
   }
 }

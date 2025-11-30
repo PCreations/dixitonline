@@ -31,6 +31,13 @@ export class Card {
       url: this.props.url,
     };
   }
+
+  static fromSnapshot(snapshot: ReturnType<Card["toSnapshot"]>) {
+    return Card.create({
+      id: CardId(snapshot.id),
+      url: snapshot.url,
+    });
+  }
 }
 export interface DeckShuffleStrategy {
   shuffle(cards: ReadonlyArray<Card>): ReadonlyArray<Card>;

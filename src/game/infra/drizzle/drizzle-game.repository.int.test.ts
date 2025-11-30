@@ -1,199 +1,143 @@
-import { Option } from "effect";
+import { Effect, Option } from "effect";
 import { Card, CardId } from "src/game/deck.entity.js";
 import {
   StartedGameEntity,
   StartedGameSnapshot,
 } from "src/game/game.entity.js";
 import { PlayerId } from "src/game/player.entity.js";
-import { describe, it } from "vitest";
+import { getTestDb } from "src/shared/tests/setup/test-db.js";
+import { cardId, deckId, gameId, playerId, turnId } from "src/shared/tests/uuid-test-helper.js";
+import { describe, expect, it } from "vitest";
+import { makeDrizzleGameRepository } from "./drizzle-game.repository.js";
 
 describe("DrizzleGameRepository", () => {
-  it("should be able to save a game", () => {
+  it("should be able to save a game", async () => {
     const gameSnapshot = {
-      id: "id-game-1",
+      id: gameId(1),
       status: {
         _tag: "StartedGame",
       },
-      createdBy: "id-player-1",
-      deckId: "id-deck-1",
+      createdBy: playerId(1),
+      deckId: deckId(1),
       endCondition: {
         type: "NumberOfTimesBeingStoryteller",
         numberOfTimes: 1,
       },
-      players: ["id-player-1", "id-player-2", "id-player-3", "id-player-4"],
+      players: [playerId(1), playerId(2), playerId(3), playerId(4)],
       version: 1,
       currentTurn: {
-        id: "id-turn-1",
-        gameId: "id-game-1",
+        id: turnId(1),
+        gameId: gameId(1),
         turnNumber: 1,
-        currentStorytellerId: "id-player-1",
+        currentStorytellerId: playerId(1),
         playerHands: [
           {
-            playerId: "id-player-1",
+            playerId: playerId(1),
             cards: [
-              {
-                id: CardId("id-card-2"),
-                url: "https://example.com/card-2",
-              },
-              {
-                id: CardId("id-card-3"),
-                url: "https://example.com/card-3",
-              },
-              {
-                id: CardId("id-card-4"),
-                url: "https://example.com/card-4",
-              },
-              {
-                id: CardId("id-card-5"),
-                url: "https://example.com/card-5",
-              },
-              {
-                id: CardId("id-card-6"),
-                url: "https://example.com/card-6",
-              },
+              { id: CardId(cardId(2)), url: "https://example.com/card-2" },
+              { id: CardId(cardId(3)), url: "https://example.com/card-3" },
+              { id: CardId(cardId(4)), url: "https://example.com/card-4" },
+              { id: CardId(cardId(5)), url: "https://example.com/card-5" },
+              { id: CardId(cardId(6)), url: "https://example.com/card-6" },
             ],
           },
           {
-            playerId: "id-player-2",
+            playerId: playerId(2),
             cards: [
-              {
-                id: CardId("id-card-8"),
-                url: "https://example.com/card-8",
-              },
-              {
-                id: CardId("id-card-9"),
-                url: "https://example.com/card-9",
-              },
-              {
-                id: CardId("id-card-10"),
-                url: "https://example.com/card-10",
-              },
-              {
-                id: CardId("id-card-11"),
-                url: "https://example.com/card-11",
-              },
-              {
-                id: CardId("id-card-12"),
-                url: "https://example.com/card-12",
-              },
+              { id: CardId(cardId(8)), url: "https://example.com/card-8" },
+              { id: CardId(cardId(9)), url: "https://example.com/card-9" },
+              { id: CardId(cardId(10)), url: "https://example.com/card-10" },
+              { id: CardId(cardId(11)), url: "https://example.com/card-11" },
+              { id: CardId(cardId(12)), url: "https://example.com/card-12" },
             ],
           },
           {
-            playerId: "id-player-3",
+            playerId: playerId(3),
             cards: [
-              {
-                id: CardId("id-card-14"),
-                url: "https://example.com/card-14",
-              },
-              {
-                id: CardId("id-card-15"),
-                url: "https://example.com/card-15",
-              },
-              {
-                id: CardId("id-card-16"),
-                url: "https://example.com/card-16",
-              },
-              {
-                id: CardId("id-card-17"),
-                url: "https://example.com/card-17",
-              },
-              {
-                id: CardId("id-card-18"),
-                url: "https://example.com/card-18",
-              },
+              { id: CardId(cardId(14)), url: "https://example.com/card-14" },
+              { id: CardId(cardId(15)), url: "https://example.com/card-15" },
+              { id: CardId(cardId(16)), url: "https://example.com/card-16" },
+              { id: CardId(cardId(17)), url: "https://example.com/card-17" },
+              { id: CardId(cardId(18)), url: "https://example.com/card-18" },
             ],
           },
           {
-            playerId: "id-player-4",
+            playerId: playerId(4),
             cards: [
-              {
-                id: CardId("id-card-20"),
-                url: "https://example.com/card-20",
-              },
-              {
-                id: CardId("id-card-21"),
-                url: "https://example.com/card-21",
-              },
-              {
-                id: CardId("id-card-22"),
-                url: "https://example.com/card-22",
-              },
-              {
-                id: CardId("id-card-23"),
-                url: "https://example.com/card-23",
-              },
-              {
-                id: CardId("id-card-24"),
-                url: "https://example.com/card-24",
-              },
+              { id: CardId(cardId(20)), url: "https://example.com/card-20" },
+              { id: CardId(cardId(21)), url: "https://example.com/card-21" },
+              { id: CardId(cardId(22)), url: "https://example.com/card-22" },
+              { id: CardId(cardId(23)), url: "https://example.com/card-23" },
+              { id: CardId(cardId(24)), url: "https://example.com/card-24" },
             ],
           },
         ],
         cardsInDrawPile: Array.from({ length: 24 }, (_, i) =>
           Card.create({
-            id: CardId(`id-card-${i + 25}`),
+            id: CardId(cardId(i + 25)),
             url: `https://example.com/card-${i + 25}`,
           })),
         phase: "scoring",
         turnClue: Option.some({
           clue: "clue-1",
-          cardId: CardId("id-card-1"),
+          cardId: CardId(cardId(1)),
         }),
         selectedCards: [
-          {
-            cardId: CardId("id-card-7"),
-            playerId: PlayerId("id-player-2"),
-          },
-          {
-            cardId: CardId("id-card-13"),
-            playerId: PlayerId("id-player-3"),
-          },
-          {
-            cardId: CardId("id-card-19"),
-            playerId: PlayerId("id-player-4"),
-          },
+          { cardId: CardId(cardId(7)), playerId: PlayerId(playerId(2)) },
+          { cardId: CardId(cardId(13)), playerId: PlayerId(playerId(3)) },
+          { cardId: CardId(cardId(19)), playerId: PlayerId(playerId(4)) },
         ],
         votedCards: [
           {
-            cardId: CardId("id-card-7"),
-            ownedBy: PlayerId("id-player-2"),
-            votedBy: PlayerId("id-player-4"),
+            cardId: CardId(cardId(7)),
+            ownedBy: PlayerId(playerId(2)),
+            votedBy: PlayerId(playerId(4)),
           },
           {
-            cardId: CardId("id-card-1"),
-            ownedBy: PlayerId("id-player-1"),
-            votedBy: PlayerId("id-player-2"),
+            cardId: CardId(cardId(1)),
+            ownedBy: PlayerId(playerId(1)),
+            votedBy: PlayerId(playerId(2)),
           },
           {
-            cardId: CardId("id-card-1"),
-            ownedBy: PlayerId("id-player-1"),
-            votedBy: PlayerId("id-player-3"),
+            cardId: CardId(cardId(1)),
+            ownedBy: PlayerId(playerId(1)),
+            votedBy: PlayerId(playerId(3)),
           },
         ],
         pointsByPlayer: new Map(),
         startedAt: new Date(),
       },
       playersHavingBeenStoryteller: {
-        "id-playe-1": 1,
-        "id-player-2": 0,
-        "id-player-3": 0,
-        "id-player-4": 0,
+        [playerId(1)]: 1,
+        [playerId(2)]: 0,
+        [playerId(3)]: 0,
+        [playerId(4)]: 0,
       },
       playersReadyForNextTurn: [
-        PlayerId("id-player-1"),
-        PlayerId("id-player-2"),
-        PlayerId("id-player-3"),
+        PlayerId(playerId(1)),
+        PlayerId(playerId(2)),
+        PlayerId(playerId(3)),
       ],
       scores: [
         {
-          playerId: PlayerId("id-player-1"),
+          playerId: PlayerId(playerId(1)),
           score: 5,
         },
       ],
       randomizeStrategy: "noop",
     } satisfies StartedGameSnapshot;
     const game = StartedGameEntity.fromSnapshot(gameSnapshot);
-    const gameRepository = new DrizzleGameRepository();
-    gameRepository.save(game);
+
+    // Get the test database connection
+    const db = getTestDb();
+
+    // Create the repository with the test database
+    const gameRepository = makeDrizzleGameRepository({ db });
+
+    // Save the game
+    const result = await Effect.runPromise(gameRepository.save(game));
+
+    // Verify the game was saved successfully (no error thrown)
+    expect(result).toBeUndefined();
   });
 });

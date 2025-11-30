@@ -1,4 +1,5 @@
 import { Array as Arr, Brand, Effect, Option } from "effect";
+import { NonEmptyReadonlyArray } from "effect/Array";
 import { Card, CardId } from "./deck.entity.js";
 import { GameId, PlayerHand } from "./game.entity.js";
 import { GameRules, GameRulesFactory, ScoreReason } from "./game-rules.js";
@@ -36,9 +37,7 @@ export class TurnEntity {
       }>;
       readonly pointsByPlayer: Map<
         PlayerId,
-        ReadonlyArray<
-          { points: number; reason: ScoreReason }
-        >
+        ReadonlyArray<{ points: number; reason: ScoreReason }>
       >;
     },
   ) {
@@ -68,10 +67,12 @@ export class TurnEntity {
       turnNumber: 1,
       selectedCards: [],
       votedCards: [],
-      pointsByPlayer: new Map(props.playerHands.map((hand) => [
-        hand.playerId,
-        [] as ReadonlyArray<{ points: number; reason: ScoreReason }>,
-      ])),
+      pointsByPlayer: new Map(
+        props.playerHands.map((hand) => [
+          hand.playerId,
+          [] as ReadonlyArray<{ points: number; reason: ScoreReason }>,
+        ]),
+      ),
     });
   }
 
@@ -83,10 +84,10 @@ export class TurnEntity {
       playerHands: this.props.playerHands.map((hand) => {
         return {
           playerId: hand.playerId as string,
-          cards: hand.cards,
+          cards: hand.cards.map((card) => card.toSnapshot()),
         };
       }),
-      cardsInDrawPile: this.props.cardsInDrawPile,
+      cardsInDrawPile: this.props.cardsInDrawPile.map((card) => card.toSnapshot()),
       phase: this.props.phase,
       turnNumber: this.props.turnNumber,
       turnClue: this.props.turnClue,
@@ -105,10 +106,12 @@ export class TurnEntity {
       playerHands: snapshot.playerHands.map((hand) => {
         return PlayerHand.create({
           playerId: PlayerId(hand.playerId),
-          cards: hand.cards,
+          cards: hand.cards.map((card) =>
+            Card.fromSnapshot(card)
+          ) as unknown as NonEmptyReadonlyArray<Card>,
         });
       }),
-      cardsInDrawPile: snapshot.cardsInDrawPile,
+      cardsInDrawPile: snapshot.cardsInDrawPile.map((card) => Card.fromSnapshot(card)),
       phase: snapshot.phase,
       turnNumber: snapshot.turnNumber,
       turnClue: snapshot.turnClue,
@@ -150,10 +153,12 @@ export class TurnEntity {
       turnClue: Option.none(),
       selectedCards: [],
       votedCards: [],
-      pointsByPlayer: new Map(updatedPlayerHands.map((hand) => [
-        hand.playerId,
-        [] as ReadonlyArray<{ points: number; reason: ScoreReason }>,
-      ])),
+      pointsByPlayer: new Map(
+        updatedPlayerHands.map((hand) => [
+          hand.playerId,
+          [] as ReadonlyArray<{ points: number; reason: ScoreReason }>,
+        ]),
+      ),
       phase: "storytelling",
       currentStorytellerId: opts.nextStorytellerId,
     });
@@ -255,10 +260,11 @@ export class TurnEntity {
   }
 
   getEarnedPointsForPlayer(playerId: PlayerId) {
-    return this.props.pointsByPlayer.get(playerId)?.reduce(
-      (acc, curr) => acc + curr.points,
-      0,
-    ) ?? 0;
+    return (
+      this.props.pointsByPlayer
+        .get(playerId)
+        ?.reduce((acc, curr) => acc + curr.points, 0) ?? 0
+    );
   }
 
   private guardAgainstStorytellerSelectingCard(opts: {
@@ -395,9 +401,10 @@ export class TurnEntity {
 
   private validateVote(
     opts: { playerId: PlayerId; cardId: CardId },
-    availableCardsToVoteOn: ReadonlyArray<
-      { cardId: CardId; playerId: PlayerId }
-    >,
+    availableCardsToVoteOn: ReadonlyArray<{
+      cardId: CardId;
+      playerId: PlayerId;
+    }>,
   ): Effect.Effect<void, Error, never> {
     return Effect.gen(this, function* () {
       yield* this.guardAgainstPlayerVotingMoreThanOnce(opts);
@@ -425,9 +432,11 @@ export class TurnEntity {
   }
 
   private determineNextPhase(
-    votedCards: ReadonlyArray<
-      { cardId: CardId; ownedBy: PlayerId; votedBy: PlayerId }
-    >,
+    votedCards: ReadonlyArray<{
+      cardId: CardId;
+      ownedBy: PlayerId;
+      votedBy: PlayerId;
+    }>,
   ): "scoring" | "voting" {
     return this.rules.isScoringPhase(
         votedCards.length,
@@ -439,9 +448,11 @@ export class TurnEntity {
 
   private computePointsIfNeeded(
     nextPhase: "scoring" | "voting",
-    votedCards: ReadonlyArray<
-      { cardId: CardId; ownedBy: PlayerId; votedBy: PlayerId }
-    >,
+    votedCards: ReadonlyArray<{
+      cardId: CardId;
+      ownedBy: PlayerId;
+      votedBy: PlayerId;
+    }>,
   ): Effect.Effect<
     Map<PlayerId, ReadonlyArray<{ points: number; reason: ScoreReason }>>,
     Error,
@@ -474,26 +485,29 @@ export class TurnEntity {
     return Effect.succeed([
       ...this.props.selectedCards,
       ...(Option.isSome(this.props.turnClue)
-        ? [{
-          cardId: this.props.turnClue.value.cardId,
-          playerId: this.props.currentStorytellerId,
-        }]
+        ? [
+          {
+            cardId: this.props.turnClue.value.cardId,
+            playerId: this.props.currentStorytellerId,
+          },
+        ]
         : []),
     ]);
   }
 
   private transformVotesToScoreFormat(
-    votedCards: ReadonlyArray<
-      { cardId: CardId; ownedBy: PlayerId; votedBy: PlayerId }
-    >,
+    votedCards: ReadonlyArray<{
+      cardId: CardId;
+      ownedBy: PlayerId;
+      votedBy: PlayerId;
+    }>,
     allAvailableCards: ReadonlyArray<{ cardId: CardId; playerId: PlayerId }>,
-  ): ReadonlyArray<
-    { cardId: CardId; ownedBy: PlayerId; votes: ReadonlyArray<PlayerId> }
-  > {
-    const votesGroupedByCard = Arr.groupBy(
-      votedCards,
-      (vote) => vote.cardId,
-    );
+  ): ReadonlyArray<{
+    cardId: CardId;
+    ownedBy: PlayerId;
+    votes: ReadonlyArray<PlayerId>;
+  }> {
+    const votesGroupedByCard = Arr.groupBy(votedCards, (vote) => vote.cardId);
 
     return allAvailableCards.map((card) => ({
       cardId: card.cardId,
@@ -521,9 +535,10 @@ export class TurnEntity {
     return updatedPointsByPlayer;
   }
 
-  private guardAgainstPlayerVotingMoreThanOnce(
-    opts: { playerId: PlayerId; cardId: CardId },
-  ): Effect.Effect<void, Error, never> {
+  private guardAgainstPlayerVotingMoreThanOnce(opts: {
+    playerId: PlayerId;
+    cardId: CardId;
+  }): Effect.Effect<void, Error, never> {
     const hasPlayerVoted = this.props.votedCards.some(
       (vote) => vote.votedBy === opts.playerId,
     );

@@ -2,7 +2,7 @@
   "name": "tixid-online",
   "version": "2.0.0",
   "type": "module",
-  "packageManager": "pnpm@10.14.0+sha512.ad27a79641b49c3e481a16a805baa71817a04bbe06a38d17e60e2eaee83f6a146c6a688125f5792e48dd5ba30e7da52a5cda4c3992b9ccf333f9ce223af84748",
+  "packageManager": "pnpm@10.17.0+sha512.fce8a3dd29a4ed2ec566fb53efbb04d8c44a0f05bc6f24a73046910fb9c3ce7afa35a0980500668fa3573345bd644644fa98338fa168235c80f4aa17aa17fbef",
   "license": "MIT",
   "description": "Tixid is an online version of the Dixit card game.",
   "repository": {
@@ -25,17 +25,25 @@
     "lint": "biome check src/",
     "lint-fix": "biome check --write src/",
     "test": "vitest",
+    "test:int": "vitest --config vitest.config.int.ts",
     "coverage": "vitest --coverage",
-    "clean": "rm -rf dist build .tsbuildinfo"
+    "clean": "rm -rf dist build .tsbuildinfo",
+    "db:generate": "tsx node_modules/drizzle-kit/bin.cjs generate",
+    "db:migrate": "tsx node_modules/drizzle-kit/bin.cjs migrate"
   },
   "dependencies": {
     "@fastify/static": "^8.2.0",
     "@tailwindcss/cli": "^4.1.12",
+    "dotenv": "^17.2.3",
+    "drizzle-orm": "^0.44.5",
     "effect": "latest",
     "fastify": "^5.5.0",
     "fastify-type-provider-effect-schema": "^0.0.4",
+    "pg": "^8.16.3",
+    "postgres": "^3.4.7",
     "preact": "^10.27.1",
-    "preact-render-to-string": "^6.6.1"
+    "preact-render-to-string": "^6.6.1",
+    "testcontainers": "^11.7.2"
   },
   "devDependencies": {
     "@babel/cli": "^7.24.8",
@@ -51,11 +59,13 @@
     "@eslint/eslintrc": "3.1.0",
     "@eslint/js": "9.10.0",
     "@types/node": "^22.5.2",
+    "@types/pg": "^8.15.6",
     "@types/pino": "^7.0.5",
     "@typescript-eslint/eslint-plugin": "^8.4.0",
     "@typescript-eslint/parser": "^8.4.0",
     "autoprefixer": "^10.4.21",
     "babel-plugin-annotate-pure-calls": "^0.4.0",
+    "drizzle-kit": "^0.31.4",
     "eslint": "^9.10.0",
     "eslint-import-resolver-typescript": "^3.6.3",
     "eslint-plugin-codegen": "^0.28.0",

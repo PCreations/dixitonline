@@ -14,9 +14,9 @@ import {
   StartedGameStatus,
 } from 'src/game/game.entity.js';
 import {
+  EndedGameSnapshotSchema,
   NotStartedGameSnapshotSchema,
   StartedGameSnapshotSchema,
-  EndedGameSnapshotSchema,
 } from 'src/game/game-snapshot.schema.js';
 
 export const gamesTable = pgTable('games', {
