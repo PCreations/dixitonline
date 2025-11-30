@@ -1,27 +1,39 @@
-import { Effect, Either, Option } from "effect";
-import { Card, CardId } from "src/game/deck.entity.js";
+import { Effect, Either, Option } from 'effect';
+import { Card, CardId } from 'src/game/deck.entity.js';
 import {
   StartedGameEntity,
   StartedGameSnapshot,
-} from "src/game/game.entity.js";
-import { OptimisticConcurrencyError } from "src/game/game.repository.js";
-import { PlayerId } from "src/game/player.entity.js";
-import { getTestDb } from "src/shared/tests/setup/test-db.js";
-import { cardId, deckId, gameId, playerId, turnId } from "src/shared/tests/uuid-test-helper.js";
-import { describe, expect, it } from "vitest";
-import { makeDrizzleGameRepository } from "./drizzle-game.repository.js";
+} from 'src/game/game.entity.js';
+import { OptimisticConcurrencyError } from 'src/game/game.repository.js';
+import { PlayerId } from 'src/game/player.entity.js';
+import { gamesTable } from 'src/infra/db/schema.js';
+import { getTestDb } from 'src/shared/tests/setup/test-db.js';
+import {
+  cardId,
+  deckId,
+  gameId,
+  playerId,
+  turnId,
+} from 'src/shared/tests/uuid-test-helper.js';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { makeDrizzleGameRepository } from './drizzle-game.repository.js';
 
-describe("DrizzleGameRepository", () => {
-  it("should be able to save a game", async () => {
+describe('DrizzleGameRepository', () => {
+  beforeEach(async () => {
+    // Clean the database before each test
+    const db = getTestDb();
+    await db.delete(gamesTable);
+  });
+  it('should be able to save a game', async () => {
     const gameSnapshot = {
       id: gameId(1),
       status: {
-        _tag: "StartedGame",
+        _tag: 'StartedGame',
       },
       createdBy: playerId(1),
       deckId: deckId(1),
       endCondition: {
-        type: "NumberOfTimesBeingStoryteller",
+        type: 'NumberOfTimesBeingStoryteller',
         numberOfTimes: 1,
       },
       players: [playerId(1), playerId(2), playerId(3), playerId(4)],
@@ -35,41 +47,41 @@ describe("DrizzleGameRepository", () => {
           {
             playerId: playerId(1),
             cards: [
-              { id: CardId(cardId(2)), url: "https://example.com/card-2" },
-              { id: CardId(cardId(3)), url: "https://example.com/card-3" },
-              { id: CardId(cardId(4)), url: "https://example.com/card-4" },
-              { id: CardId(cardId(5)), url: "https://example.com/card-5" },
-              { id: CardId(cardId(6)), url: "https://example.com/card-6" },
+              { id: CardId(cardId(2)), url: 'https://example.com/card-2' },
+              { id: CardId(cardId(3)), url: 'https://example.com/card-3' },
+              { id: CardId(cardId(4)), url: 'https://example.com/card-4' },
+              { id: CardId(cardId(5)), url: 'https://example.com/card-5' },
+              { id: CardId(cardId(6)), url: 'https://example.com/card-6' },
             ],
           },
           {
             playerId: playerId(2),
             cards: [
-              { id: CardId(cardId(8)), url: "https://example.com/card-8" },
-              { id: CardId(cardId(9)), url: "https://example.com/card-9" },
-              { id: CardId(cardId(10)), url: "https://example.com/card-10" },
-              { id: CardId(cardId(11)), url: "https://example.com/card-11" },
-              { id: CardId(cardId(12)), url: "https://example.com/card-12" },
+              { id: CardId(cardId(8)), url: 'https://example.com/card-8' },
+              { id: CardId(cardId(9)), url: 'https://example.com/card-9' },
+              { id: CardId(cardId(10)), url: 'https://example.com/card-10' },
+              { id: CardId(cardId(11)), url: 'https://example.com/card-11' },
+              { id: CardId(cardId(12)), url: 'https://example.com/card-12' },
             ],
           },
           {
             playerId: playerId(3),
             cards: [
-              { id: CardId(cardId(14)), url: "https://example.com/card-14" },
-              { id: CardId(cardId(15)), url: "https://example.com/card-15" },
-              { id: CardId(cardId(16)), url: "https://example.com/card-16" },
-              { id: CardId(cardId(17)), url: "https://example.com/card-17" },
-              { id: CardId(cardId(18)), url: "https://example.com/card-18" },
+              { id: CardId(cardId(14)), url: 'https://example.com/card-14' },
+              { id: CardId(cardId(15)), url: 'https://example.com/card-15' },
+              { id: CardId(cardId(16)), url: 'https://example.com/card-16' },
+              { id: CardId(cardId(17)), url: 'https://example.com/card-17' },
+              { id: CardId(cardId(18)), url: 'https://example.com/card-18' },
             ],
           },
           {
             playerId: playerId(4),
             cards: [
-              { id: CardId(cardId(20)), url: "https://example.com/card-20" },
-              { id: CardId(cardId(21)), url: "https://example.com/card-21" },
-              { id: CardId(cardId(22)), url: "https://example.com/card-22" },
-              { id: CardId(cardId(23)), url: "https://example.com/card-23" },
-              { id: CardId(cardId(24)), url: "https://example.com/card-24" },
+              { id: CardId(cardId(20)), url: 'https://example.com/card-20' },
+              { id: CardId(cardId(21)), url: 'https://example.com/card-21' },
+              { id: CardId(cardId(22)), url: 'https://example.com/card-22' },
+              { id: CardId(cardId(23)), url: 'https://example.com/card-23' },
+              { id: CardId(cardId(24)), url: 'https://example.com/card-24' },
             ],
           },
         ],
@@ -77,10 +89,11 @@ describe("DrizzleGameRepository", () => {
           Card.create({
             id: CardId(cardId(i + 25)),
             url: `https://example.com/card-${i + 25}`,
-          })),
-        phase: "scoring",
+          }),
+        ),
+        phase: 'scoring',
         turnClue: Option.some({
-          clue: "clue-1",
+          clue: 'clue-1',
           cardId: CardId(cardId(1)),
         }),
         selectedCards: [
@@ -125,7 +138,7 @@ describe("DrizzleGameRepository", () => {
           score: 5,
         },
       ],
-      randomizeStrategy: "noop",
+      randomizeStrategy: 'noop',
     } satisfies StartedGameSnapshot;
     const game = StartedGameEntity.fromSnapshot(gameSnapshot);
 
@@ -142,17 +155,17 @@ describe("DrizzleGameRepository", () => {
     expect(result).toBeUndefined();
   });
 
-  it("should be able to update an existing game", async () => {
+  it('should be able to update an existing game', async () => {
     // Create initial game snapshot
     const initialSnapshot = {
       id: gameId(2),
       status: {
-        _tag: "StartedGame",
+        _tag: 'StartedGame',
       },
       createdBy: playerId(1),
       deckId: deckId(1),
       endCondition: {
-        type: "NumberOfTimesBeingStoryteller",
+        type: 'NumberOfTimesBeingStoryteller',
         numberOfTimes: 1,
       },
       players: [playerId(1), playerId(2), playerId(3), playerId(4)],
@@ -166,41 +179,41 @@ describe("DrizzleGameRepository", () => {
           {
             playerId: playerId(1),
             cards: [
-              { id: CardId(cardId(2)), url: "https://example.com/card-2" },
-              { id: CardId(cardId(3)), url: "https://example.com/card-3" },
-              { id: CardId(cardId(4)), url: "https://example.com/card-4" },
-              { id: CardId(cardId(5)), url: "https://example.com/card-5" },
-              { id: CardId(cardId(6)), url: "https://example.com/card-6" },
+              { id: CardId(cardId(2)), url: 'https://example.com/card-2' },
+              { id: CardId(cardId(3)), url: 'https://example.com/card-3' },
+              { id: CardId(cardId(4)), url: 'https://example.com/card-4' },
+              { id: CardId(cardId(5)), url: 'https://example.com/card-5' },
+              { id: CardId(cardId(6)), url: 'https://example.com/card-6' },
             ],
           },
           {
             playerId: playerId(2),
             cards: [
-              { id: CardId(cardId(8)), url: "https://example.com/card-8" },
-              { id: CardId(cardId(9)), url: "https://example.com/card-9" },
-              { id: CardId(cardId(10)), url: "https://example.com/card-10" },
-              { id: CardId(cardId(11)), url: "https://example.com/card-11" },
-              { id: CardId(cardId(12)), url: "https://example.com/card-12" },
+              { id: CardId(cardId(8)), url: 'https://example.com/card-8' },
+              { id: CardId(cardId(9)), url: 'https://example.com/card-9' },
+              { id: CardId(cardId(10)), url: 'https://example.com/card-10' },
+              { id: CardId(cardId(11)), url: 'https://example.com/card-11' },
+              { id: CardId(cardId(12)), url: 'https://example.com/card-12' },
             ],
           },
           {
             playerId: playerId(3),
             cards: [
-              { id: CardId(cardId(14)), url: "https://example.com/card-14" },
-              { id: CardId(cardId(15)), url: "https://example.com/card-15" },
-              { id: CardId(cardId(16)), url: "https://example.com/card-16" },
-              { id: CardId(cardId(17)), url: "https://example.com/card-17" },
-              { id: CardId(cardId(18)), url: "https://example.com/card-18" },
+              { id: CardId(cardId(14)), url: 'https://example.com/card-14' },
+              { id: CardId(cardId(15)), url: 'https://example.com/card-15' },
+              { id: CardId(cardId(16)), url: 'https://example.com/card-16' },
+              { id: CardId(cardId(17)), url: 'https://example.com/card-17' },
+              { id: CardId(cardId(18)), url: 'https://example.com/card-18' },
             ],
           },
           {
             playerId: playerId(4),
             cards: [
-              { id: CardId(cardId(20)), url: "https://example.com/card-20" },
-              { id: CardId(cardId(21)), url: "https://example.com/card-21" },
-              { id: CardId(cardId(22)), url: "https://example.com/card-22" },
-              { id: CardId(cardId(23)), url: "https://example.com/card-23" },
-              { id: CardId(cardId(24)), url: "https://example.com/card-24" },
+              { id: CardId(cardId(20)), url: 'https://example.com/card-20' },
+              { id: CardId(cardId(21)), url: 'https://example.com/card-21' },
+              { id: CardId(cardId(22)), url: 'https://example.com/card-22' },
+              { id: CardId(cardId(23)), url: 'https://example.com/card-23' },
+              { id: CardId(cardId(24)), url: 'https://example.com/card-24' },
             ],
           },
         ],
@@ -208,10 +221,11 @@ describe("DrizzleGameRepository", () => {
           Card.create({
             id: CardId(cardId(i + 25)),
             url: `https://example.com/card-${i + 25}`,
-          })),
-        phase: "scoring",
+          }),
+        ),
+        phase: 'scoring',
         turnClue: Option.some({
-          clue: "clue-1",
+          clue: 'clue-1',
           cardId: CardId(cardId(1)),
         }),
         selectedCards: [
@@ -245,17 +259,14 @@ describe("DrizzleGameRepository", () => {
         [playerId(3)]: 0,
         [playerId(4)]: 0,
       },
-      playersReadyForNextTurn: [
-        PlayerId(playerId(1)),
-        PlayerId(playerId(2)),
-      ],
+      playersReadyForNextTurn: [PlayerId(playerId(1)), PlayerId(playerId(2))],
       scores: [
         {
           playerId: PlayerId(playerId(1)),
           score: 5,
         },
       ],
-      randomizeStrategy: "noop",
+      randomizeStrategy: 'noop',
     } satisfies StartedGameSnapshot;
 
     const initialGame = StartedGameEntity.fromSnapshot(initialSnapshot);
@@ -285,17 +296,17 @@ describe("DrizzleGameRepository", () => {
     expect(result).toBeUndefined();
   });
 
-  it("should throw OptimisticConcurrencyError when version mismatch occurs", async () => {
+  it('should throw OptimisticConcurrencyError when version mismatch occurs', async () => {
     // Create initial game snapshot
     const initialSnapshot = {
       id: gameId(3),
       status: {
-        _tag: "StartedGame",
+        _tag: 'StartedGame',
       },
       createdBy: playerId(1),
       deckId: deckId(1),
       endCondition: {
-        type: "NumberOfTimesBeingStoryteller",
+        type: 'NumberOfTimesBeingStoryteller',
         numberOfTimes: 1,
       },
       players: [playerId(1), playerId(2), playerId(3), playerId(4)],
@@ -309,41 +320,41 @@ describe("DrizzleGameRepository", () => {
           {
             playerId: playerId(1),
             cards: [
-              { id: CardId(cardId(2)), url: "https://example.com/card-2" },
-              { id: CardId(cardId(3)), url: "https://example.com/card-3" },
-              { id: CardId(cardId(4)), url: "https://example.com/card-4" },
-              { id: CardId(cardId(5)), url: "https://example.com/card-5" },
-              { id: CardId(cardId(6)), url: "https://example.com/card-6" },
+              { id: CardId(cardId(2)), url: 'https://example.com/card-2' },
+              { id: CardId(cardId(3)), url: 'https://example.com/card-3' },
+              { id: CardId(cardId(4)), url: 'https://example.com/card-4' },
+              { id: CardId(cardId(5)), url: 'https://example.com/card-5' },
+              { id: CardId(cardId(6)), url: 'https://example.com/card-6' },
             ],
           },
           {
             playerId: playerId(2),
             cards: [
-              { id: CardId(cardId(8)), url: "https://example.com/card-8" },
-              { id: CardId(cardId(9)), url: "https://example.com/card-9" },
-              { id: CardId(cardId(10)), url: "https://example.com/card-10" },
-              { id: CardId(cardId(11)), url: "https://example.com/card-11" },
-              { id: CardId(cardId(12)), url: "https://example.com/card-12" },
+              { id: CardId(cardId(8)), url: 'https://example.com/card-8' },
+              { id: CardId(cardId(9)), url: 'https://example.com/card-9' },
+              { id: CardId(cardId(10)), url: 'https://example.com/card-10' },
+              { id: CardId(cardId(11)), url: 'https://example.com/card-11' },
+              { id: CardId(cardId(12)), url: 'https://example.com/card-12' },
             ],
           },
           {
             playerId: playerId(3),
             cards: [
-              { id: CardId(cardId(14)), url: "https://example.com/card-14" },
-              { id: CardId(cardId(15)), url: "https://example.com/card-15" },
-              { id: CardId(cardId(16)), url: "https://example.com/card-16" },
-              { id: CardId(cardId(17)), url: "https://example.com/card-17" },
-              { id: CardId(cardId(18)), url: "https://example.com/card-18" },
+              { id: CardId(cardId(14)), url: 'https://example.com/card-14' },
+              { id: CardId(cardId(15)), url: 'https://example.com/card-15' },
+              { id: CardId(cardId(16)), url: 'https://example.com/card-16' },
+              { id: CardId(cardId(17)), url: 'https://example.com/card-17' },
+              { id: CardId(cardId(18)), url: 'https://example.com/card-18' },
             ],
           },
           {
             playerId: playerId(4),
             cards: [
-              { id: CardId(cardId(20)), url: "https://example.com/card-20" },
-              { id: CardId(cardId(21)), url: "https://example.com/card-21" },
-              { id: CardId(cardId(22)), url: "https://example.com/card-22" },
-              { id: CardId(cardId(23)), url: "https://example.com/card-23" },
-              { id: CardId(cardId(24)), url: "https://example.com/card-24" },
+              { id: CardId(cardId(20)), url: 'https://example.com/card-20' },
+              { id: CardId(cardId(21)), url: 'https://example.com/card-21' },
+              { id: CardId(cardId(22)), url: 'https://example.com/card-22' },
+              { id: CardId(cardId(23)), url: 'https://example.com/card-23' },
+              { id: CardId(cardId(24)), url: 'https://example.com/card-24' },
             ],
           },
         ],
@@ -351,10 +362,11 @@ describe("DrizzleGameRepository", () => {
           Card.create({
             id: CardId(cardId(i + 25)),
             url: `https://example.com/card-${i + 25}`,
-          })),
-        phase: "scoring",
+          }),
+        ),
+        phase: 'scoring',
         turnClue: Option.some({
-          clue: "clue-1",
+          clue: 'clue-1',
           cardId: CardId(cardId(1)),
         }),
         selectedCards: [
@@ -388,17 +400,14 @@ describe("DrizzleGameRepository", () => {
         [playerId(3)]: 0,
         [playerId(4)]: 0,
       },
-      playersReadyForNextTurn: [
-        PlayerId(playerId(1)),
-        PlayerId(playerId(2)),
-      ],
+      playersReadyForNextTurn: [PlayerId(playerId(1)), PlayerId(playerId(2))],
       scores: [
         {
           playerId: PlayerId(playerId(1)),
           score: 5,
         },
       ],
-      randomizeStrategy: "noop",
+      randomizeStrategy: 'noop',
     } satisfies StartedGameSnapshot;
 
     const initialGame = StartedGameEntity.fromSnapshot(initialSnapshot);
@@ -414,7 +423,7 @@ describe("DrizzleGameRepository", () => {
 
     // Verify that OptimisticConcurrencyError is thrown
     const result = await Effect.runPromise(
-      Effect.either(gameRepository.save(conflictingGame))
+      Effect.either(gameRepository.save(conflictingGame)),
     );
 
     expect(Either.isLeft(result)).toBe(true);
@@ -423,16 +432,16 @@ describe("DrizzleGameRepository", () => {
     }
   });
 
-  it("should find a started game by id", async () => {
+  it('should find a started game by id', async () => {
     const gameSnapshot = {
       id: gameId(4),
       status: {
-        _tag: "StartedGame",
+        _tag: 'StartedGame',
       },
       createdBy: playerId(1),
       deckId: deckId(1),
       endCondition: {
-        type: "NumberOfTimesBeingStoryteller",
+        type: 'NumberOfTimesBeingStoryteller',
         numberOfTimes: 1,
       },
       players: [playerId(1), playerId(2), playerId(3), playerId(4)],
@@ -446,14 +455,14 @@ describe("DrizzleGameRepository", () => {
           {
             playerId: playerId(1),
             cards: [
-              { id: CardId(cardId(2)), url: "https://example.com/card-2" },
+              { id: CardId(cardId(2)), url: 'https://example.com/card-2' },
             ],
           },
         ],
         cardsInDrawPile: [],
-        phase: "scoring",
+        phase: 'scoring',
         turnClue: Option.some({
-          clue: "clue-1",
+          clue: 'clue-1',
           cardId: CardId(cardId(1)),
         }),
         selectedCards: [],
@@ -469,7 +478,7 @@ describe("DrizzleGameRepository", () => {
       },
       playersReadyForNextTurn: [],
       scores: [],
-      randomizeStrategy: "noop",
+      randomizeStrategy: 'noop',
     } satisfies StartedGameSnapshot;
 
     const game = StartedGameEntity.fromSnapshot(gameSnapshot);
@@ -480,7 +489,9 @@ describe("DrizzleGameRepository", () => {
     await Effect.runPromise(gameRepository.save(game));
 
     // Find the game by id
-    const foundGame = await Effect.runPromise(gameRepository.findById(gameId(4)));
+    const foundGame = await Effect.runPromise(
+      gameRepository.findById(gameId(4)),
+    );
 
     expect(Option.isSome(foundGame)).toBe(true);
     if (Option.isSome(foundGame)) {
@@ -489,25 +500,27 @@ describe("DrizzleGameRepository", () => {
     }
   });
 
-  it("should return None when game not found", async () => {
+  it('should return None when game not found', async () => {
     const db = getTestDb();
     const gameRepository = makeDrizzleGameRepository({ db });
 
-    const foundGame = await Effect.runPromise(gameRepository.findById(gameId(999)));
+    const foundGame = await Effect.runPromise(
+      gameRepository.findById(gameId(999)),
+    );
 
     expect(Option.isNone(foundGame)).toBe(true);
   });
 
-  it("should find a started game by id using findStartedGameById", async () => {
+  it('should find a started game by id using findStartedGameById', async () => {
     const gameSnapshot = {
       id: gameId(5),
       status: {
-        _tag: "StartedGame",
+        _tag: 'StartedGame',
       },
       createdBy: playerId(1),
       deckId: deckId(1),
       endCondition: {
-        type: "NumberOfTimesBeingStoryteller",
+        type: 'NumberOfTimesBeingStoryteller',
         numberOfTimes: 1,
       },
       players: [playerId(1), playerId(2)],
@@ -521,14 +534,14 @@ describe("DrizzleGameRepository", () => {
           {
             playerId: playerId(1),
             cards: [
-              { id: CardId(cardId(2)), url: "https://example.com/card-2" },
+              { id: CardId(cardId(2)), url: 'https://example.com/card-2' },
             ],
           },
         ],
         cardsInDrawPile: [],
-        phase: "scoring",
+        phase: 'scoring',
         turnClue: Option.some({
-          clue: "clue-1",
+          clue: 'clue-1',
           cardId: CardId(cardId(1)),
         }),
         selectedCards: [],
@@ -542,7 +555,7 @@ describe("DrizzleGameRepository", () => {
       },
       playersReadyForNextTurn: [],
       scores: [],
-      randomizeStrategy: "noop",
+      randomizeStrategy: 'noop',
     } satisfies StartedGameSnapshot;
 
     const game = StartedGameEntity.fromSnapshot(gameSnapshot);
@@ -551,7 +564,9 @@ describe("DrizzleGameRepository", () => {
 
     await Effect.runPromise(gameRepository.save(game));
 
-    const foundGame = await Effect.runPromise(gameRepository.findStartedGameById(gameId(5)));
+    const foundGame = await Effect.runPromise(
+      gameRepository.findStartedGameById(gameId(5)),
+    );
 
     expect(Option.isSome(foundGame)).toBe(true);
     if (Option.isSome(foundGame)) {
@@ -559,16 +574,16 @@ describe("DrizzleGameRepository", () => {
     }
   });
 
-  it("should check if player is in game", async () => {
+  it('should check if player is in game', async () => {
     const gameSnapshot = {
       id: gameId(6),
       status: {
-        _tag: "StartedGame",
+        _tag: 'StartedGame',
       },
       createdBy: playerId(1),
       deckId: deckId(1),
       endCondition: {
-        type: "NumberOfTimesBeingStoryteller",
+        type: 'NumberOfTimesBeingStoryteller',
         numberOfTimes: 1,
       },
       players: [playerId(1), playerId(2), playerId(3)],
@@ -582,14 +597,14 @@ describe("DrizzleGameRepository", () => {
           {
             playerId: playerId(1),
             cards: [
-              { id: CardId(cardId(2)), url: "https://example.com/card-2" },
+              { id: CardId(cardId(2)), url: 'https://example.com/card-2' },
             ],
           },
         ],
         cardsInDrawPile: [],
-        phase: "scoring",
+        phase: 'scoring',
         turnClue: Option.some({
-          clue: "clue-1",
+          clue: 'clue-1',
           cardId: CardId(cardId(1)),
         }),
         selectedCards: [],
@@ -604,7 +619,7 @@ describe("DrizzleGameRepository", () => {
       },
       playersReadyForNextTurn: [],
       scores: [],
-      randomizeStrategy: "noop",
+      randomizeStrategy: 'noop',
     } satisfies StartedGameSnapshot;
 
     const game = StartedGameEntity.fromSnapshot(gameSnapshot);
@@ -614,10 +629,10 @@ describe("DrizzleGameRepository", () => {
     await Effect.runPromise(gameRepository.save(game));
 
     const isPlayer1InGame = await Effect.runPromise(
-      gameRepository.isPlayerInGame(gameId(6), playerId(1))
+      gameRepository.isPlayerInGame(gameId(6), playerId(1)),
     );
     const isPlayer4InGame = await Effect.runPromise(
-      gameRepository.isPlayerInGame(gameId(6), playerId(4))
+      gameRepository.isPlayerInGame(gameId(6), playerId(4)),
     );
 
     expect(isPlayer1InGame).toBe(true);

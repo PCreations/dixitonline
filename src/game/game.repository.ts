@@ -1,4 +1,5 @@
 import { Context, Data, Effect, Layer, Option } from "effect";
+import { UnknownException } from "effect/Cause";
 import {
   EndedGameEntity,
   GameEntity,
@@ -14,7 +15,7 @@ export class OptimisticConcurrencyError extends Data.TaggedError(
 export class GameRepository extends Effect.Tag("game/GameRepository")<
   GameRepository,
   {
-    save: (game: GameEntity) => Effect.Effect<void, OptimisticConcurrencyError>;
+    save: (game: GameEntity) => Effect.Effect<void, OptimisticConcurrencyError | UnknownException>;
     findById: (
       id: string,
     ) => Effect.Effect<Option.Option<NotStartedGameEntity | StartedGameEntity>>;

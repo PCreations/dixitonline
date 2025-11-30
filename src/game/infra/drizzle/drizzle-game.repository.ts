@@ -26,93 +26,84 @@ export const makeDrizzleGameRepository = ({
         const snapshot = game.toSnapshot();
         const now = new Date()
 
-        const result = yield* Effect.tryPromise({
-          try: async () => {
-            // For new games (version 1), just insert without conflict handling
-            // For updates (version > 1), use onConflictDoUpdate with version check
-            const isNewGame = snapshot.version === 1;
+        const result = yield* Effect.tryPromise(async () => {
+          // Always use onConflictDoUpdate to handle both new games and updates
+          // For version 1 with no existing row: INSERT succeeds
+          // For version 1 with existing row (same version conflict): WHERE version = 0 won't match → rowCount = 0
+          // For version > 1: UPDATE only if WHERE version = game.version - 1 matches → rowCount = 0 if version mismatch
 
-            if (isNotStartedGame(game)) {
-              const query = db
-                .insert(gamesTable)
-                .values({
-                  id: snapshot.id,
-                  createdAt: now,
-                  updatedAt: now,
-                  status: 'NotStartedGame',
-                  data: snapshot,
-                  version: snapshot.version,
-                });
-
-              return isNewGame
-                ? await query
-                : await query.onConflictDoUpdate({
-                    target: gamesTable.id,
-                    set: {
-                      data: snapshot,
-                      status: 'NotStartedGame',
-                      version: snapshot.version,
-                      updatedAt: now,
-                    },
-                    where: eq(gamesTable.version, game.version - 1),
-                  });
-            }
-
-            if (isStartedGame(game)) {
-              const query = db
-                .insert(gamesTable)
-                .values({
-                  id: snapshot.id,
-                  createdAt: now,
-                  updatedAt: now,
-                  status: 'StartedGame',
-                  data: snapshot,
-                  version: snapshot.version,
-                });
-
-              return isNewGame
-                ? await query
-                : await query.onConflictDoUpdate({
-                    target: gamesTable.id,
-                    set: {
-                      data: snapshot,
-                      status: 'StartedGame',
-                      version: snapshot.version,
-                      updatedAt: now,
-                    },
-                    where: eq(gamesTable.version, game.version - 1),
-                  });
-            }
-
-            // EndedGame
-            const query = db
+          if (isNotStartedGame(game)) {
+            return await db
               .insert(gamesTable)
               .values({
                 id: snapshot.id,
                 createdAt: now,
                 updatedAt: now,
-                status: 'EndedGame',
+                status: 'NotStartedGame',
                 data: snapshot,
                 version: snapshot.version,
+              })
+              .onConflictDoUpdate({
+                target: gamesTable.id,
+                set: {
+                  data: snapshot,
+                  status: 'NotStartedGame',
+                  version: snapshot.version,
+                  updatedAt: now,
+                },
+                where: eq(gamesTable.version, game.version - 1),
               });
+          }
 
-            return isNewGame
-              ? await query
-              : await query.onConflictDoUpdate({
-                  target: gamesTable.id,
-                  set: {
-                    data: snapshot,
-                    status: 'EndedGame',
-                    version: snapshot.version,
-                    updatedAt: now,
-                  },
-                  where: eq(gamesTable.version, game.version - 1),
-                });
-          },
-          catch: () => new OptimisticConcurrencyError(),
+          if (isStartedGame(game)) {
+            return await db
+              .insert(gamesTable)
+              .values({
+                id: snapshot.id,
+                createdAt: now,
+                updatedAt: now,
+                status: 'StartedGame',
+                data: snapshot,
+                version: snapshot.version,
+              })
+              .onConflictDoUpdate({
+                target: gamesTable.id,
+                set: {
+                  data: snapshot,
+                  status: 'StartedGame',
+                  version: snapshot.version,
+                  updatedAt: now,
+                },
+                where: eq(gamesTable.version, game.version - 1),
+              });
+          }
+
+          // EndedGame
+          return await db
+            .insert(gamesTable)
+            .values({
+              id: snapshot.id,
+              createdAt: now,
+              updatedAt: now,
+              status: 'EndedGame',
+              data: snapshot,
+              version: snapshot.version,
+            })
+            .onConflictDoUpdate({
+              target: gamesTable.id,
+              set: {
+                data: snapshot,
+                status: 'EndedGame',
+                version: snapshot.version,
+                updatedAt: now,
+              },
+              where: eq(gamesTable.version, game.version - 1),
+            });
         });
 
         // Check if update was successful (affected rows)
+        // When onConflictDoUpdate WHERE clause doesn't match any rows (version mismatch),
+        // rowCount will be 0, indicating an optimistic concurrency conflict
         if (result.rowCount === 0) {
           return yield* Effect.fail(new OptimisticConcurrencyError());
         }
