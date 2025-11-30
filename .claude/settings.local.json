@@ -35,7 +35,8 @@
       "Bash(pnpm test:int:*)",
       "Bash(pnpm drizzle-kit migrate:*)",
       "Bash(export PATH=\"/usr/local/bin:/opt/homebrew/bin:$PATH\")",
-      "Bash(export PATH=\"/usr/local/bin:/opt/homebrew/bin:/usr/bin:$PATH\")"
+      "Bash(export PATH=\"/usr/local/bin:/opt/homebrew/bin:/usr/bin:$PATH\")",
+      "Bash(xargs docker rm -f)"
     ]
   },
   "enableAllProjectMcpServers": false,
