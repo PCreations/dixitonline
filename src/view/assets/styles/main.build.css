@@ -266,6 +266,9 @@ body {
   line-height: 1;
   letter-spacing: -0.05em;
 }
+.login-logo-container .logo-text {
+  font-size: 4rem;
+}
 .stars-container {
   pointer-events: none;
   position: absolute;
@@ -372,6 +375,7 @@ body {
   font-size: 14px;
   line-height: 14.317px;
   white-space: nowrap;
+  text-decoration: none;
   transition: opacity 0.2s, transform 0.2s;
 }
 .adventure-button:hover {
@@ -401,6 +405,103 @@ body {
   top: 390px;
   left: 50%;
   transform: translateX(-50%);
+}
+.login-container {
+  position: fixed;
+  inset: calc(var(--spacing) * 0);
+}
+.login-panel {
+  position: absolute;
+  top: calc(var(--spacing) * 0);
+  right: calc(var(--spacing) * 0);
+  bottom: calc(var(--spacing) * 0);
+  left: calc(var(--spacing) * 0);
+  background: linear-gradient( to right, rgba(15, 12, 30, 0.9) 0%, rgba(15, 12, 30, 0.8) 30%, rgba(15, 12, 30, 0.4) 50%, transparent 70% );
+  z-index: 15;
+}
+.login-content {
+  position: absolute;
+  z-index: 20;
+  left: 79px;
+  top: 164px;
+  max-width: 450px;
+}
+.login-logo-container {
+  position: relative;
+  margin-bottom: 30px;
+  width: 400px;
+}
+.login-logo-container .logo-text {
+  font-size: 7rem;
+  line-height: 1;
+}
+.login-subtitle {
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-size: 18px;
+  color: var(--color-white);
+  margin-top: 0;
+  margin-bottom: 40px;
+}
+.login-form {
+  display: flex;
+  flex-direction: column;
+  width: 325px;
+  gap: 67px;
+}
+.login-field {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.login-label {
+  font-family: "Poppins", sans-serif;
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 14.317px;
+  color: rgba(255, 255, 255, 0.7);
+}
+.login-input {
+  width: 100%;
+  --tw-border-style: none;
+  border-style: none;
+  background-color: transparent;
+  color: var(--color-white);
+  --tw-outline-style: none;
+  outline-style: none;
+  font-family: "Poppins", sans-serif;
+  font-size: 18px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+}
+.login-input:focus {
+  border-bottom-color: rgba(255, 255, 255, 0.6);
+}
+.login-button {
+  display: flex;
+  width: 100%;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  --tw-border-style: none;
+  border-style: none;
+  height: 46px;
+  background: rgba(30, 26, 53, 0.8);
+  border-radius: 2px;
+  padding: 15px 26px;
+  font-family: "Poppins", sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 14.317px;
+  color: var(--color-white);
+  transition: opacity 0.2s, transform 0.2s;
+}
+.login-button:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+}
+.login-button:active {
+  transform: translateY(0);
 }
 @property --tw-rotate-x {
   syntax: "*";

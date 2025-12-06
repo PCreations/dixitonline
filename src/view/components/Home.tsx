@@ -19,7 +19,7 @@ export function Home() {
       <Logo />
       <p className="journey-subtitle">Enjoy your journey</p>
       <div className="button-container">
-        <Button>Start you adventure</Button>
+        <Button href="/login">Start you adventure</Button>
       </div>
       <div className="dune-wrapper">
         <div className="dune-container">

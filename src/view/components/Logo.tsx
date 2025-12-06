@@ -1,9 +1,13 @@
 /** @jsx h */
 import { h } from 'preact';
 
-export function Logo() {
+interface LogoProps {
+  variant?: 'home' | 'login';
+}
+
+export function Logo({ variant = 'home' }: LogoProps) {
   return (
-    <div className="logo-container">
+    <div className={variant === 'home' ? 'logo-container' : 'login-logo-container'}>
       <h1 className="logo-text">TIXID</h1>
     </div>
   );

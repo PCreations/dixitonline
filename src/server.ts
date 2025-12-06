@@ -8,6 +8,7 @@ import { CreateGameUseCase } from './game/create-game.usecase.js';
 import { GameLayerLiveWithDependencies } from './game/index.js';
 import { Database } from './infra/db/database.service.js';
 import { Home } from './view/components/Home.js';
+import { Login } from './view/components/Login.js';
 import { renderHtmlPage, renderToString } from './view/render.js';
 
 const isDev = process.env.NODE_ENV === 'development';
@@ -75,6 +76,18 @@ fastify.route({
     const component = h(Home, {});
     const body = renderToString(component);
     const html = renderHtmlPage('Tixid Online', body);
+
+    reply.type('text/html').send(html);
+  },
+});
+
+fastify.route({
+  method: 'GET',
+  url: '/login',
+  handler: async function handler(_request, reply) {
+    const component = h(Login, {});
+    const body = renderToString(component);
+    const html = renderHtmlPage('Login - Tixid Online', body);
 
     reply.type('text/html').send(html);
   },

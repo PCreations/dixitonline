@@ -39,7 +39,8 @@
       "Bash(xargs docker rm -f)",
       "Bash(xargs kill -9)",
       "Bash(pnpm biome check:*)",
-      "Bash(pnpm tsc:*)"
+      "Bash(pnpm tsc:*)",
+      "Bash(tree:*)"
     ]
   },
   "enableAllProjectMcpServers": false,
