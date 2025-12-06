@@ -20,6 +20,8 @@ body {
   height: 100vh;
   width: 100vw;
   overflow: hidden;
+  margin: 0;
+  padding: 0;
 }
 
 body {
@@ -421,4 +423,286 @@ body {
 
 .lobby-button-primary {
   background: rgba(42, 35, 52, 0.9);
+}
+
+/* Game page styles */
+.game-container {
+  @apply fixed inset-0;
+  background: #1a1825;
+}
+
+.game-info {
+  @apply absolute z-20;
+  top: 138px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 64px;
+  gap: 40px;
+}
+
+@media (max-width: 768px) {
+  .game-info {
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 0 24px;
+  }
+
+  .game-status {
+    width: 100%;
+    order: -1;
+  }
+
+  .game-points {
+    flex: 1;
+    text-align: left;
+  }
+
+  .game-turn {
+    flex: 1;
+    justify-content: flex-end;
+  }
+}
+
+.game-points {
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-size: 18px;
+  @apply text-white;
+  opacity: 0.8;
+}
+
+.game-status {
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-size: 18px;
+  @apply text-white;
+  opacity: 0.8;
+  text-align: center;
+}
+
+.game-turn {
+  @apply flex items-center;
+  gap: 12px;
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-size: 18px;
+  @apply text-white;
+  opacity: 0.8;
+}
+
+.game-turn-icon {
+  @apply flex-shrink-0;
+}
+
+/* Card styles */
+.card-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.card {
+  width: 268px;
+  height: 425px;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, outline 0.3s ease;
+  border-radius: 22.57px;
+  position: relative;
+  outline: 2px solid transparent;
+  outline-offset: -2px;
+}
+
+
+.card-selected {
+  transform: translateY(-20px);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+}
+
+.card-back {
+  width: 100%;
+  height: 100%;
+  border-radius: 22.57px;
+}
+
+.card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 22.57px;
+}
+
+.game-cards {
+  @apply absolute z-10;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: -40px;
+  align-items: flex-end;
+}
+
+.game-cards .card-wrapper {
+  transition: transform 0.3s ease;
+}
+
+.game-cards .card-wrapper:nth-child(1) .card {
+  transform: scale(0.85) rotate(-12deg) translateY(20px);
+  transform-origin: bottom center;
+}
+
+.game-cards .card-wrapper:nth-child(2) .card {
+  transform: scale(0.9) rotate(-6deg) translateY(10px);
+  transform-origin: bottom center;
+}
+
+.game-cards .card-wrapper:nth-child(3) .card {
+  transform: scale(1);
+  z-index: 5;
+}
+
+.game-cards .card-wrapper:nth-child(4) .card {
+  transform: scale(0.9) rotate(6deg) translateY(10px);
+  transform-origin: bottom center;
+}
+
+.game-cards .card-wrapper:nth-child(5) .card {
+  transform: scale(0.85) rotate(12deg) translateY(20px);
+  transform-origin: bottom center;
+}
+
+.game-cards .card-wrapper:hover {
+  z-index: 10;
+}
+
+.game-cards .card-wrapper:hover .card {
+  transform: scale(1.05) rotate(0deg) translateY(-20px) !important;
+}
+
+/* Horizontal scroll for non-desktop screens */
+@media (max-width: 1200px) {
+  .game-cards {
+    position: absolute;
+    bottom: 40px;
+    left: 0;
+    right: 0;
+    transform: none;
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 0 20px;
+    height: auto;
+    align-items: center;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .game-cards .card-wrapper .card {
+    transform: none !important;
+  }
+
+  .game-cards .card-wrapper:hover .card {
+    transform: none !important;
+  }
+
+  .game-cards .card-wrapper .card-action-label {
+    display: none;
+  }
+}
+
+.card-action-label {
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-size: 15px;
+  @apply text-white;
+  opacity: 0;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: opacity 0.3s ease;
+  margin-bottom: 40px;
+  pointer-events: none;
+}
+
+.card-wrapper:hover .card-action-label {
+  opacity: 0.8;
+}
+
+.card-action-label svg {
+  @apply flex-shrink-0;
+}
+
+/* Alpine.js cloak */
+[x-cloak] {
+  display: none !important;
+}
+
+/* Card modal styles */
+.card-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.95);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.card-modal-content {
+  cursor: default;
+  max-width: 90vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+}
+
+.card-modal-content .card-back {
+  height: 70vh;
+  width: auto;
+  max-width: 90vw;
+}
+
+.card-modal-content .card-image {
+  height: 70vh;
+  width: auto;
+  max-width: 90vw;
+  object-fit: contain;
+}
+
+.card-modal-button {
+  @apply flex items-center justify-center;
+  gap: 10px;
+  padding: 15px 26px;
+  background: #090912;
+  border-radius: 2px;
+  border: none;
+  cursor: pointer;
+  font-family: "Poppins", sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 14.317px;
+  @apply text-white;
+  white-space: nowrap;
+  transition:
+    opacity 0.2s,
+    transform 0.2s;
+}
+
+.card-modal-button:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+}
+
+.card-modal-button:active {
+  transform: translateY(0);
 }

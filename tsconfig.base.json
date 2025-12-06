@@ -37,6 +37,7 @@
     "removeComments": false,
     "jsx": "react",
     "jsxFactory": "h",
+    "jsxFragmentFactory": "Fragment",
     "plugins": [{ "name": "@effect/language-service" }]
   }
 }

@@ -7,6 +7,7 @@ import { fileURLToPath } from 'url';
 import { CreateGameUseCase } from './game/create-game.usecase.js';
 import { GameLayerLiveWithDependencies } from './game/index.js';
 import { Database } from './infra/db/database.service.js';
+import { Game } from './view/components/Game.js';
 import { Home } from './view/components/Home.js';
 import { Lobby } from './view/components/Lobby.js';
 import { Login } from './view/components/Login.js';
@@ -104,6 +105,22 @@ fastify.route({
     });
     const body = renderToString(component);
     const html = renderHtmlPage('Lobby - Tixid Online', body);
+
+    reply.type('text/html').send(html);
+  },
+});
+
+fastify.route({
+  method: 'GET',
+  url: '/game',
+  handler: async function handler(_request, reply) {
+    const component = h(Game, {
+      points: 2,
+      turn: 3,
+      status: 'Waiting for the storyteller...',
+    });
+    const body = renderToString(component);
+    const html = renderHtmlPage('Game - Tixid Online', body);
 
     reply.type('text/html').send(html);
   },
