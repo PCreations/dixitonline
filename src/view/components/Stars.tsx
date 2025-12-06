@@ -46,38 +46,27 @@ function SingleStar({
 }
 
 export function Stars() {
-  // Create an array of star configurations with variations
-  const stars = [
-    // Bright pink stars
-    { size: 1.2, opacity: 0.9, color: '#B2206E', top: '10%', left: '15%' },
-    { size: 0.8, opacity: 0.7, color: '#B2206E', top: '20%', left: '80%' },
-    { size: 1.0, opacity: 0.8, color: '#B2206E', top: '35%', left: '25%' },
+  // Generate many stars programmatically with gradient distribution
+  const colors = ['#B2206E', '#8B1F6B', '#D94A8C', '#6B1854', '#C93A7D'];
+  const stars = [];
 
-    // Purple stars
-    { size: 0.7, opacity: 0.6, color: '#8B1F6B', top: '15%', left: '45%' },
-    { size: 1.1, opacity: 0.8, color: '#8B1F6B', top: '40%', left: '70%' },
-    { size: 0.9, opacity: 0.7, color: '#8B1F6B', top: '25%', left: '60%' },
+  // Generate 200 stars with weighted distribution (more at top, less at bottom)
+  for (let i = 0; i < 200; i++) {
+    const colorIndex = Math.floor(Math.random() * colors.length);
 
-    // Light pink stars (dimmer)
-    { size: 0.6, opacity: 0.5, color: '#D94A8C', top: '8%', left: '65%' },
-    { size: 0.8, opacity: 0.4, color: '#D94A8C', top: '30%', left: '10%' },
-    { size: 0.7, opacity: 0.5, color: '#D94A8C', top: '18%', left: '35%' },
-    { size: 0.5, opacity: 0.4, color: '#D94A8C', top: '45%', left: '85%' },
+    // Weighted random position - bias towards top
+    // Using quadratic distribution: most stars in top 50%, fewer below
+    const randomValue = Math.random();
+    const verticalPosition = randomValue * randomValue * 100; // Squares the random value to bias towards 0
 
-    // Deep purple stars
-    { size: 0.9, opacity: 0.6, color: '#6B1854', top: '22%', left: '90%' },
-    { size: 0.6, opacity: 0.5, color: '#6B1854', top: '38%', left: '50%' },
-    { size: 1.0, opacity: 0.7, color: '#6B1854', top: '12%', left: '5%' },
-
-    // More scattered stars
-    { size: 0.4, opacity: 0.3, color: '#B2206E', top: '5%', left: '30%' },
-    { size: 0.5, opacity: 0.4, color: '#D94A8C', top: '42%', left: '40%' },
-    { size: 0.8, opacity: 0.6, color: '#8B1F6B', top: '28%', left: '75%' },
-    { size: 0.6, opacity: 0.5, color: '#B2206E', top: '33%', left: '55%' },
-    { size: 0.7, opacity: 0.4, color: '#6B1854', top: '48%', left: '20%' },
-    { size: 0.9, opacity: 0.7, color: '#B2206E', top: '50%', left: '65%' },
-    { size: 0.5, opacity: 0.3, color: '#D94A8C', top: '7%', left: '85%' },
-  ];
+    stars.push({
+      size: 0.3 + Math.random() * 1.0, // Random size between 0.3 and 1.3
+      opacity: 0.2 + Math.random() * 0.7, // Random opacity between 0.2 and 0.9
+      color: colors[colorIndex],
+      top: `${verticalPosition}%`, // Weighted vertical position (more at top)
+      left: `${Math.random() * 100}%`, // Random horizontal position
+    });
+  }
 
   return (
     <div className="stars-container">

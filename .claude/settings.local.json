@@ -40,7 +40,8 @@
       "Bash(xargs kill -9)",
       "Bash(pnpm biome check:*)",
       "Bash(pnpm tsc:*)",
-      "Bash(tree:*)"
+      "Bash(tree:*)",
+      "Bash(lsof:*)"
     ]
   },
   "enableAllProjectMcpServers": false,

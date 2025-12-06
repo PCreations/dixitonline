@@ -8,6 +8,7 @@ import { CreateGameUseCase } from './game/create-game.usecase.js';
 import { GameLayerLiveWithDependencies } from './game/index.js';
 import { Database } from './infra/db/database.service.js';
 import { Home } from './view/components/Home.js';
+import { Lobby } from './view/components/Lobby.js';
 import { Login } from './view/components/Login.js';
 import { renderHtmlPage, renderToString } from './view/render.js';
 
@@ -88,6 +89,21 @@ fastify.route({
     const component = h(Login, {});
     const body = renderToString(component);
     const html = renderHtmlPage('Login - Tixid Online', body);
+
+    reply.type('text/html').send(html);
+  },
+});
+
+fastify.route({
+  method: 'GET',
+  url: '/lobby',
+  handler: async function handler(_request, reply) {
+    const component = h(Lobby, {
+      players: ['Jeck_Ship', 'Player_2', 'SuperGamer12'],
+      maxPlayers: 8,
+    });
+    const body = renderToString(component);
+    const html = renderHtmlPage('Lobby - Tixid Online', body);
 
     reply.type('text/html').send(html);
   },
