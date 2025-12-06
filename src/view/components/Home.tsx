@@ -1,5 +1,6 @@
 /** @jsx h */
 import { h } from 'preact';
+import { Button } from './Button.js';
 import { Dune } from './Dune.js';
 import { Logo } from './Logo.js';
 import { Menu } from './Menu.js';
@@ -16,6 +17,10 @@ export function Home() {
         <Moon />
       </div>
       <Logo />
+      <p className="journey-subtitle">Enjoy your journey</p>
+      <div className="button-container">
+        <Button>Start you adventure</Button>
+      </div>
       <div className="dune-wrapper">
         <div className="dune-container">
           <Dune />

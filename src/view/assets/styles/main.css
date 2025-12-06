@@ -150,3 +150,43 @@ body {
 .menu-profile-button:hover {
   opacity: 0.8;
 }
+
+.adventure-button {
+  @apply flex items-center justify-center px-[26px] py-[15px] rounded-[2px] bg-[#1e1a35] text-white border-none cursor-pointer;
+  font-family: "Poppins", sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 14.317px;
+  white-space: nowrap;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.adventure-button:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+}
+
+.adventure-button:active {
+  transform: translateY(0);
+}
+
+.button-container {
+  @apply absolute z-30;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.journey-subtitle {
+  @apply absolute z-20;
+  font-family: "Poppins", sans-serif;
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 14.317px;
+  @apply text-white;
+  opacity: 0.7;
+  white-space: nowrap;
+  top: 390px;
+  left: 50%;
+  transform: translateX(-50%);
+}
