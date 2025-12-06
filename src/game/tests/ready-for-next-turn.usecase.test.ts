@@ -5,7 +5,7 @@ import {
   getCardsInDrawPile,
   getPlayerHand,
 } from "./game.builder.js";
-import { GameDriver, makeGameDriverUnitTestLayer } from "./game.driver.js";
+import { GameDriver, makeGameDriverTestLayer } from "./game.driver.js";
 
 describe("Feature: Notifying to be ready for the next turn", () => {
   it.effect(
@@ -38,7 +38,7 @@ describe("Feature: Notifying to be ready for the next turn", () => {
           gameId: "id-game-1",
           playersReadyForNextTurn: ["id-player-1"],
         });
-      }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+      }).pipe(Effect.provide(makeGameDriverTestLayer()));
     },
   );
 
@@ -72,7 +72,7 @@ describe("Feature: Notifying to be ready for the next turn", () => {
           .playerToNotHaveBeenAbleToNotifyToBeReadyForNextTurn({
             error: "Player not in game",
           });
-      }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+      }).pipe(Effect.provide(makeGameDriverTestLayer()));
     },
   );
 
@@ -105,7 +105,7 @@ describe("Feature: Notifying to be ready for the next turn", () => {
           .playerToNotHaveBeenAbleToNotifyToBeReadyForNextTurn({
             error: "Game is not in scoring phase",
           });
-      }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+      }).pipe(Effect.provide(makeGameDriverTestLayer()));
     },
   );
 
@@ -193,7 +193,7 @@ describe("Feature: Notifying to be ready for the next turn", () => {
             "id-player-4": 0,
           },
         });
-      }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+      }).pipe(Effect.provide(makeGameDriverTestLayer()));
     },
   );
 
@@ -243,7 +243,7 @@ describe("Feature: Notifying to be ready for the next turn", () => {
           yield* gameDriver.assert.gameToBeEnded({
             gameId: "id-game-1",
           });
-        }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+        }).pipe(Effect.provide(makeGameDriverTestLayer()));
       },
     );
 
@@ -290,7 +290,7 @@ describe("Feature: Notifying to be ready for the next turn", () => {
           yield* gameDriver.assert.gameToBeEnded({
             gameId: "id-game-1",
           });
-        }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+        }).pipe(Effect.provide(makeGameDriverTestLayer()));
       },
     );
   });

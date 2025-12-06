@@ -1,17 +1,33 @@
 import fastifyStatic from '@fastify/static';
-import { Effect, Either, Option, ParseResult, Schema as S } from 'effect';
+import { Effect, Either, Layer, ManagedRuntime, Option, ParseResult, Schema as S } from 'effect';
 import Fastify, { FastifyInstance } from 'fastify';
 import { dirname, join } from 'path';
 import { h } from 'preact';
 import { fileURLToPath } from 'url';
 import { CreateGameUseCase } from './game/create-game.usecase.js';
-import { GameLayerLive } from './game/index.js';
+import { GameLayerLiveWithDependencies } from './game/index.js';
+import { Database } from './infra/db/database.service.js';
 import { Home } from './view/components/Home.js';
 import { renderHtmlPage, renderToString } from './view/render.js';
 
 const isDev = process.env.NODE_ENV === 'development';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+
+// Get database URL from environment or use default for development
+const databaseUrl =
+  process.env.DATABASE_URL ||
+  'postgresql://postgres:postgres@localhost:5432/dixitonline';
+
+// Create the complete application layer with database
+const AppLayer = Layer.provide(
+  GameLayerLiveWithDependencies,
+  Database.Live({ connectionString: databaseUrl }),
+);
+
+// Create a long-lived ManagedRuntime with the AppLayer
+// This runtime will be used for all requests and maintains the database connection
+const appRuntime = ManagedRuntime.make(AppLayer);
 
 const fastify: FastifyInstance = Fastify({
   logger: isDev
@@ -37,6 +53,14 @@ const fastify: FastifyInstance = Fastify({
 await fastify.register(fastifyStatic, {
   root: join(__dirname, 'view', 'assets'),
   prefix: '/assets/',
+});
+
+// Handle graceful shutdown of database connections
+// Dispose the ManagedRuntime to trigger cleanup of all scoped resources (database connection)
+fastify.addHook('onClose', async () => {
+  console.log('Server shutting down, disposing ManagedRuntime...');
+  await appRuntime.dispose();
+  console.log('ManagedRuntime disposed, database connections cleaned up');
 });
 
 const CreateGameBodySchema = S.Struct({
@@ -88,9 +112,8 @@ fastify.route({
       });
     });
 
-    const runnable = Effect.provide(program, GameLayerLive);
-
-    return Effect.runPromise(runnable).catch((error) => {
+    // Use the long-lived runtime instead of providing the layer on each request
+    return appRuntime.runPromise(program).catch((error) => {
       // Handle validation errors
       if (ParseResult.isParseError(error)) {
         const formatted = ParseResult.TreeFormatter.formatErrorSync(error);

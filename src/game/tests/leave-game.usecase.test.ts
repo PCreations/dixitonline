@@ -1,7 +1,7 @@
 import { describe, it } from '@effect/vitest';
 import { Effect } from 'effect';
 import { GameBuilder } from './game.builder.js';
-import { GameDriver, makeGameDriverUnitTestLayer } from './game.driver.js';
+import { GameDriver, makeGameDriverTestLayer } from './game.driver.js';
 
 describe('Feature: Leaving a game as a player', () => {
   it.effect('Example: Leaving a game as a player', () => {
@@ -24,7 +24,7 @@ describe('Feature: Leaving a game as a player', () => {
         gameId: 'id-game-1',
         players: ['id-player-1'],
       });
-    }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+    }).pipe(Effect.provide(makeGameDriverTestLayer()));
   });
 
   it.effect('Example: A player not in a game cannot leave it', () => {
@@ -46,7 +46,7 @@ describe('Feature: Leaving a game as a player', () => {
       yield* gameDriver.assert.playerToNotHaveBeenAbleToLeaveGame({
         error: 'Player not in game',
       });
-    }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+    }).pipe(Effect.provide(makeGameDriverTestLayer()));
   });
 
   it.effect('Example: A player cannot leave a game that does not exist', () => {
@@ -61,7 +61,7 @@ describe('Feature: Leaving a game as a player', () => {
       yield* gameDriver.assert.playerToNotHaveBeenAbleToLeaveGame({
         error: 'Game not found',
       });
-    }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+    }).pipe(Effect.provide(makeGameDriverTestLayer()));
   });
 
   it.effect('Example: The host cannot leave the game', () => {
@@ -81,6 +81,6 @@ describe('Feature: Leaving a game as a player', () => {
       yield* gameDriver.assert.playerToNotHaveBeenAbleToLeaveGame({
         error: 'Host cannot leave the game',
       });
-    }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+    }).pipe(Effect.provide(makeGameDriverTestLayer()));
   });
 });

@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { Context, Effect, Option, Schema } from 'effect';
+import { Context, Effect, Layer, Option, Schema } from 'effect';
 import {
   EndedGameEntity,
   GameEntity,
@@ -16,6 +16,7 @@ import {
   NotStartedGameSnapshotSchema,
   StartedGameSnapshotSchema,
 } from 'src/game/game-snapshot.schema.js';
+import { Database } from 'src/infra/db/database.service.js';
 import { gamesTable } from 'src/infra/db/schema.js';
 
 export const makeDrizzleGameRepository = ({
@@ -254,3 +255,15 @@ export const makeDrizzleGameRepository = ({
     simulateStaleRead: () => Effect.void,
   };
 };
+
+
+/**
+ * DrizzleGameRepository Layer that depends on Database service
+ */
+export const DrizzleGameRepository = Layer.effect(
+  GameRepository,
+  Effect.gen(function* () {
+    const { db } = yield* Database;
+    return makeDrizzleGameRepository({ db });
+  }),
+);

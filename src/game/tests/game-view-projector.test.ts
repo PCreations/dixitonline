@@ -9,7 +9,7 @@ import {
 import { GameViewProjector } from "../game-view-projector.js";
 import { PlayerId } from "../player.entity.js";
 import { GameBuilder } from "./game.builder.js";
-import { GameDriver, makeGameDriverUnitTestLayer } from "./game.driver.js";
+import { GameDriver, makeGameDriverTestLayer } from "./game.driver.js";
 
 describe("Game View Projector", () => {
   it.effect("Example: storytelling phase", () => {
@@ -163,7 +163,7 @@ describe("Game View Projector", () => {
           { id: "card-24", url: "https://example.com/card-24" },
         ],
       });
-    }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+    }).pipe(Effect.provide(makeGameDriverTestLayer()));
   });
 
   it.effect("Example: selecting cards phase, more than 3 players-game", () => {
@@ -319,7 +319,7 @@ describe("Game View Projector", () => {
           { id: "card-24", url: "https://example.com/card-24" },
         ],
       });
-    }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+    }).pipe(Effect.provide(makeGameDriverTestLayer()));
   });
 
   it.effect("Example: voting cards phase", () => {
@@ -505,7 +505,7 @@ describe("Game View Projector", () => {
           { id: "card-24", url: "https://example.com/card-24" },
         ],
       });
-    }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+    }).pipe(Effect.provide(makeGameDriverTestLayer()));
   });
 
   it.effect("Example: scoring cards phase", () => {
@@ -747,7 +747,7 @@ describe("Game View Projector", () => {
           { id: "card-24", url: "https://example.com/card-24" },
         ],
       });
-    }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+    }).pipe(Effect.provide(makeGameDriverTestLayer()));
   });
 
   it.effect("Example: ended game", () => {
@@ -823,6 +823,6 @@ describe("Game View Projector", () => {
         phase: "ended",
         score: 7,
       });
-    }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+    }).pipe(Effect.provide(makeGameDriverTestLayer()));
   });
 });

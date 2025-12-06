@@ -1,5 +1,5 @@
 import { expect } from "@effect/vitest";
-import { Context, Effect, Layer, Option } from "effect";
+import { Context, Effect, Layer, Option, ParseResult } from "effect";
 import { CreateGameUseCase } from "../create-game.usecase.js";
 import {
   Card,
@@ -54,13 +54,13 @@ type EndConditionDto =
 interface GameDriverDSL {
   readonly getGameSnapshot: (
     gameId: string,
-  ) => Effect.Effect<GameEntitySnapshot>;
+  ) => Effect.Effect<GameEntitySnapshot, ParseResult.ParseError>;
   readonly getStartedGameSnapshot: (
     gameId: string,
-  ) => Effect.Effect<StartedGameSnapshot>;
+  ) => Effect.Effect<StartedGameSnapshot, ParseResult.ParseError>;
   readonly gameEndedGameSnapshot: (
     gameId: string,
-  ) => Effect.Effect<EndedGameSnapshot>;
+  ) => Effect.Effect<EndedGameSnapshot, ParseResult.ParseError>;
   readonly unsafe__saveGameEntity: (game: GameEntity) => Effect.Effect<void>;
   readonly given: {
     readonly defaultDeck: (props: {
@@ -89,7 +89,7 @@ interface GameDriverDSL {
     ) => Effect.Effect<{
       game: GameEntitySnapshot;
       deck: DeckSnapshot;
-    }>;
+    }, ParseResult.ParseError>;
   };
   readonly withFailFastMode: () => GameDriverDSL;
   readonly when: {
@@ -107,7 +107,7 @@ interface GameDriverDSL {
       gameId: string;
       playerId: string;
       playerThatHasJustJoinedInBetween: string;
-    }) => Effect.Effect<void>;
+    }) => Effect.Effect<void, ParseResult.ParseError>;
     readonly leavingGame: (props: {
       gameId: string;
       playerId: string;
@@ -121,7 +121,7 @@ interface GameDriverDSL {
       gameId: string;
       playerId: string;
       playerThatHasLeftInBetween: string;
-    }) => Effect.Effect<void>;
+    }) => Effect.Effect<void, ParseResult.ParseError>;
     readonly submittingClue: (props: {
       gameId: string;
       playerId: string;
@@ -150,7 +150,7 @@ interface GameDriverDSL {
       deckId: string;
       endCondition?: EndConditionDto;
       players: ReadonlyArray<string>;
-    }) => Effect.Effect<void, never, never>;
+    }) => Effect.Effect<void, ParseResult.ParseError, never>;
     readonly playerToHaveJoinedGame: (props: {
       gameId: string;
       playerId: string;
@@ -167,14 +167,14 @@ interface GameDriverDSL {
     readonly gameToHavePlayers: (props: {
       gameId: string;
       players: ReadonlyArray<string>;
-    }) => Effect.Effect<void, never, never>;
+    }) => Effect.Effect<void, ParseResult.ParseError, never>;
     readonly gameToHaveBeenStarted: (props: {
       gameId: string;
-    }) => Effect.Effect<void, never, never>;
+    }) => Effect.Effect<void, ParseResult.ParseError, never>;
     readonly currentTurnToBeStarted: (props: {
       gameId: string;
       storytellerId: string;
-    }) => Effect.Effect<void, never, never>;
+    }) => Effect.Effect<void, ParseResult.ParseError, never>;
     readonly newTurnToBeStarted: (props: {
       gameId: string;
       storytellerId: string;
@@ -189,29 +189,29 @@ interface GameDriverDSL {
       playersHavingBeenStoryteller: {
         [playerId: string]: number;
       };
-    }) => Effect.Effect<void, never, never>;
+    }) => Effect.Effect<void, ParseResult.ParseError, never>;
     readonly playerHandsToEqual: (props: {
       gameId: string;
       playerHands: ReadonlyArray<{
         playerId: string;
         cards: ReadonlyArray<string>;
       }>;
-    }) => Effect.Effect<void, never, never>;
+    }) => Effect.Effect<void, ParseResult.ParseError, never>;
     readonly turnClueToBeSubmitted: (props: {
       gameId: string;
       storytellerClue: string;
       storytellerCardId: string;
-    }) => Effect.Effect<void, never, never>;
+    }) => Effect.Effect<void, ParseResult.ParseError, never>;
     readonly turnToHaveSelectedCards: (props: {
       gameId: string;
       selectedCards: ReadonlyArray<{
         cardId: string;
         playerId: string;
       }>;
-    }) => Effect.Effect<void, never, never>;
+    }) => Effect.Effect<void, ParseResult.ParseError, never>;
     readonly turnToBeInVotingPhase: (props: {
       gameId: string;
-    }) => Effect.Effect<void, never, never>;
+    }) => Effect.Effect<void, ParseResult.ParseError, never>;
     readonly playerToNotHaveBeenAbleToSubmitClue: (props?: {
       error?: string;
     }) => Effect.Effect<void, never, never>;
@@ -223,24 +223,24 @@ interface GameDriverDSL {
       votedBy: string;
       ownedBy: string;
       cardId: string;
-    }) => Effect.Effect<void, never, never>;
+    }) => Effect.Effect<void, ParseResult.ParseError, never>;
     readonly playerToNotHaveBeenAbleToVoteOnCard: (props?: {
       error?: string;
     }) => Effect.Effect<void, never, never>;
     readonly turnToBeInScoringPhase: (props: {
       gameId: string;
-    }) => Effect.Effect<void, never, never>;
+    }) => Effect.Effect<void, ParseResult.ParseError, never>;
     readonly playersToHaveScore: (props: {
       gameId: string;
       scores: ReadonlyArray<{
         playerId: string;
         score: number;
       }>;
-    }) => Effect.Effect<void, never, never>;
+    }) => Effect.Effect<void, ParseResult.ParseError, never>;
     readonly playersReadyForNextTurnToEqual: (props: {
       gameId: string;
       playersReadyForNextTurn: ReadonlyArray<string>;
-    }) => Effect.Effect<void, never, never>;
+    }) => Effect.Effect<void, ParseResult.ParseError, never>;
     readonly playerToNotHaveBeenAbleToNotifyToBeReadyForNextTurn: (props?: {
       error?: string;
     }) => Effect.Effect<void, never, never>;
@@ -250,7 +250,7 @@ interface GameDriverDSL {
     }) => Effect.Effect<void, never, never>;
     readonly gameToBeEnded: (props: {
       gameId: string;
-    }) => Effect.Effect<void, never, never>;
+    }) => Effect.Effect<void, ParseResult.ParseError, never>;
   };
 }
 
@@ -975,10 +975,19 @@ const makeUnitTestGameDriver = ({
   };
 };
 
-export const makeGameDriverUnitTestLayer = (props?: {
+export const makeGameDriverTestLayer = (props?: {
   randomizeStrategy?: PlayersRandomizeStrategyType;
+  dependencies?: Layer.Layer<
+    | GameRepository
+    | DeckRepository
+    | GameView
+    | TurnBoardCardsShuffler
+    | GameViewProjector
+    | ShufflerService
+    | PlayersRandomizeStrategy
+  >;
 }) => {
-  const dependencies = Layer.mergeAll(
+  const dependencies = props?.dependencies ?? Layer.mergeAll(
     InMemoryGameRepository,
     InMemoryDeckRepository,
     InMemoryGameView,
@@ -1029,3 +1038,19 @@ export const makeGameDriverUnitTestLayer = (props?: {
     Layer.merge(GameViewProjector.Default, TurnBoardCardsShuffler.Default),
   ).pipe(Layer.provide(dependencies));
 };
+
+export const makeGameDriverAcceptanceLayer = () => {
+  return makeGameDriverTestLayer({
+    dependencies: Layer.mergeAll(
+      InMemoryGameRepository,
+      InMemoryDeckRepository,
+      InMemoryGameView,
+      TurnBoardCardsShuffler.Default,
+      GameViewProjector.Default,
+      ShufflerService.Default,
+      NoopRandomizeStrategy,
+    ),
+  })
+}
+
+export type GameDriverLayer = ReturnType<typeof makeGameDriverTestLayer>;

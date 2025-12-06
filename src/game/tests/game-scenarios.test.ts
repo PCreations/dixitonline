@@ -6,7 +6,7 @@ import {
   getCurrentStorytellerId,
   getSelectedCardsByPlayer,
 } from "./game.builder.js";
-import { GameDriver, makeGameDriverUnitTestLayer } from "./game.driver.js";
+import { GameDriver, makeGameDriverTestLayer } from "./game.driver.js";
 
 describe("Game Scenarios", () => {
   it.effect("Scenario: A game with 4 players", () => {
@@ -326,6 +326,6 @@ describe("Game Scenarios", () => {
       yield* gameDriver.assert.gameToBeEnded({
         gameId: "game-id",
       });
-    }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+    }).pipe(Effect.provide(makeGameDriverTestLayer()));
   });
 });

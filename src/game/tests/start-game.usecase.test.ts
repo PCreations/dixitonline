@@ -3,7 +3,7 @@ import { Effect } from "effect";
 import { PlayersRandomizeStrategy } from "../game.entity.js";
 import { PlayerId } from "../player.entity.js";
 import { GameBuilder } from "./game.builder.js";
-import { GameDriver, makeGameDriverUnitTestLayer } from "./game.driver.js";
+import { GameDriver, makeGameDriverTestLayer } from "./game.driver.js";
 
 describe("Feature: Starting a game", () => {
   describe("Scenario: Starting a game with different configurations", () => {
@@ -28,7 +28,7 @@ describe("Feature: Starting a game", () => {
           yield* gameDriver.assert.gameToHaveBeenStarted({
             gameId: "id-game-1",
           });
-        }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+        }).pipe(Effect.provide(makeGameDriverTestLayer()));
       },
     );
 
@@ -51,7 +51,7 @@ describe("Feature: Starting a game", () => {
         yield* gameDriver.assert.playerToNotHaveBeenAbleToStartGame({
           error: "Only the host can start the game",
         });
-      }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+      }).pipe(Effect.provide(makeGameDriverTestLayer()));
     });
 
     it.effect(
@@ -75,7 +75,7 @@ describe("Feature: Starting a game", () => {
           yield* gameDriver.assert.playerToNotHaveBeenAbleToStartGame({
             error: "The game does not meet the minimum number of players",
           });
-        }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+        }).pipe(Effect.provide(makeGameDriverTestLayer()));
       },
     );
 
@@ -98,7 +98,7 @@ describe("Feature: Starting a game", () => {
         yield* gameDriver.assert.playerToNotHaveBeenAbleToStartGame({
           error: "Player not in game",
         });
-      }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+      }).pipe(Effect.provide(makeGameDriverTestLayer()));
     });
 
     it.effect(
@@ -123,7 +123,7 @@ describe("Feature: Starting a game", () => {
           yield* gameDriver.assert.playerToNotHaveBeenAbleToStartGame({
             error: "The game does not meet the minimum number of players",
           });
-        }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+        }).pipe(Effect.provide(makeGameDriverTestLayer()));
       },
     );
   });
@@ -171,7 +171,7 @@ describe("Feature: Starting a game", () => {
             },
           ],
         });
-      }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+      }).pipe(Effect.provide(makeGameDriverTestLayer()));
     });
 
     it.effect(
@@ -214,7 +214,7 @@ describe("Feature: Starting a game", () => {
               },
             ],
           });
-        }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+        }).pipe(Effect.provide(makeGameDriverTestLayer()));
       },
     );
 
@@ -248,7 +248,7 @@ describe("Feature: Starting a game", () => {
           });
         }).pipe(
           Effect.provide(
-            makeGameDriverUnitTestLayer({
+            makeGameDriverTestLayer({
               randomizeStrategy: PlayersRandomizeStrategy.of({
                 type: "fake",
                 randomize: () => [

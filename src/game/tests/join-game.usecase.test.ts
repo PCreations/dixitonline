@@ -1,7 +1,7 @@
 import { describe, it } from '@effect/vitest';
 import { Effect } from 'effect';
 import { GameBuilder } from './game.builder.js';
-import { GameDriver, makeGameDriverUnitTestLayer } from './game.driver.js';
+import { GameDriver, makeGameDriverTestLayer } from './game.driver.js';
 
 describe('Feature: Joining a game as a player', () => {
   it.effect('Example: Joining a game as a player', () => {
@@ -21,7 +21,7 @@ describe('Feature: Joining a game as a player', () => {
         gameId: 'id-game-1',
         playerId: 'id-player-2',
       });
-    }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+    }).pipe(Effect.provide(makeGameDriverTestLayer()));
   });
 
   it.effect('Example: A player already in a game cannot join again', () => {
@@ -43,7 +43,7 @@ describe('Feature: Joining a game as a player', () => {
       yield* gameDriver.assert.playerToNotHaveBeenAbleToJoinGame({
         error: 'Player already in game: id-player-2',
       });
-    }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+    }).pipe(Effect.provide(makeGameDriverTestLayer()));
   });
 
   it.effect('Example: A player cannot join a game that does not exist', () => {
@@ -58,7 +58,7 @@ describe('Feature: Joining a game as a player', () => {
       yield* gameDriver.assert.playerToNotHaveBeenAbleToJoinGame({
         error: 'Game not found',
       });
-    }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+    }).pipe(Effect.provide(makeGameDriverTestLayer()));
   });
 
   it.effect('Example: A player cannot join a game that is already full', () => {
@@ -77,7 +77,7 @@ describe('Feature: Joining a game as a player', () => {
       yield* gameDriver.assert.playerToNotHaveBeenAbleToJoinGame({
         error: 'Game is full',
       });
-    }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+    }).pipe(Effect.provide(makeGameDriverTestLayer()));
   });
 
   it.effect(
@@ -109,7 +109,7 @@ describe('Feature: Joining a game as a player', () => {
         yield* gameDriver.assert.playerToNotHaveBeenAbleToJoinGame({
           error: 'Game is full',
         });
-      }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+      }).pipe(Effect.provide(makeGameDriverTestLayer()));
     },
   );
 });

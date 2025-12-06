@@ -6,7 +6,7 @@ import {
   getCurrentStorytellerId,
   getPlayerHand,
 } from './game.builder.js';
-import { GameDriver, makeGameDriverUnitTestLayer } from './game.driver.js';
+import { GameDriver, makeGameDriverTestLayer } from './game.driver.js';
 
 describe("Feature: Submitting the storyteller's clue", () => {
   it.effect(
@@ -51,7 +51,7 @@ describe("Feature: Submitting the storyteller's clue", () => {
             },
           ]),
         });
-      }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+      }).pipe(Effect.provide(makeGameDriverTestLayer()));
     },
   );
 
@@ -86,7 +86,7 @@ describe("Feature: Submitting the storyteller's clue", () => {
           error:
             "The storyteller cannot submit a clue on a card they don't have",
         });
-      }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+      }).pipe(Effect.provide(makeGameDriverTestLayer()));
     },
   );
 
@@ -116,6 +116,6 @@ describe("Feature: Submitting the storyteller's clue", () => {
       yield* gameDriver.assert.playerToNotHaveBeenAbleToSubmitClue({
         error: 'Only the storyteller can submit a clue',
       });
-    }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+    }).pipe(Effect.provide(makeGameDriverTestLayer()));
   });
 });

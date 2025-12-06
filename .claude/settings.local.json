@@ -38,7 +38,8 @@
       "Bash(export PATH=\"/usr/local/bin:/opt/homebrew/bin:/usr/bin:$PATH\")",
       "Bash(xargs docker rm -f)",
       "Bash(xargs kill -9)",
-      "Bash(pnpm biome check:*)"
+      "Bash(pnpm biome check:*)",
+      "Bash(pnpm tsc:*)"
     ]
   },
   "enableAllProjectMcpServers": false,

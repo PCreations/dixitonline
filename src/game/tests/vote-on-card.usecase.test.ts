@@ -5,7 +5,7 @@ import {
   getSelectedCardsByPlayer,
   getStorytellerCardId,
 } from "./game.builder.js";
-import { GameDriver, makeGameDriverUnitTestLayer } from "./game.driver.js";
+import { GameDriver, makeGameDriverTestLayer } from "./game.driver.js";
 
 describe("Feature: Voting on a board card", () => {
   it.effect("Example: A player can vote on a board card", () => {
@@ -47,7 +47,7 @@ describe("Feature: Voting on a board card", () => {
         cardId: player3SelectedCard,
         ownedBy: "id-player-3",
       });
-    }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+    }).pipe(Effect.provide(makeGameDriverTestLayer()));
   });
 
   it.effect(
@@ -85,7 +85,7 @@ describe("Feature: Voting on a board card", () => {
         yield* gameDriver.assert.playerToNotHaveBeenAbleToVoteOnCard({
           error: "Player not in game",
         });
-      }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+      }).pipe(Effect.provide(makeGameDriverTestLayer()));
     },
   );
 
@@ -124,7 +124,7 @@ describe("Feature: Voting on a board card", () => {
         yield* gameDriver.assert.playerToNotHaveBeenAbleToVoteOnCard({
           error: "The card is not in the cards you can vote on",
         });
-      }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+      }).pipe(Effect.provide(makeGameDriverTestLayer()));
     },
   );
 
@@ -165,7 +165,7 @@ describe("Feature: Voting on a board card", () => {
         ownedBy: "id-player-1",
         cardId: storytellerCardId,
       });
-    }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+    }).pipe(Effect.provide(makeGameDriverTestLayer()));
   });
 
   it.effect("Example: A player cannot vote for their own card", () => {
@@ -204,7 +204,7 @@ describe("Feature: Voting on a board card", () => {
       yield* gameDriver.assert.playerToNotHaveBeenAbleToVoteOnCard({
         error: "The player cannot vote on their own card",
       });
-    }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+    }).pipe(Effect.provide(makeGameDriverTestLayer()));
   });
 
   it.effect("Example: A player cannot vote more than once", () => {
@@ -244,7 +244,7 @@ describe("Feature: Voting on a board card", () => {
       yield* gameDriver.assert.playerToNotHaveBeenAbleToVoteOnCard({
         error: "The player cannot vote more than once",
       });
-    }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+    }).pipe(Effect.provide(makeGameDriverTestLayer()));
   });
 
   it.effect("Example: When the last player has voted, the turn phase is updated to 'scoring' and the scores are computed", () => {
@@ -307,6 +307,6 @@ describe("Feature: Voting on a board card", () => {
           score: 3,
         }],
       });
-    }).pipe(Effect.provide(makeGameDriverUnitTestLayer()));
+    }).pipe(Effect.provide(makeGameDriverTestLayer()));
   });
 });

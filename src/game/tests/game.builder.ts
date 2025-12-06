@@ -1,4 +1,4 @@
-import { Context, Effect, Option } from "effect";
+import { Context, Effect, Option, ParseResult } from "effect";
 import {
   GameEntitySnapshot,
   isStartedGameSnapshot,
@@ -172,7 +172,7 @@ export class GameBuilder {
     return this.config.deckId ?? "default-deck-id";
   }
 
-  build(driver: Context.Tag.Service<GameDriver>): Effect.Effect<GameEntitySnapshot> {
+  build(driver: Context.Tag.Service<GameDriver>): Effect.Effect<GameEntitySnapshot, ParseResult.ParseError> {
     const self = this;
 
     return Effect.gen(function* () {
