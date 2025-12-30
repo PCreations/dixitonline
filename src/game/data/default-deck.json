@@ -1,0 +1,7 @@
+{
+  "id": "default",
+  "name": "Deck classique",
+  "totalCards": 613,
+  "cardPattern": "card_{n}.jpg",
+  "storagePath": "decks/default"
+}
