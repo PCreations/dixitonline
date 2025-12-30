@@ -1,14 +1,20 @@
 import 'dotenv/config';
+import fastifyFormbody from '@fastify/formbody';
 import fastifyStatic from '@fastify/static';
-import { Effect, Either, Layer, ManagedRuntime, Option, ParseResult, Schema as S } from 'effect';
+import { Effect, Either, Layer, ManagedRuntime, Option } from 'effect';
 import Fastify, { FastifyInstance } from 'fastify';
 import { dirname, join } from 'path';
 import { h } from 'preact';
 import { fileURLToPath } from 'url';
-import { createJwtVerifier, CurrentUser, registerAuthHook } from './auth/index.js';
+import {
+  CurrentUser,
+  createJwtVerifier,
+  registerAuthHook,
+} from './auth/index.js';
 import { CreateGameUseCase } from './game/create-game.usecase.js';
 import { GameLayerLiveWithDependencies } from './game/index.js';
 import { Database } from './infra/db/database.service.js';
+import { CreateGame } from './view/components/CreateGame.js';
 import { Game } from './view/components/Game.js';
 import { Home } from './view/components/Home.js';
 import { Lobby } from './view/components/Lobby.js';
@@ -65,6 +71,9 @@ await fastify.register(fastifyStatic, {
   prefix: '/assets/',
 });
 
+// Register form body parser for HTML forms
+await fastify.register(fastifyFormbody);
+
 // Register auth hook for JWT validation
 registerAuthHook(fastify, { jwtVerifier });
 
@@ -76,9 +85,12 @@ fastify.addHook('onClose', async () => {
   console.log('ManagedRuntime disposed, database connections cleaned up');
 });
 
-const CreateGameBodySchema = S.Struct({
-  gameId: S.String,
-});
+// Form body schema for game creation
+interface CreateGameFormBody {
+  endConditionType?: string;
+  numberOfTimes?: string;
+  limitOfPoints?: string;
+}
 
 fastify.route({
   method: 'GET',
@@ -141,29 +153,65 @@ fastify.route({
 });
 
 fastify.route({
+  method: 'GET',
+  url: '/game/new',
+  handler: async function handler(request, reply) {
+    // Redirect to home if not authenticated
+    if (Option.isNone(request.authUser)) {
+      return reply.redirect('/');
+    }
+
+    const component = h(CreateGame, {});
+    const body = renderToString(component);
+    const html = renderHtmlPage('Créer une partie - Tixid Online', body);
+
+    reply.type('text/html').send(html);
+  },
+});
+
+fastify.route({
   method: 'POST',
   url: '/game/create',
   handler: async function handler(request, reply) {
-    // First, try to decode the request body
-    const decodeResult = S.decodeUnknown(CreateGameBodySchema)(request.body);
+    const body = request.body as CreateGameFormBody;
 
-    // Handle the decoding as an Effect
+    // Generate UUID server-side
+    const gameId = crypto.randomUUID();
+
+    // Build endCondition from form data
+    const endCondition =
+      body.endConditionType === 'LimitOfPoints'
+        ? Option.some({
+            type: 'LimitOfPoints' as const,
+            limit: Number.parseInt(body.limitOfPoints || '30', 10),
+          })
+        : Option.some({
+            type: 'NumberOfTimesBeingStoryteller' as const,
+            numberOfTimes: Option.some(
+              Number.parseInt(body.numberOfTimes || '3', 10),
+            ),
+          });
+
     const program = Effect.gen(function* () {
-      // Extract playerId from authenticated user
       const { playerId } = yield* CurrentUser;
-
-      const decoded = yield* decodeResult;
-      const { gameId } = decoded;
 
       const createGameUseCase = yield* CreateGameUseCase;
       const result = yield* createGameUseCase.createGame({
         gameId,
         hostId: playerId,
         deckId: Option.none(),
-        endCondition: Option.none(),
+        endCondition,
       });
+
       return Either.match(result, {
-        onRight: () => reply.status(201).send({ success: true, gameId }),
+        onRight: () => {
+          // Redirect to game lobby (HTMX or standard redirect)
+          if (request.headers['hx-request']) {
+            reply.header('HX-Redirect', `/game/${gameId}/lobby`);
+            return reply.status(200).send();
+          }
+          return reply.redirect(`/game/${gameId}/lobby`);
+        },
         onLeft: (error) => {
           // @ts-ignore - pino type issue with FastifyBaseLogger
           request.log.error({ err: error }, 'Failed to create game');
@@ -175,37 +223,20 @@ fastify.route({
       });
     });
 
-    // Use the long-lived runtime and provide the auth layer from the request
     return appRuntime
       .runPromise(program.pipe(Effect.provide(request.authLayer)))
       .catch((error) => {
-        // Handle missing authorization
         if (error._tag === 'MissingAuthorizationHeader') {
-          return reply.status(401).send({
-            error: 'Unauthorized',
-            details: 'Authentication required',
-          });
+          return reply.redirect('/');
         }
 
-        // Handle validation errors
-        if (ParseResult.isParseError(error)) {
-        const formatted = ParseResult.TreeFormatter.formatErrorSync(error);
         // @ts-ignore - pino type issue with FastifyBaseLogger
-        request.log.warn({ err: error, formatted }, 'Invalid request body');
-        return reply.status(400).send({
-          error: 'Validation Error',
-          details: formatted,
+        request.log.error({ err: error }, 'Unexpected error');
+        return reply.status(500).send({
+          error: 'Internal Server Error',
+          details: error.message || 'An unexpected error occurred',
         });
-      }
-
-      // Handle other errors
-      // @ts-ignore - pino type issue with FastifyBaseLogger
-      request.log.error({ err: error }, 'Unexpected error');
-      return reply.status(500).send({
-        error: 'Internal Server Error',
-        details: error.message || 'An unexpected error occurred',
       });
-    });
   },
 });
 

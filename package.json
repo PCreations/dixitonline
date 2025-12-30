@@ -32,6 +32,7 @@
     "db:migrate": "tsx node_modules/drizzle-kit/bin.cjs migrate"
   },
   "dependencies": {
+    "@fastify/formbody": "^8.0.2",
     "@fastify/static": "^8.2.0",
     "@tailwindcss/cli": "^4.1.12",
     "dotenv": "^17.2.3",

@@ -636,6 +636,118 @@ body {
   @apply flex-shrink-0;
 }
 
+/* Create game form styles */
+.create-game-form {
+  @apply absolute z-30;
+  top: 440px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 450px;
+  padding: 0 20px;
+}
+
+.create-game-fieldset {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.create-game-legend {
+  font-family: "Poppins", sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  @apply text-white;
+  opacity: 0.6;
+  margin-bottom: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.create-game-option {
+  @apply flex items-center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-bottom: 8px;
+}
+
+.create-game-option:hover {
+  background: rgba(15, 14, 29, 0.6);
+}
+
+.create-game-option:has(input[type="radio"]:checked) {
+  background: rgba(15, 14, 29, 0.8);
+}
+
+.create-game-option input[type="radio"] {
+  @apply flex-shrink-0;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-radius: 50%;
+  cursor: pointer;
+  position: relative;
+}
+
+.create-game-option input[type="radio"]:checked {
+  border-color: rgba(255, 255, 255, 0.8);
+}
+
+.create-game-option input[type="radio"]:checked::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  background: white;
+  border-radius: 50%;
+}
+
+.create-game-option-text {
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  @apply text-white;
+  opacity: 0.9;
+  flex: 1;
+}
+
+.create-game-number {
+  @apply bg-transparent text-white border-none outline-none;
+  font-family: "Poppins", sans-serif;
+  font-size: 16px;
+  width: 60px;
+  text-align: center;
+  padding: 6px 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.create-game-number:focus {
+  border-bottom-color: rgba(255, 255, 255, 0.6);
+}
+
+/* Hide spinner for number inputs */
+.create-game-number::-webkit-outer-spin-button,
+.create-game-number::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.create-game-number[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.create-game-submit {
+  @apply flex justify-center;
+  margin-top: 32px;
+}
+
 /* Alpine.js cloak */
 [x-cloak] {
   display: none !important;
