@@ -14,7 +14,12 @@ export class MissingAuthorizationHeader extends Data.TaggedError(
 
 interface SupabaseConfig {
 	readonly url: string;
+	readonly jwtSecret?: string;
 }
+
+// Default JWT secret for local Supabase development
+const DEFAULT_LOCAL_JWT_SECRET =
+	'super-secret-jwt-token-with-at-least-32-characters-long';
 
 const createJwksGetter = (config: SupabaseConfig) => {
 	let jwks: jose.JWTVerifyGetKey | null = null;
@@ -31,6 +36,8 @@ const createJwksGetter = (config: SupabaseConfig) => {
 
 export const createJwtVerifier = (config: SupabaseConfig) => {
 	const getJwks = createJwksGetter(config);
+	const jwtSecret = config.jwtSecret || DEFAULT_LOCAL_JWT_SECRET;
+	const secretKey = new TextEncoder().encode(jwtSecret);
 
 	return {
 		extractToken: (
@@ -46,11 +53,21 @@ export const createJwtVerifier = (config: SupabaseConfig) => {
 			Effect.gen(function* () {
 				const jwks = yield* getJwks;
 
+				// Try JWKS first, fallback to secret for local development
 				const result = yield* Effect.tryPromise({
-					try: () =>
-						jose.jwtVerify(token, jwks, {
-							issuer: `${config.url}/auth/v1`,
-						}),
+					try: async () => {
+						try {
+							// Try JWKS verification first (production)
+							return await jose.jwtVerify(token, jwks, {
+								issuer: `${config.url}/auth/v1`,
+							});
+						} catch {
+							// Fallback to secret-based verification (local development)
+							return await jose.jwtVerify(token, secretKey, {
+								issuer: `${config.url}/auth/v1`,
+							});
+						}
+					},
 					catch: (error) =>
 						new InvalidJwtError({
 							reason: error instanceof Error ? error.message : 'Unknown error',

@@ -10,6 +10,15 @@ const supabaseUrl = process.env.SUPABASE_URL || 'http://127.0.0.1:54321';
 const supabasePublishableKey = process.env.SUPABASE_PUBLISHABLE_DEFAULT_KEY || '';
 
 const authStoreScript = `
+// Helper to manage auth cookie for SSR
+function setAuthCookie(token) {
+  if (token) {
+    document.cookie = 'sb-access-token=' + token + '; path=/; max-age=3600; SameSite=Lax';
+  } else {
+    document.cookie = 'sb-access-token=; path=/; max-age=0';
+  }
+}
+
 document.addEventListener('alpine:init', () => {
   Alpine.data('authStore', () => ({
     user: null,
@@ -27,8 +36,11 @@ document.addEventListener('alpine:init', () => {
         if (session) {
           this.user = session.user;
           this.username = session.user.user_metadata?.username || '';
+          // Sync cookie with current session
+          setAuthCookie(session.access_token);
         } else {
           this.showUsernameModal = true;
+          setAuthCookie(null);
         }
       } catch (e) {
         console.error('Auth init error:', e);
@@ -37,10 +49,14 @@ document.addEventListener('alpine:init', () => {
         this.loading = false;
       }
 
+      // Keep cookie in sync with auth state
       window.supabase.auth.onAuthStateChange((event, session) => {
         this.user = session?.user ?? null;
         if (session?.user) {
           this.username = session.user.user_metadata?.username || '';
+          setAuthCookie(session.access_token);
+        } else {
+          setAuthCookie(null);
         }
       });
     },
@@ -49,18 +65,21 @@ document.addEventListener('alpine:init', () => {
       this.loading = true;
       this.error = null;
       try {
-        const { data, error } = await window.supabase.auth.signInAnonymously();
+        // Pass username directly to signInAnonymously for immediate metadata
+        const { data, error } = await window.supabase.auth.signInAnonymously({
+          options: {
+            data: { username: this.username }
+          }
+        });
         if (error) throw error;
 
-        await window.supabase.auth.updateUser({
-          data: { username: this.username }
-        });
+        // Set cookie with the access token (already contains username)
+        setAuthCookie(data.session?.access_token);
 
-        this.user = data.user;
-        this.showUsernameModal = false;
+        // Refresh the page to get server-rendered content with auth state
+        window.location.reload();
       } catch (e) {
         this.error = e.message;
-      } finally {
         this.loading = false;
       }
     },
@@ -92,18 +111,22 @@ document.addEventListener('alpine:init', () => {
     },
 
     async signOut() {
+      setAuthCookie(null);
       await window.supabase.auth.signOut();
-      this.user = null;
+      // Refresh the page to get server-rendered content without auth
+      window.location.reload();
     }
   }));
 });
 
-// Inject JWT into all HTMX requests
-document.body.addEventListener('htmx:configRequest', async (e) => {
-  const { data: { session } } = await window.supabase.auth.getSession();
-  if (session?.access_token) {
-    e.detail.headers['Authorization'] = 'Bearer ' + session.access_token;
-  }
+// Inject JWT into all HTMX requests (wait for DOM to be ready)
+document.addEventListener('DOMContentLoaded', () => {
+  document.body.addEventListener('htmx:configRequest', async (e) => {
+    const { data: { session } } = await window.supabase.auth.getSession();
+    if (session?.access_token) {
+      e.detail.headers['Authorization'] = 'Bearer ' + session.access_token;
+    }
+  });
 });
 `;
 

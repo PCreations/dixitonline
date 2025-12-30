@@ -9,7 +9,13 @@ import { Moon } from './Moon.js';
 import { SandSteps } from './SandSteps.js';
 import { Stars } from './Stars.js';
 
-export function Home() {
+export interface HomeProps {
+  user?: {
+    username: string;
+  } | undefined;
+}
+
+export function Home({ user }: HomeProps) {
   return (
     <AuthProvider>
       <div className="home-container">
@@ -19,9 +25,16 @@ export function Home() {
           <Moon />
         </div>
         <Logo />
-        <p className="journey-subtitle">Enjoy your journey</p>
+        <p className="journey-subtitle">
+          {user ? `Enjoy your journey, ${user.username}` : 'Enjoy your journey'}
+        </p>
         <div className="button-container">
-          <Button href="/lobby">Start your adventure</Button>
+          {user ? [
+            <Button key="create" href="/game/new">Create a game</Button>,
+            <Button key="join" href="/game/join">Join a game</Button>
+          ] : (
+            <Button href="/lobby">Start your adventure</Button>
+          )}
         </div>
         <div className="dune-wrapper">
           <div className="dune-container">

@@ -83,8 +83,13 @@ const CreateGameBodySchema = S.Struct({
 fastify.route({
   method: 'GET',
   url: '/',
-  handler: async function handler(_request, reply) {
-    const component = h(Home, {});
+  handler: async function handler(request, reply) {
+    // Check if user is authenticated and get their info
+    const user = Option.isSome(request.authUser)
+      ? { username: request.authUser.value.username || 'Joueur' }
+      : undefined;
+
+    const component = h(Home, { user });
     const body = renderToString(component);
     const html = renderHtmlPage('Tixid Online', body);
 
