@@ -9,15 +9,15 @@ import {
   NotStartedGameEntity,
   StartedGameEntity,
   StartedGameSnapshot,
-} from 'src/game/game.entity.js';
-import { GameRepository, OptimisticConcurrencyError } from 'src/game/game.repository.js';
+} from '../../game.entity.js';
+import { GameRepository, OptimisticConcurrencyError } from '../../game.repository.js';
 import {
   EndedGameSnapshotSchema,
   NotStartedGameSnapshotSchema,
   StartedGameSnapshotSchema,
-} from 'src/game/game-snapshot.schema.js';
-import { Database } from 'src/infra/db/database.service.js';
-import { gamesTable } from 'src/infra/db/schema.js';
+} from '../../game-snapshot.schema.js';
+import { Database } from '../../../infra/db/database.service.js';
+import { gamesTable } from '../../../infra/db/schema.js';
 
 export const makeDrizzleGameRepository = ({
   db,

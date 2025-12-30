@@ -1,6 +1,6 @@
 /** @jsx h */
 /** @jsxFrag Fragment */
-import { Fragment, h } from "preact";
+import { h } from "preact";
 import { Card } from "./Card.js";
 import { Menu } from "./Menu.js";
 import { Stars } from "./Stars.js";

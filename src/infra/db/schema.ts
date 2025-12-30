@@ -12,12 +12,12 @@ import {
   GameEntitySnapshot,
   NotStartedGameStatus,
   StartedGameStatus,
-} from 'src/game/game.entity.js';
+} from '../../game/game.entity.js';
 import {
   EndedGameSnapshotSchema,
   NotStartedGameSnapshotSchema,
   StartedGameSnapshotSchema,
-} from 'src/game/game-snapshot.schema.js';
+} from '../../game/game-snapshot.schema.js';
 
 export const gamesTable = pgTable('games', {
   id: uuid().primaryKey(),

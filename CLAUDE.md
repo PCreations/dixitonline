@@ -6,7 +6,8 @@
 
 ### Technologies principales
 - **Backend**: Fastify 5.5 (serveur HTTP)
-- **Frontend**: Preact (Server-Side Rendering)
+- **Templating**: Preact JSX + preact-render-to-string (SSR uniquement, pas d'hydratation)
+- **Interactivité frontend**: Alpine.js + HTMX
 - **Base de données**: PostgreSQL + Drizzle ORM
 - **Paradigme**: Programmation fonctionnelle avec Effect
 - **Style**: TailwindCSS 4.1
@@ -17,7 +18,7 @@
 Le projet suit une **architecture hexagonale** (ports & adapters) avec séparation stricte des couches :
 
 ```
-View Layer (Preact SSR)
+View Layer (Preact JSX SSR + Alpine.js + HTMX)
     ↓
 HTTP Layer (Fastify routes)
     ↓
@@ -29,6 +30,12 @@ Repository Pattern (interfaces)
     ↓
 Infrastructure (Drizzle PostgreSQL, In-Memory pour tests)
 ```
+
+### Philosophie Frontend
+- **SSR-first** : Le HTML est généré côté serveur avec Preact JSX
+- **HTMX** : Gère les requêtes AJAX et le remplacement partiel du DOM
+- **Alpine.js** : Gère l'état local et les interactions UI légères
+- **Pas de build JS client** : Pas de bundler, Alpine.js et HTMX sont chargés via CDN
 
 ## Structure du projet
 
@@ -47,9 +54,10 @@ src/
 ├── infra/
 │   ├── db/schema.ts            # Schéma Drizzle PostgreSQL
 │   └── drizzle/                # Migrations générées
-└── view/                       # Frontend Preact
-    ├── components/             # Composants UI
-    ├── render.tsx              # Utilitaires SSR
+└── view/                       # Frontend (SSR + HTMX + Alpine.js)
+    ├── components/             # Composants Preact JSX
+    ├── pages/                  # Pages complètes
+    ├── render.tsx              # Utilitaires SSR (preact-render-to-string)
     └── assets/styles/          # TailwindCSS
 ```
 
@@ -187,6 +195,115 @@ save: (game) =>
       return yield* Effect.fail(new OptimisticLockError({ gameId: game.id }));
     }
   }),
+```
+
+## Patterns Frontend (HTMX + Alpine.js)
+
+### 1. HTMX pour les interactions serveur
+
+HTMX permet de faire des requêtes AJAX et de remplacer des parties du DOM sans JavaScript custom :
+
+```tsx
+// Composant JSX avec attributs HTMX
+const JoinGameButton = ({ gameId }: { gameId: string }) => (
+  <button
+    hx-post={`/game/${gameId}/join`}
+    hx-target="#players-list"
+    hx-swap="innerHTML"
+    class="btn-primary"
+  >
+    Rejoindre la partie
+  </button>
+);
+```
+
+Patterns HTMX courants :
+- `hx-get` / `hx-post` : Requêtes HTTP
+- `hx-target` : Élément à mettre à jour (sélecteur CSS)
+- `hx-swap` : Mode de remplacement (`innerHTML`, `outerHTML`, `beforeend`, etc.)
+- `hx-trigger` : Événement déclencheur (`click`, `submit`, `load`, etc.)
+- `hx-indicator` : Élément à afficher pendant le chargement
+
+### 2. Alpine.js pour l'état local
+
+Alpine.js gère l'interactivité côté client sans requête serveur :
+
+```tsx
+// Composant avec état Alpine.js
+const CardSelector = ({ cards }: { cards: Card[] }) => (
+  <div x-data="{ selectedCard: null }">
+    {cards.map((card) => (
+      <div
+        x-on:click={`selectedCard = '${card.id}'`}
+        x-bind:class={`selectedCard === '${card.id}' ? 'ring-2 ring-blue-500' : ''`}
+        class="card"
+      >
+        <img src={card.imageUrl} alt={card.id} />
+      </div>
+    ))}
+    <button
+      x-bind:disabled="!selectedCard"
+      x-on:click="$refs.form.submit()"
+    >
+      Confirmer
+    </button>
+  </div>
+);
+```
+
+Directives Alpine.js courantes :
+- `x-data` : Définit l'état local du composant
+- `x-on:event` ou `@event` : Gestionnaire d'événement
+- `x-bind:attr` ou `:attr` : Liaison d'attribut dynamique
+- `x-show` / `x-if` : Affichage conditionnel
+- `x-for` : Boucle (rarement nécessaire avec SSR)
+- `$refs` : Références aux éléments DOM
+
+### 3. Combinaison HTMX + Alpine.js
+
+```tsx
+const VoteForm = ({ cards, gameId }: { cards: Card[]; gameId: string }) => (
+  <form
+    x-data="{ selectedCard: null }"
+    hx-post={`/game/${gameId}/vote`}
+    hx-target="#game-board"
+  >
+    <div class="grid grid-cols-3 gap-4">
+      {cards.map((card) => (
+        <label
+          x-bind:class={`selectedCard === '${card.id}' ? 'ring-2' : ''`}
+        >
+          <input
+            type="radio"
+            name="cardId"
+            value={card.id}
+            x-model="selectedCard"
+            class="sr-only"
+          />
+          <img src={card.imageUrl} />
+        </label>
+      ))}
+    </div>
+    <button type="submit" x-bind:disabled="!selectedCard">
+      Voter
+    </button>
+  </form>
+);
+```
+
+### 4. Routes HTMX (fragments HTML)
+
+Les routes HTMX retournent des fragments HTML, pas des pages complètes :
+
+```typescript
+// Route retournant un fragment pour mise à jour partielle
+server.post("/game/:gameId/join", async (request, reply) => {
+  // ... logique métier ...
+
+  // Retourne uniquement le fragment HTML nécessaire
+  reply.type("text/html");
+  return renderToString(<PlayersList players={updatedPlayers} />);
+});
 ```
 
 ## Entités du domaine
@@ -536,12 +653,13 @@ export const MyServiceLive = Layer.succeed(MyService, {
 - [Drizzle ORM](https://orm.drizzle.team/)
 - [Fastify](https://fastify.dev/)
 - [Preact](https://preactjs.com/)
+- [HTMX Documentation](https://htmx.org/docs/)
+- [Alpine.js Documentation](https://alpinejs.dev/)
 
 ## Points d'extension futurs
 
 - [ ] Authentification (module `auth/` prêt)
-- [ ] WebSockets pour notifications temps réel
-- [ ] Frontend client-side avec hydration
+- [ ] Server-Sent Events (SSE) pour notifications temps réel
 - [ ] Event Sourcing pour replay
 - [ ] Analytics et métriques
 - [ ] Support multi-langues (i18n)

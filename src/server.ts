@@ -1,9 +1,11 @@
+import 'dotenv/config';
 import fastifyStatic from '@fastify/static';
 import { Effect, Either, Layer, ManagedRuntime, Option, ParseResult, Schema as S } from 'effect';
 import Fastify, { FastifyInstance } from 'fastify';
 import { dirname, join } from 'path';
 import { h } from 'preact';
 import { fileURLToPath } from 'url';
+import { createJwtVerifier, CurrentUser, registerAuthHook } from './auth/index.js';
 import { CreateGameUseCase } from './game/create-game.usecase.js';
 import { GameLayerLiveWithDependencies } from './game/index.js';
 import { Database } from './infra/db/database.service.js';
@@ -21,6 +23,10 @@ const __dirname = dirname(__filename);
 const databaseUrl =
   process.env.DATABASE_URL ||
   'postgresql://postgres:postgres@localhost:5432/dixitonline';
+
+// Supabase configuration for JWT validation
+const supabaseUrl = process.env.SUPABASE_URL || 'http://127.0.0.1:54321';
+const jwtVerifier = createJwtVerifier({ url: supabaseUrl });
 
 // Create the complete application layer with database
 const AppLayer = Layer.provide(
@@ -53,10 +59,14 @@ const fastify: FastifyInstance = Fastify({
 });
 
 // Register static files plugin
+// Assets are in src/view/assets, not dist/view/assets
 await fastify.register(fastifyStatic, {
-  root: join(__dirname, 'view', 'assets'),
+  root: join(__dirname, '..', 'src', 'view', 'assets'),
   prefix: '/assets/',
 });
+
+// Register auth hook for JWT validation
+registerAuthHook(fastify, { jwtVerifier });
 
 // Handle graceful shutdown of database connections
 // Dispose the ManagedRuntime to trigger cleanup of all scoped resources (database connection)
@@ -68,7 +78,6 @@ fastify.addHook('onClose', async () => {
 
 const CreateGameBodySchema = S.Struct({
   gameId: S.String,
-  hostId: S.String,
 });
 
 fastify.route({
@@ -135,13 +144,16 @@ fastify.route({
 
     // Handle the decoding as an Effect
     const program = Effect.gen(function* () {
+      // Extract playerId from authenticated user
+      const { playerId } = yield* CurrentUser;
+
       const decoded = yield* decodeResult;
-      const { gameId, hostId } = decoded;
+      const { gameId } = decoded;
 
       const createGameUseCase = yield* CreateGameUseCase;
       const result = yield* createGameUseCase.createGame({
         gameId,
-        hostId,
+        hostId: playerId,
         deckId: Option.none(),
         endCondition: Option.none(),
       });
@@ -158,10 +170,20 @@ fastify.route({
       });
     });
 
-    // Use the long-lived runtime instead of providing the layer on each request
-    return appRuntime.runPromise(program).catch((error) => {
-      // Handle validation errors
-      if (ParseResult.isParseError(error)) {
+    // Use the long-lived runtime and provide the auth layer from the request
+    return appRuntime
+      .runPromise(program.pipe(Effect.provide(request.authLayer)))
+      .catch((error) => {
+        // Handle missing authorization
+        if (error._tag === 'MissingAuthorizationHeader') {
+          return reply.status(401).send({
+            error: 'Unauthorized',
+            details: 'Authentication required',
+          });
+        }
+
+        // Handle validation errors
+        if (ParseResult.isParseError(error)) {
         const formatted = ParseResult.TreeFormatter.formatErrorSync(error);
         // @ts-ignore - pino type issue with FastifyBaseLogger
         request.log.warn({ err: error, formatted }, 'Invalid request body');

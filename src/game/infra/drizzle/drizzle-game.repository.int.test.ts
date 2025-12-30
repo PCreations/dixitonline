@@ -1,20 +1,20 @@
 import { Effect, Either, Option } from 'effect';
-import { Card, CardId } from 'src/game/deck.entity.js';
+import { Card, CardId } from '../../deck.entity.js';
 import {
   StartedGameEntity,
   StartedGameSnapshot,
-} from 'src/game/game.entity.js';
-import { OptimisticConcurrencyError } from 'src/game/game.repository.js';
-import { PlayerId } from 'src/game/player.entity.js';
-import { gamesTable } from 'src/infra/db/schema.js';
-import { getTestDb } from 'src/shared/tests/setup/test-db.js';
+} from '../../game.entity.js';
+import { OptimisticConcurrencyError } from '../../game.repository.js';
+import { PlayerId } from '../../player.entity.js';
+import { gamesTable } from '../../../infra/db/schema.js';
+import { getTestDb } from '../../../shared/tests/setup/test-db.js';
 import {
   cardId,
   deckId,
   gameId,
   playerId,
   turnId,
-} from 'src/shared/tests/uuid-test-helper.js';
+} from '../../../shared/tests/uuid-test-helper.js';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { makeDrizzleGameRepository } from './drizzle-game.repository.js';
 

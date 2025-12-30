@@ -41,7 +41,10 @@
       "Bash(pnpm biome check:*)",
       "Bash(pnpm tsc:*)",
       "Bash(tree:*)",
-      "Bash(lsof:*)"
+      "Bash(lsof:*)",
+      "Bash(find:*)",
+      "Bash(cat:*)",
+      "Bash(timeout 5 pnpm start:*)"
     ]
   },
   "enableAllProjectMcpServers": false,
