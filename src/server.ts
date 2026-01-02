@@ -1,4 +1,20 @@
 import 'dotenv/config';
+import * as Sentry from '@sentry/node';
+
+// Initialize Sentry BEFORE other imports for automatic instrumentation
+const sentryDsn = process.env.SENTRY_DSN;
+if (sentryDsn) {
+  Sentry.init({
+    dsn: sentryDsn,
+    environment: process.env.NODE_ENV || 'development',
+    tracesSampleRate: 1.0,
+    // Skip automatic OpenTelemetry setup - we use Effect's NodeSdk instead
+    skipOpenTelemetrySetup: true,
+  });
+} else {
+  console.log('SENTRY_DSN not set, Sentry disabled');
+}
+
 import fastifyFormbody from '@fastify/formbody';
 import fastifyStatic from '@fastify/static';
 import { Effect, Either, Layer, ManagedRuntime, Option, Stream } from 'effect';
@@ -17,6 +33,7 @@ import { GameEventBus, GameLayerLiveWithDependencies } from './game/index.js';
 import { JoinGameUseCase } from './game/join-game.usecase.js';
 import { LobbyQueryService } from './game/lobby.query-service.js';
 import { Database } from './infra/db/database.service.js';
+import { TracingLive, withSentryErrorCapture } from './infra/observability/index.js';
 import {
   DrizzleOutboxRepository,
   OutboxEventRelay,
@@ -50,11 +67,14 @@ const jwtVerifier = createJwtVerifier({ url: supabaseUrl });
 // Create the complete application layer with database
 const DatabaseLayer = Database.Live({ connectionString: databaseUrl });
 
-// Base application layer
+// Base application layer with tracing
 const AppLayer = Layer.mergeAll(
   GameLayerLiveWithDependencies,
   PlayerLayerLive,
-).pipe(Layer.provide(DatabaseLayer));
+).pipe(
+  Layer.provide(DatabaseLayer),
+  Layer.provide(TracingLive),
+);
 
 // Create a long-lived ManagedRuntime with the AppLayer
 // This runtime will be used for all requests and maintains the database connection
@@ -120,6 +140,10 @@ const fastify: FastifyInstance = Fastify({
       }
     : true,
 });
+
+// Setup Sentry error handler for Fastify (automatically captures errors)
+// @ts-expect-error - Sentry types not fully compatible with Fastify 5
+Sentry.setupFastifyErrorHandler(fastify);
 
 // Register static files plugin
 // Assets are in src/view/assets, not dist/view/assets
@@ -227,14 +251,17 @@ fastify.route({
       return reply.type('text/html').send(html);
     });
 
-    return appRuntime.runPromise(program).catch((error) => {
-      // @ts-ignore - pino type issue with FastifyBaseLogger
-      request.log.error({ err: error }, 'Failed to load lobby');
-      return reply.status(500).send({
-        error: 'Failed to load lobby',
-        details: error.message || 'An unexpected error occurred',
+    return appRuntime
+      .runPromise(program.pipe(withSentryErrorCapture))
+      .catch((error) => {
+        // Error already captured to Sentry by withSentryErrorCapture
+        // @ts-ignore - pino type issue with FastifyBaseLogger
+        request.log.error({ err: error }, 'Failed to load lobby');
+        return reply.status(500).send({
+          error: 'Failed to load lobby',
+          details: error.message || 'An unexpected error occurred',
+        });
       });
-    });
   },
 });
 
@@ -267,11 +294,13 @@ fastify.route({
         // @ts-ignore - pino type issue with FastifyBaseLogger
         request.log.error({ err: error }, 'Failed to join game');
 
-        // Handle specific errors
+        // Handle specific errors (don't send business errors to Sentry)
         if (error.message === 'Game not found') {
           return reply.status(404).send({ error: 'Game not found' });
         }
 
+        // Capture unexpected errors to Sentry
+        Sentry.captureException(error);
         return reply.status(500).send({
           error: 'Failed to join game',
           details: error.message || 'An unexpected error occurred',
@@ -374,6 +403,8 @@ fastify.route({
           return reply.redirect('/');
         }
 
+        // Capture unexpected errors to Sentry
+        Sentry.captureException(error);
         // @ts-ignore - pino type issue with FastifyBaseLogger
         request.log.error({ err: error }, 'Unexpected error');
         return reply.status(500).send({
@@ -524,11 +555,14 @@ fastify.route({
       return reply.type('text/html').send(html);
     });
 
-    return appRuntime.runPromise(program).catch((error) => {
-      // @ts-ignore - pino type issue
-      request.log.error({ err: error }, 'Failed to load lobby content');
-      return reply.status(500).send({ error: 'Failed to load lobby content' });
-    });
+    return appRuntime
+      .runPromise(program.pipe(withSentryErrorCapture))
+      .catch((error) => {
+        // Error already captured to Sentry by withSentryErrorCapture
+        // @ts-ignore - pino type issue
+        request.log.error({ err: error }, 'Failed to load lobby content');
+        return reply.status(500).send({ error: 'Failed to load lobby content' });
+      });
   },
 });
 

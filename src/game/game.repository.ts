@@ -1,5 +1,4 @@
 import { Context, Data, Effect, Layer, Option, ParseResult } from "effect";
-import { UnknownException } from "effect/Cause";
 import type { GameEvent } from "./game-events.js";
 import {
   EndedGameEntity,
@@ -13,10 +12,23 @@ export class OptimisticConcurrencyError extends Data.TaggedError(
   "OptimisticConcurrencyError",
 )<{}> {}
 
+/**
+ * Database error that preserves the original error in the cause chain.
+ * Uses native ES2022 Error cause so Sentry can display the full error chain.
+ */
+export class DatabaseError extends Error {
+  readonly _tag = "DatabaseError" as const;
+
+  constructor(options: { message: string; cause: unknown }) {
+    super(options.message, { cause: options.cause });
+    this.name = "DatabaseError";
+  }
+}
+
 export class GameRepository extends Effect.Tag("game/GameRepository")<
   GameRepository,
   {
-    save: (game: GameEntity) => Effect.Effect<void, OptimisticConcurrencyError | UnknownException | ParseResult.ParseError>;
+    save: (game: GameEntity) => Effect.Effect<void, OptimisticConcurrencyError | DatabaseError | ParseResult.ParseError>;
     /**
      * Save the game and events atomically in a transaction.
      * Events are inserted into the outbox table for reliable delivery.
@@ -24,23 +36,23 @@ export class GameRepository extends Effect.Tag("game/GameRepository")<
     saveWithEvents: (
       game: GameEntity,
       events: ReadonlyArray<GameEvent>,
-    ) => Effect.Effect<void, OptimisticConcurrencyError | UnknownException | ParseResult.ParseError>;
+    ) => Effect.Effect<void, OptimisticConcurrencyError | DatabaseError | ParseResult.ParseError>;
     findById: (
       id: string,
-    ) => Effect.Effect<Option.Option<NotStartedGameEntity | StartedGameEntity>, ParseResult.ParseError>;
+    ) => Effect.Effect<Option.Option<NotStartedGameEntity | StartedGameEntity>, ParseResult.ParseError | DatabaseError>;
     findNotStartedGameById: (
       id: string,
-    ) => Effect.Effect<Option.Option<NotStartedGameEntity>, ParseResult.ParseError>;
+    ) => Effect.Effect<Option.Option<NotStartedGameEntity>, ParseResult.ParseError | DatabaseError>;
     findStartedGameById: (
       id: string,
-    ) => Effect.Effect<Option.Option<StartedGameEntity>, ParseResult.ParseError>;
+    ) => Effect.Effect<Option.Option<StartedGameEntity>, ParseResult.ParseError | DatabaseError>;
     findEndedGameById: (
       id: string,
-    ) => Effect.Effect<Option.Option<EndedGameEntity>, ParseResult.ParseError>;
+    ) => Effect.Effect<Option.Option<EndedGameEntity>, ParseResult.ParseError | DatabaseError>;
     isPlayerInGame: (
       gameId: string,
       playerId: string,
-    ) => Effect.Effect<boolean>;
+    ) => Effect.Effect<boolean, DatabaseError>;
     simulateStaleRead: (staleGame: GameEntity) => Effect.Effect<void>;
   }
 >() {}

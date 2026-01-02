@@ -4,6 +4,7 @@ import {
   isStartedGameSnapshot,
   StartedGameEntity,
 } from "../game.entity.js";
+import { DatabaseError } from "../game.repository.js";
 import { PlayerId } from "../player.entity.js";
 import { GameDriver } from "./game.driver.js";
 
@@ -172,7 +173,7 @@ export class GameBuilder {
     return this.config.deckId ?? "default-deck-id";
   }
 
-  build(driver: Context.Tag.Service<GameDriver>): Effect.Effect<GameEntitySnapshot, ParseResult.ParseError> {
+  build(driver: Context.Tag.Service<GameDriver>): Effect.Effect<GameEntitySnapshot, ParseResult.ParseError | DatabaseError> {
     const self = this;
 
     return Effect.gen(function* () {

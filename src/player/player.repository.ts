@@ -1,5 +1,4 @@
 import { Context, Data, Effect, Layer, Option, ParseResult } from 'effect';
-import { UnknownException } from 'effect/Cause';
 import { PlayerEntity, PlayerId } from './player.entity.js';
 
 export class OptimisticConcurrencyError extends Data.TaggedError(
@@ -7,6 +6,19 @@ export class OptimisticConcurrencyError extends Data.TaggedError(
 )<{
   readonly playerId: PlayerId;
 }> {}
+
+/**
+ * Database error that preserves the original error in the cause chain.
+ * Uses native ES2022 Error cause so Sentry can display the full error chain.
+ */
+export class DatabaseError extends Error {
+  readonly _tag = "DatabaseError" as const;
+
+  constructor(options: { message: string; cause: unknown }) {
+    super(options.message, { cause: options.cause });
+    this.name = "DatabaseError";
+  }
+}
 
 export class PlayerRepository extends Effect.Tag('player/PlayerRepository')<
   PlayerRepository,
@@ -17,7 +29,10 @@ export class PlayerRepository extends Effect.Tag('player/PlayerRepository')<
      */
     readonly findById: (
       id: PlayerId,
-    ) => Effect.Effect<Option.Option<PlayerEntity>, ParseResult.ParseError>;
+    ) => Effect.Effect<
+      Option.Option<PlayerEntity>,
+      ParseResult.ParseError | DatabaseError
+    >;
 
     /**
      * Find multiple players by their IDs in a single query.
@@ -27,7 +42,7 @@ export class PlayerRepository extends Effect.Tag('player/PlayerRepository')<
       ids: ReadonlyArray<PlayerId>,
     ) => Effect.Effect<
       ReadonlyMap<PlayerId, PlayerEntity>,
-      ParseResult.ParseError
+      ParseResult.ParseError | DatabaseError
     >;
 
     /**
@@ -40,7 +55,7 @@ export class PlayerRepository extends Effect.Tag('player/PlayerRepository')<
       player: PlayerEntity,
     ) => Effect.Effect<
       void,
-      OptimisticConcurrencyError | UnknownException | ParseResult.ParseError
+      OptimisticConcurrencyError | DatabaseError | ParseResult.ParseError
     >;
   }
 >() {}

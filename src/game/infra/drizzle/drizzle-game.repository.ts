@@ -13,6 +13,7 @@ import {
   StartedGameSnapshot,
 } from '../../game.entity.js';
 import {
+  DatabaseError,
   GameRepository,
   OptimisticConcurrencyError,
 } from '../../game.repository.js';
@@ -22,6 +23,13 @@ import {
   NotStartedGameSnapshotSchema,
   StartedGameSnapshotSchema,
 } from '../../game-snapshot.schema.js';
+
+// Helper to wrap database errors with proper cause chain
+const toDatabaseError = (error: unknown): DatabaseError =>
+  new DatabaseError({
+    message: error instanceof Error ? error.message : String(error),
+    cause: error,
+  });
 
 export const makeDrizzleGameRepository = ({
   db,
@@ -95,9 +103,10 @@ export const makeDrizzleGameRepository = ({
       return Effect.gen(function* () {
         const encodedData = yield* encodeGameSnapshot(game);
 
-        const result = yield* Effect.tryPromise(() =>
-          saveGameToDb(db, game, encodedData),
-        );
+        const result = yield* Effect.tryPromise({
+          try: () => saveGameToDb(db, game, encodedData),
+          catch: toDatabaseError,
+        });
 
         // Check if update was successful (affected rows)
         // When onConflictDoUpdate WHERE clause doesn't match any rows (version mismatch),
@@ -107,39 +116,49 @@ export const makeDrizzleGameRepository = ({
         }
 
         return yield* Effect.void;
-      });
+      }).pipe(
+        Effect.withSpan('GameRepository.save', {
+          attributes: { 'game.id': game.id },
+        }),
+      );
     },
 
     saveWithEvents: (game: GameEntity, events: ReadonlyArray<GameEvent>) => {
       return Effect.gen(function* () {
         const encodedData = yield* encodeGameSnapshot(game);
 
-        const result = yield* Effect.tryPromise(async () => {
-          return await db.transaction(async (tx) => {
-            // 1. Save the game
-            const saveResult = await saveGameToDb(tx, game, encodedData);
+        const result = yield* Effect.tryPromise({
+          try: async () => {
+            return await db.transaction(async (tx) => {
+              // 1. Save the game
+              const saveResult = await saveGameToDb(tx, game, encodedData);
 
-            // Check optimistic concurrency before inserting events
-            if (saveResult.rowCount === 0) {
-              // Rollback will happen automatically when we throw
-              throw new OptimisticConcurrencyError();
-            }
+              // Check optimistic concurrency before inserting events
+              if (saveResult.rowCount === 0) {
+                // Rollback will happen automatically when we throw
+                throw new OptimisticConcurrencyError();
+              }
 
-            // 2. Insert events into outbox
-            if (events.length > 0) {
-              const outboxEvents = events.map((event) => ({
-                aggregateType: 'game' as const,
-                aggregateId: game.id,
-                aggregateVersion: game.version,
-                eventType: event._tag,
-                payload: event,
-              }));
+              // 2. Insert events into outbox
+              if (events.length > 0) {
+                const outboxEvents = events.map((event) => ({
+                  aggregateType: 'game' as const,
+                  aggregateId: game.id,
+                  aggregateVersion: game.version,
+                  eventType: event._tag,
+                  payload: event,
+                }));
 
-              await tx.insert(outboxEventsTable).values(outboxEvents);
-            }
+                await tx.insert(outboxEventsTable).values(outboxEvents);
+              }
 
-            return saveResult;
-          });
+              return saveResult;
+            });
+          },
+          catch: (error) =>
+            error instanceof OptimisticConcurrencyError
+              ? error
+              : toDatabaseError(error),
         });
 
         // The transaction already checked for optimistic concurrency
@@ -149,16 +168,26 @@ export const makeDrizzleGameRepository = ({
         }
 
         return yield* Effect.void;
-      });
+      }).pipe(
+        Effect.withSpan('GameRepository.saveWithEvents', {
+          attributes: {
+            'game.id': game.id,
+            'events.count': events.length,
+          },
+        }),
+      );
     },
     findById: (id: string) => {
       return Effect.gen(function* () {
-        const result = yield* Effect.promise(async () => {
-          return await db
-            .select()
-            .from(gamesTable)
-            .where(eq(gamesTable.id, id))
-            .limit(1);
+        const result = yield* Effect.tryPromise({
+          try: async () => {
+            return await db
+              .select()
+              .from(gamesTable)
+              .where(eq(gamesTable.id, id))
+              .limit(1);
+          },
+          catch: toDatabaseError,
         });
 
         if (result.length === 0) {
@@ -201,16 +230,23 @@ export const makeDrizzleGameRepository = ({
         }
 
         return Option.none();
-      });
+      }).pipe(
+        Effect.withSpan('GameRepository.findById', {
+          attributes: { 'game.id': id },
+        }),
+      );
     },
     findNotStartedGameById: (id: string) => {
       return Effect.gen(function* () {
-        const result = yield* Effect.promise(async () => {
-          return await db
-            .select()
-            .from(gamesTable)
-            .where(eq(gamesTable.id, id))
-            .limit(1);
+        const result = yield* Effect.tryPromise({
+          try: async () => {
+            return await db
+              .select()
+              .from(gamesTable)
+              .where(eq(gamesTable.id, id))
+              .limit(1);
+          },
+          catch: toDatabaseError,
         });
 
         if (result.length === 0 || result[0].status !== 'NotStartedGame') {
@@ -221,16 +257,23 @@ export const makeDrizzleGameRepository = ({
           NotStartedGameSnapshotSchema,
         )(result[0].data);
         return Option.some(NotStartedGameEntity.fromSnapshot(snapshot));
-      });
+      }).pipe(
+        Effect.withSpan('GameRepository.findNotStartedGameById', {
+          attributes: { 'game.id': id },
+        }),
+      );
     },
     findStartedGameById: (id: string) => {
       return Effect.gen(function* () {
-        const result = yield* Effect.promise(async () => {
-          return await db
-            .select()
-            .from(gamesTable)
-            .where(eq(gamesTable.id, id))
-            .limit(1);
+        const result = yield* Effect.tryPromise({
+          try: async () => {
+            return await db
+              .select()
+              .from(gamesTable)
+              .where(eq(gamesTable.id, id))
+              .limit(1);
+          },
+          catch: toDatabaseError,
         });
 
         if (result.length === 0 || result[0].status !== 'StartedGame') {
@@ -258,16 +301,23 @@ export const makeDrizzleGameRepository = ({
             snapshotWithMap as unknown as Omit<StartedGameSnapshot, 'status'>,
           ),
         );
-      });
+      }).pipe(
+        Effect.withSpan('GameRepository.findStartedGameById', {
+          attributes: { 'game.id': id },
+        }),
+      );
     },
     findEndedGameById: (id: string) => {
       return Effect.gen(function* () {
-        const result = yield* Effect.promise(async () => {
-          return await db
-            .select()
-            .from(gamesTable)
-            .where(eq(gamesTable.id, id))
-            .limit(1);
+        const result = yield* Effect.tryPromise({
+          try: async () => {
+            return await db
+              .select()
+              .from(gamesTable)
+              .where(eq(gamesTable.id, id))
+              .limit(1);
+          },
+          catch: toDatabaseError,
         });
 
         if (result.length === 0 || result[0].status !== 'EndedGame') {
@@ -278,16 +328,23 @@ export const makeDrizzleGameRepository = ({
           result[0].data,
         );
         return Option.some(EndedGameEntity.fromSnapshot(snapshot));
-      });
+      }).pipe(
+        Effect.withSpan('GameRepository.findEndedGameById', {
+          attributes: { 'game.id': id },
+        }),
+      );
     },
     isPlayerInGame: (gameId: string, playerId: string) => {
       return Effect.gen(function* () {
-        const result = yield* Effect.promise(async () => {
-          return await db
-            .select()
-            .from(gamesTable)
-            .where(eq(gamesTable.id, gameId))
-            .limit(1);
+        const result = yield* Effect.tryPromise({
+          try: async () => {
+            return await db
+              .select()
+              .from(gamesTable)
+              .where(eq(gamesTable.id, gameId))
+              .limit(1);
+          },
+          catch: toDatabaseError,
         });
 
         if (result.length === 0) {
@@ -296,7 +353,11 @@ export const makeDrizzleGameRepository = ({
 
         const game = result[0];
         return game.data.players.includes(playerId);
-      });
+      }).pipe(
+        Effect.withSpan('GameRepository.isPlayerInGame', {
+          attributes: { 'game.id': gameId, 'player.id': playerId },
+        }),
+      );
     },
     simulateStaleRead: () => Effect.void,
   };

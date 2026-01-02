@@ -23,7 +23,7 @@ import {
   PlayersRandomizeStrategyType,
   StartedGameSnapshot,
 } from "../game.entity.js";
-import { GameRepository, InMemoryGameRepository } from "../game.repository.js";
+import { DatabaseError, GameRepository, InMemoryGameRepository } from "../game.repository.js";
 import { ScoreReason } from "../game-rules.js";
 import { GameView, InMemoryGameView } from "../game-view.js";
 import {
@@ -52,16 +52,19 @@ type EndConditionDto =
     limit: number;
   };
 
+// Common error type for test driver operations that may fail with DB or parse errors
+type DriverError = ParseResult.ParseError | DatabaseError;
+
 interface GameDriverDSL {
   readonly getGameSnapshot: (
     gameId: string,
-  ) => Effect.Effect<GameEntitySnapshot, ParseResult.ParseError>;
+  ) => Effect.Effect<GameEntitySnapshot, DriverError>;
   readonly getStartedGameSnapshot: (
     gameId: string,
-  ) => Effect.Effect<StartedGameSnapshot, ParseResult.ParseError>;
+  ) => Effect.Effect<StartedGameSnapshot, DriverError>;
   readonly gameEndedGameSnapshot: (
     gameId: string,
-  ) => Effect.Effect<EndedGameSnapshot, ParseResult.ParseError>;
+  ) => Effect.Effect<EndedGameSnapshot, DriverError>;
   readonly unsafe__saveGameEntity: (game: GameEntity) => Effect.Effect<void>;
   readonly given: {
     readonly defaultDeck: (props: {
@@ -90,7 +93,7 @@ interface GameDriverDSL {
     ) => Effect.Effect<{
       game: GameEntitySnapshot;
       deck: DeckSnapshot;
-    }, ParseResult.ParseError>;
+    }, DriverError>;
   };
   readonly withFailFastMode: () => GameDriverDSL;
   readonly when: {
@@ -108,7 +111,7 @@ interface GameDriverDSL {
       gameId: string;
       playerId: string;
       playerThatHasJustJoinedInBetween: string;
-    }) => Effect.Effect<void, ParseResult.ParseError>;
+    }) => Effect.Effect<void, DriverError>;
     readonly leavingGame: (props: {
       gameId: string;
       playerId: string;
@@ -122,7 +125,7 @@ interface GameDriverDSL {
       gameId: string;
       playerId: string;
       playerThatHasLeftInBetween: string;
-    }) => Effect.Effect<void, ParseResult.ParseError>;
+    }) => Effect.Effect<void, DriverError>;
     readonly submittingClue: (props: {
       gameId: string;
       playerId: string;
@@ -151,11 +154,11 @@ interface GameDriverDSL {
       deckId: string;
       endCondition?: EndConditionDto;
       players: ReadonlyArray<string>;
-    }) => Effect.Effect<void, ParseResult.ParseError, never>;
+    }) => Effect.Effect<void, DriverError, never>;
     readonly playerToHaveJoinedGame: (props: {
       gameId: string;
       playerId: string;
-    }) => Effect.Effect<void, never, never>;
+    }) => Effect.Effect<void, DriverError, never>;
     readonly playerToNotHaveBeenAbleToJoinGame: (props?: {
       error?: string;
     }) => Effect.Effect<void, never, never>;
@@ -168,14 +171,14 @@ interface GameDriverDSL {
     readonly gameToHavePlayers: (props: {
       gameId: string;
       players: ReadonlyArray<string>;
-    }) => Effect.Effect<void, ParseResult.ParseError, never>;
+    }) => Effect.Effect<void, DriverError, never>;
     readonly gameToHaveBeenStarted: (props: {
       gameId: string;
-    }) => Effect.Effect<void, ParseResult.ParseError, never>;
+    }) => Effect.Effect<void, DriverError, never>;
     readonly currentTurnToBeStarted: (props: {
       gameId: string;
       storytellerId: string;
-    }) => Effect.Effect<void, ParseResult.ParseError, never>;
+    }) => Effect.Effect<void, DriverError, never>;
     readonly newTurnToBeStarted: (props: {
       gameId: string;
       storytellerId: string;
@@ -190,29 +193,29 @@ interface GameDriverDSL {
       playersHavingBeenStoryteller: {
         [playerId: string]: number;
       };
-    }) => Effect.Effect<void, ParseResult.ParseError, never>;
+    }) => Effect.Effect<void, DriverError, never>;
     readonly playerHandsToEqual: (props: {
       gameId: string;
       playerHands: ReadonlyArray<{
         playerId: string;
         cards: ReadonlyArray<string>;
       }>;
-    }) => Effect.Effect<void, ParseResult.ParseError, never>;
+    }) => Effect.Effect<void, DriverError, never>;
     readonly turnClueToBeSubmitted: (props: {
       gameId: string;
       storytellerClue: string;
       storytellerCardId: string;
-    }) => Effect.Effect<void, ParseResult.ParseError, never>;
+    }) => Effect.Effect<void, DriverError, never>;
     readonly turnToHaveSelectedCards: (props: {
       gameId: string;
       selectedCards: ReadonlyArray<{
         cardId: string;
         playerId: string;
       }>;
-    }) => Effect.Effect<void, ParseResult.ParseError, never>;
+    }) => Effect.Effect<void, DriverError, never>;
     readonly turnToBeInVotingPhase: (props: {
       gameId: string;
-    }) => Effect.Effect<void, ParseResult.ParseError, never>;
+    }) => Effect.Effect<void, DriverError, never>;
     readonly playerToNotHaveBeenAbleToSubmitClue: (props?: {
       error?: string;
     }) => Effect.Effect<void, never, never>;
@@ -224,24 +227,24 @@ interface GameDriverDSL {
       votedBy: string;
       ownedBy: string;
       cardId: string;
-    }) => Effect.Effect<void, ParseResult.ParseError, never>;
+    }) => Effect.Effect<void, DriverError, never>;
     readonly playerToNotHaveBeenAbleToVoteOnCard: (props?: {
       error?: string;
     }) => Effect.Effect<void, never, never>;
     readonly turnToBeInScoringPhase: (props: {
       gameId: string;
-    }) => Effect.Effect<void, ParseResult.ParseError, never>;
+    }) => Effect.Effect<void, DriverError, never>;
     readonly playersToHaveScore: (props: {
       gameId: string;
       scores: ReadonlyArray<{
         playerId: string;
         score: number;
       }>;
-    }) => Effect.Effect<void, ParseResult.ParseError, never>;
+    }) => Effect.Effect<void, DriverError, never>;
     readonly playersReadyForNextTurnToEqual: (props: {
       gameId: string;
       playersReadyForNextTurn: ReadonlyArray<string>;
-    }) => Effect.Effect<void, ParseResult.ParseError, never>;
+    }) => Effect.Effect<void, DriverError, never>;
     readonly playerToNotHaveBeenAbleToNotifyToBeReadyForNextTurn: (props?: {
       error?: string;
     }) => Effect.Effect<void, never, never>;
@@ -251,7 +254,7 @@ interface GameDriverDSL {
     }) => Effect.Effect<void, never, never>;
     readonly gameToBeEnded: (props: {
       gameId: string;
-    }) => Effect.Effect<void, ParseResult.ParseError, never>;
+    }) => Effect.Effect<void, DriverError, never>;
   };
 }
 
@@ -629,20 +632,20 @@ const makeUnitTestGameDriver = ({
       }),
     playerToNotHaveBeenAbleToJoinGame: (props) =>
       Effect.sync(() => {
-        expect(testState.currentError).toEqual(
-          Option.some(new Error(props?.error)),
+        expect(Option.map(testState.currentError, (e) => e.message)).toEqual(
+          Option.some(props?.error),
         );
       }),
     playerToNotHaveBeenAbleToLeaveGame: (props) =>
       Effect.sync(() => {
-        expect(testState.currentError).toEqual(
-          Option.some(new Error(props?.error)),
+        expect(Option.map(testState.currentError, (e) => e.message)).toEqual(
+          Option.some(props?.error),
         );
       }),
     playerToNotHaveBeenAbleToStartGame: (props) =>
       Effect.sync(() => {
-        expect(testState.currentError).toEqual(
-          Option.some(new Error(props?.error)),
+        expect(Option.map(testState.currentError, (e) => e.message)).toEqual(
+          Option.some(props?.error),
         );
       }),
     gameToHavePlayers: (props) => {
@@ -820,14 +823,14 @@ const makeUnitTestGameDriver = ({
     },
     playerToNotHaveBeenAbleToSubmitClue: (props) =>
       Effect.sync(() => {
-        expect(testState.currentError).toEqual(
-          Option.some(new Error(props?.error)),
+        expect(Option.map(testState.currentError, (e) => e.message)).toEqual(
+          Option.some(props?.error),
         );
       }),
     playerToNotHaveBeenAbleToSelectCard: (props) =>
       Effect.sync(() => {
-        expect(testState.currentError).toEqual(
-          Option.some(new Error(props?.error)),
+        expect(Option.map(testState.currentError, (e) => e.message)).toEqual(
+          Option.some(props?.error),
         );
       }),
     playerToHaveVotedOnCard: (props) =>
@@ -852,8 +855,8 @@ const makeUnitTestGameDriver = ({
       }),
     playerToNotHaveBeenAbleToVoteOnCard: (props) =>
       Effect.sync(() => {
-        expect(testState.currentError).toEqual(
-          Option.some(new Error(props?.error)),
+        expect(Option.map(testState.currentError, (e) => e.message)).toEqual(
+          Option.some(props?.error),
         );
       }),
     playersReadyForNextTurnToEqual: (props) => {
@@ -872,8 +875,8 @@ const makeUnitTestGameDriver = ({
     },
     playerToNotHaveBeenAbleToNotifyToBeReadyForNextTurn: (props) =>
       Effect.sync(() => {
-        expect(testState.currentError).toEqual(
-          Option.some(new Error(props?.error)),
+        expect(Option.map(testState.currentError, (e) => e.message)).toEqual(
+          Option.some(props?.error),
         );
       }),
     gameViewToEqual: (props) => {
