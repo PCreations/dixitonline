@@ -1,4 +1,5 @@
 import {
+  boolean,
   integer,
   jsonb,
   pgTable,
@@ -35,6 +36,18 @@ export const gamesTable = pgTable('games', {
 });
 
 export type InsertDrizzleGameDto = typeof gamesTable.$inferInsert;
+
+export const playersTable = pgTable('players', {
+  id: uuid().primaryKey(), // = auth.users.id (Supabase UUID)
+  username: text().notNull(),
+  email: text(), // nullable - set when user links email
+  isAnonymous: boolean().notNull().default(true),
+  createdAt: timestamp().notNull().defaultNow(),
+  updatedAt: timestamp().notNull().defaultNow(),
+});
+
+export type InsertDrizzlePlayerDto = typeof playersTable.$inferInsert;
+export type SelectDrizzlePlayerDto = typeof playersTable.$inferSelect;
 
 export const InsertDrizzleNotStartedGameDtoSchema = Schema.Struct({
   id: Schema.String,

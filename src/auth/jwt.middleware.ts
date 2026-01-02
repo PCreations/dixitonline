@@ -1,7 +1,7 @@
 import { Data, Effect } from 'effect';
 import * as jose from 'jose';
 
-import { PlayerId } from '../game/player.entity.js';
+import { PlayerId } from '../player/player.entity.js';
 import type { AuthUser } from './auth.service.js';
 
 export class InvalidJwtError extends Data.TaggedError('InvalidJwtError')<{

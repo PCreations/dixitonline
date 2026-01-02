@@ -16,6 +16,7 @@ import { GameLayerLiveWithDependencies } from './game/index.js';
 import { JoinGameUseCase } from './game/join-game.usecase.js';
 import { LobbyQueryService } from './game/lobby.query-service.js';
 import { Database } from './infra/db/database.service.js';
+import { EnsurePlayerExistsUseCase, PlayerId, PlayerLayerLive } from './player/index.js';
 import { CreateGame } from './view/components/CreateGame.js';
 import { Game } from './view/components/Game.js';
 import { Home } from './view/components/Home.js';
@@ -38,10 +39,10 @@ const supabaseUrl = process.env.SUPABASE_URL || 'http://127.0.0.1:54321';
 const jwtVerifier = createJwtVerifier({ url: supabaseUrl });
 
 // Create the complete application layer with database
-const AppLayer = Layer.provide(
+const AppLayer = Layer.mergeAll(
   GameLayerLiveWithDependencies,
-  Database.Live({ connectionString: databaseUrl }),
-);
+  PlayerLayerLive,
+).pipe(Layer.provide(Database.Live({ connectionString: databaseUrl })));
 
 // Create a long-lived ManagedRuntime with the AppLayer
 // This runtime will be used for all requests and maintains the database connection
@@ -77,8 +78,21 @@ await fastify.register(fastifyStatic, {
 // Register form body parser for HTML forms
 await fastify.register(fastifyFormbody);
 
-// Register auth hook for JWT validation
-registerAuthHook(fastify, { jwtVerifier });
+// Register auth hook for JWT validation + player sync
+registerAuthHook(fastify, {
+  jwtVerifier,
+  onAuthenticated: async (user) => {
+    const program = Effect.gen(function* () {
+      const ensurePlayerExistsUseCase = yield* EnsurePlayerExistsUseCase;
+      yield* ensurePlayerExistsUseCase.execute({
+        playerId: PlayerId(user.playerId),
+        username: user.username,
+        isAnonymous: user.isAnonymous,
+      });
+    });
+    await appRuntime.runPromise(program);
+  },
+});
 
 // Handle graceful shutdown of database connections
 // Dispose the ManagedRuntime to trigger cleanup of all scoped resources (database connection)

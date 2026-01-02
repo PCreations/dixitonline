@@ -1,6 +1,6 @@
 import { Context, Layer } from 'effect';
 
-import type { PlayerId } from '../game/player.entity.js';
+import type { PlayerId } from '../player/player.entity.js';
 
 export interface AuthUser {
 	readonly playerId: PlayerId;

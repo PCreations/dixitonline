@@ -1,5 +1,2 @@
-import { Brand } from 'effect';
-
-export type PlayerId = string & Brand.Brand<'PlayerId'>;
-
-export const PlayerId = Brand.nominal<PlayerId>();
+// Re-export PlayerId from the player module for backwards compatibility
+export { PlayerId } from '../player/player.entity.js';

@@ -8,6 +8,13 @@
       "when": 1760991314913,
       "tag": "0000_stormy_ultragirl",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1767351523655,
+      "tag": "0001_create_players_table",
+      "breakpoints": true
     }
   ]
 }

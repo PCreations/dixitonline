@@ -17,6 +17,11 @@ declare module 'fastify' {
 
 export interface AuthHookConfig {
 	readonly jwtVerifier: JwtVerifier;
+	/**
+	 * Optional callback to sync player to database when authenticated.
+	 * Called with the authenticated user to ensure player exists in DB.
+	 */
+	readonly onAuthenticated?: (user: AuthUser) => Promise<void>;
 }
 
 // Extract token from cookie header
@@ -32,7 +37,7 @@ const extractTokenFromCookie = (
 };
 
 export const createAuthHook = (config: AuthHookConfig) => {
-	const { jwtVerifier } = config;
+	const { jwtVerifier, onAuthenticated } = config;
 
 	return async (request: FastifyRequest, _reply: FastifyReply) => {
 		// Try Authorization header first, then fallback to cookie
@@ -62,6 +67,17 @@ export const createAuthHook = (config: AuthHookConfig) => {
 				),
 			),
 		);
+
+		// Sync player to database if authenticated
+		if (Option.isSome(result) && onAuthenticated) {
+			try {
+				await onAuthenticated(result.value);
+			} catch (error) {
+				// Log but don't fail the request - player sync is non-critical
+				// @ts-ignore - pino type issue with FastifyBaseLogger
+				request.log.error({ err: error }, 'Failed to sync player to database');
+			}
+		}
 
 		request.authUser = result;
 		request.authLayer = Option.match(result, {
