@@ -1,7 +1,11 @@
 import { Layer } from "effect";
 import { DrizzlePlayerRepository } from "../player/infra/drizzle/drizzle-player.repository.js";
 import { CreateGameUseCase } from "./create-game.usecase.js";
+import { InMemoryGameEventBus } from "./game-event-bus.js";
 import { InMemoryGameView } from "./game-view.js";
+
+// Re-export for use in server.ts
+export { GameEventBus, type GameEvent } from "./game-event-bus.js";
 import {
   GameViewProjector,
   ShufflerService,
@@ -74,6 +78,8 @@ export const GameLayerLiveWithDependencies = Layer.mergeAll(
   Layer.provideMerge(TurnBoardCardsShuffler.Default),
   Layer.provideMerge(ShufflerService.Default),
   Layer.provideMerge(NoopRandomizeStrategy),
+  // Event bus for SSE notifications
+  Layer.provideMerge(InMemoryGameEventBus),
   // Then add GameViewProjector which uses the deck repository
   Layer.provideMerge(GameViewProjector.Default),
 );

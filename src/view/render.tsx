@@ -221,6 +221,7 @@ export function renderHtmlPage(title: string, body: string): string {
     <title>${title}</title>
     <link rel="stylesheet" href="/assets/styles/main.build.css">
     <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <script src="https://unpkg.com/htmx-ext-sse@2.2.2/sse.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
       window.supabase = window.supabase.createClient('${supabaseUrl}', '${supabasePublishableKey}');

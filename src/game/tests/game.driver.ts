@@ -10,6 +10,7 @@ import {
   IdentityDeckShuffleStrategy,
 } from "../deck.entity.js";
 import { DeckRepository, InMemoryDeckRepository } from "../deck.repository.js";
+import { GameEventBus, NoopGameEventBus } from "../game-event-bus.js";
 import {
   EndedGameSnapshot,
   GameEntity,
@@ -985,6 +986,7 @@ export const makeGameDriverTestLayer = (props?: {
     | GameViewProjector
     | ShufflerService
     | PlayersRandomizeStrategy
+    | GameEventBus
   >;
 }) => {
   const dependencies = props?.dependencies ?? Layer.mergeAll(
@@ -994,6 +996,7 @@ export const makeGameDriverTestLayer = (props?: {
     TurnBoardCardsShuffler.Default,
     GameViewProjector.Default,
     ShufflerService.Default,
+    NoopGameEventBus,
     props?.randomizeStrategy
       ? Layer.succeed(PlayersRandomizeStrategy, props.randomizeStrategy)
       : NoopRandomizeStrategy,
@@ -1048,6 +1051,7 @@ export const makeGameDriverAcceptanceLayer = () => {
       TurnBoardCardsShuffler.Default,
       GameViewProjector.Default,
       ShufflerService.Default,
+      NoopGameEventBus,
       NoopRandomizeStrategy,
     ),
   })

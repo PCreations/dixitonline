@@ -1,4 +1,5 @@
 import { Effect, Option } from "effect";
+import { GameEventBus } from "./game-event-bus.js";
 import { GameRepository } from "./game.repository.js";
 import { withOptimisticRetry } from "./optimistic-retry.js";
 import { PlayerId } from "./player.entity.js";
@@ -12,7 +13,8 @@ export class JoinGameUseCase extends Effect.Service<JoinGameUseCase>()(
   "game/JoinGameUseCase",
   {
     effect: Effect.gen(function* () {
-      const gameRepository = yield* GameRepository; // Depends on abstraction
+      const gameRepository = yield* GameRepository;
+      const gameEventBus = yield* GameEventBus;
 
       return {
         joinGame: (props: JoinGameCommand) => {
@@ -30,6 +32,13 @@ export class JoinGameUseCase extends Effect.Service<JoinGameUseCase>()(
                   );
 
                   yield* gameRepository.save(updatedGame);
+
+                  // Notify subscribers that a player joined
+                  yield* gameEventBus.publish({
+                    type: "playerJoined",
+                    gameId: props.gameId,
+                    playerId: props.playerId,
+                  });
                 }),
             });
           });
@@ -38,6 +47,6 @@ export class JoinGameUseCase extends Effect.Service<JoinGameUseCase>()(
         },
       };
     }),
-    // No dependencies - GameRepository provided by layer composition
+    // No dependencies - GameRepository and GameEventBus provided by layer composition
   },
 ) {}

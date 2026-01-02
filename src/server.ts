@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import fastifyFormbody from '@fastify/formbody';
 import fastifyStatic from '@fastify/static';
-import { Effect, Either, Layer, ManagedRuntime, Option } from 'effect';
+import { Effect, Either, Layer, ManagedRuntime, Option, Stream } from 'effect';
 import Fastify, { FastifyInstance } from 'fastify';
 import { dirname, join } from 'path';
 import { h } from 'preact';
@@ -12,7 +12,7 @@ import {
   registerAuthHook,
 } from './auth/index.js';
 import { CreateGameUseCase } from './game/create-game.usecase.js';
-import { GameLayerLiveWithDependencies } from './game/index.js';
+import { GameEventBus, GameLayerLiveWithDependencies } from './game/index.js';
 import { JoinGameUseCase } from './game/join-game.usecase.js';
 import { LobbyQueryService } from './game/lobby.query-service.js';
 import { Database } from './infra/db/database.service.js';
@@ -21,6 +21,7 @@ import { CreateGame } from './view/components/CreateGame.js';
 import { Game } from './view/components/Game.js';
 import { Home } from './view/components/Home.js';
 import { Lobby } from './view/components/Lobby.js';
+import { LobbyContent } from './view/components/LobbyContent.js';
 import { Login } from './view/components/Login.js';
 import { renderHtmlPage, renderToString } from './view/render.js';
 import { createLobbyViewModel } from './view/view-models/lobby.view-model.js';
@@ -328,6 +329,143 @@ fastify.route({
           details: error.message || 'An unexpected error occurred',
         });
       });
+  },
+});
+
+// SSE endpoint for real-time game updates
+fastify.route({
+  method: 'GET',
+  url: '/game/:gameId/events',
+  handler: async function handler(request, reply) {
+    const { gameId } = request.params as { gameId: string };
+
+    // Require authentication for SSE
+    if (Option.isNone(request.authUser)) {
+      return reply.status(401).send({ error: 'Unauthorized' });
+    }
+
+    const currentPlayerId = request.authUser.value.playerId;
+
+    // Set SSE headers
+    reply.raw.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      Connection: 'keep-alive',
+      'X-Accel-Buffering': 'no', // Disable nginx buffering
+    });
+
+    // Send initial comment to establish connection
+    reply.raw.write(': connected\n\n');
+
+    // Helper to render lobby content fragment
+    const renderLobbyFragment = async (): Promise<string | null> => {
+      const program = Effect.gen(function* () {
+        const lobbyQueryService = yield* LobbyQueryService;
+        const maybeLobbyState = yield* lobbyQueryService.getLobbyState(gameId);
+
+        if (Option.isNone(maybeLobbyState)) {
+          return null;
+        }
+
+        const viewModel = createLobbyViewModel(maybeLobbyState.value, {
+          currentPlayerId,
+        });
+
+        return renderToString(h(LobbyContent, viewModel));
+      });
+
+      return appRuntime.runPromise(program);
+    };
+
+    // Subscribe to game events
+    const subscribeProgram = Effect.gen(function* () {
+      const eventBus = yield* GameEventBus;
+      return eventBus.subscribe(gameId);
+    });
+
+    const eventStream = await appRuntime.runPromise(subscribeProgram);
+
+    // Handle client disconnect
+    let isConnected = true;
+    request.raw.on('close', () => {
+      isConnected = false;
+    });
+
+    // Process events from the stream
+    const processEvents = async () => {
+      const runStream = Stream.runForEach(eventStream, (event) =>
+        Effect.gen(function* () {
+          if (!isConnected) {
+            return;
+          }
+
+          if (event.type === 'gameStarted') {
+            // Send redirect script for game start
+            const data = `<script>window.location.href='/game/${gameId}/play'</script>`;
+            reply.raw.write(`event: gameStarted\ndata: ${data}\n\n`);
+          } else if (event.type === 'playerJoined' || event.type === 'playerLeft') {
+            // Render and send updated lobby content
+            const html = yield* Effect.promise(() => renderLobbyFragment());
+            if (html) {
+              // SSE data must be on single line, encode newlines
+              const encodedHtml = html.replace(/\n/g, '');
+              reply.raw.write(`event: ${event.type}\ndata: ${encodedHtml}\n\n`);
+            }
+          }
+        }),
+      );
+
+      await appRuntime.runPromise(runStream).catch((error) => {
+        if (isConnected) {
+          // @ts-ignore - pino type issue
+          request.log.error({ err: error }, 'SSE stream error');
+        }
+      });
+    };
+
+    // Start processing events in background
+    processEvents();
+
+    // Keep connection open - Fastify will handle the response
+    // The connection stays open until client disconnects
+  },
+});
+
+// Fragment endpoint for lobby content (used by SSE)
+fastify.route({
+  method: 'GET',
+  url: '/game/:gameId/lobby/content',
+  handler: async function handler(request, reply) {
+    const { gameId } = request.params as { gameId: string };
+
+    if (Option.isNone(request.authUser)) {
+      return reply.status(401).send({ error: 'Unauthorized' });
+    }
+
+    const currentPlayerId = request.authUser.value.playerId;
+
+    const program = Effect.gen(function* () {
+      const lobbyQueryService = yield* LobbyQueryService;
+      const maybeLobbyState = yield* lobbyQueryService.getLobbyState(gameId);
+
+      if (Option.isNone(maybeLobbyState)) {
+        return reply.status(404).send({ error: 'Game not found' });
+      }
+
+      const viewModel = createLobbyViewModel(maybeLobbyState.value, {
+        currentPlayerId,
+      });
+
+      const html = renderToString(h(LobbyContent, viewModel));
+
+      return reply.type('text/html').send(html);
+    });
+
+    return appRuntime.runPromise(program).catch((error) => {
+      // @ts-ignore - pino type issue
+      request.log.error({ err: error }, 'Failed to load lobby content');
+      return reply.status(500).send({ error: 'Failed to load lobby content' });
+    });
   },
 });
 

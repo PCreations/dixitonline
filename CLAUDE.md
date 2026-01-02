@@ -591,6 +591,24 @@ Le système utilise **optimistic locking** avec numéro de version :
 - Si version différente → `OptimisticLockError`
 - Le client doit retry avec la version à jour
 
+## Conventions de commit
+
+### Messages de commit
+- Utiliser le format **Conventional Commits** : `type(scope): description`
+- Types courants : `feat`, `fix`, `refactor`, `test`, `docs`, `chore`
+- **Ne jamais mentionner Claude Code** dans les messages de commit (pas de footer "Generated with Claude Code")
+- Garder les messages concis et descriptifs
+
+```bash
+# ✅ BON
+git commit -m "feat(lobby): add real-time updates with SSE"
+
+# ❌ MAUVAIS
+git commit -m "feat: add SSE
+
+🤖 Generated with Claude Code"
+```
+
 ## Pièges à éviter
 
 ### ❌ Ne pas muter les entités

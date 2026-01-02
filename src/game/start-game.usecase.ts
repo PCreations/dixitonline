@@ -1,5 +1,6 @@
 import { Effect, Option } from "effect";
 import { DeckRepository, InMemoryDeckRepository } from "./deck.repository.js";
+import { GameEventBus } from "./game-event-bus.js";
 import {
   NoopRandomizeStrategy,
   PlayersRandomizeStrategy,
@@ -28,6 +29,7 @@ export class StartGameUseCase extends Effect.Service<StartGameUseCase>()(
       const gameView = yield* GameView;
       const randomizeStrategy = yield* PlayersRandomizeStrategy;
       const gameViewProjector = yield* GameViewProjector;
+      const gameEventBus = yield* GameEventBus;
 
       return {
         startGame: (props: StartGameCommand) => {
@@ -59,6 +61,12 @@ export class StartGameUseCase extends Effect.Service<StartGameUseCase>()(
                 updatedGame.toSnapshot(),
               ),
             );
+
+            // Notify subscribers that the game started
+            yield* gameEventBus.publish({
+              type: "gameStarted",
+              gameId: props.gameId,
+            });
           });
 
           return withOptimisticRetry(startGameLogic);
