@@ -32,13 +32,14 @@ export class NotifyReadyForNextTurnUseCase
                 onNone: () => Effect.fail(new Error("Game not found")),
                 onSome: (gameEntity) =>
                   Effect.gen(function* () {
-                    const updatedGame = yield* gameEntity
-                      .notifyReadyForNextTurn({
+                    const { entity: updatedGame, events } =
+                      yield* gameEntity.notifyReadyForNextTurn({
                         playerId: PlayerId(props.playerId),
                       });
 
-                    yield* gameRepository.save(updatedGame);
-                    
+                    // Save game and events atomically (outbox pattern)
+                    yield* gameRepository.saveWithEvents(updatedGame, events);
+
                     // Only update game view if the game is still in progress
                     if (isStartedGame(updatedGame)) {
                       yield* gameView.save(

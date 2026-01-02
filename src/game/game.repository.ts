@@ -1,5 +1,6 @@
 import { Context, Data, Effect, Layer, Option, ParseResult } from "effect";
 import { UnknownException } from "effect/Cause";
+import type { GameEvent } from "./game-events.js";
 import {
   EndedGameEntity,
   GameEntity,
@@ -16,6 +17,14 @@ export class GameRepository extends Effect.Tag("game/GameRepository")<
   GameRepository,
   {
     save: (game: GameEntity) => Effect.Effect<void, OptimisticConcurrencyError | UnknownException | ParseResult.ParseError>;
+    /**
+     * Save the game and events atomically in a transaction.
+     * Events are inserted into the outbox table for reliable delivery.
+     */
+    saveWithEvents: (
+      game: GameEntity,
+      events: ReadonlyArray<GameEvent>,
+    ) => Effect.Effect<void, OptimisticConcurrencyError | UnknownException | ParseResult.ParseError>;
     findById: (
       id: string,
     ) => Effect.Effect<Option.Option<NotStartedGameEntity | StartedGameEntity>, ParseResult.ParseError>;
@@ -36,7 +45,13 @@ export class GameRepository extends Effect.Tag("game/GameRepository")<
   }
 >() {}
 
-const makeInMemoryGameRepository = (): Context.Tag.Service<GameRepository> => {
+type InMemoryGameRepositoryOptions = {
+  readonly onEvents?: (events: ReadonlyArray<GameEvent>) => void;
+};
+
+const makeInMemoryGameRepository = (
+  options: InMemoryGameRepositoryOptions = {},
+): Context.Tag.Service<GameRepository> => {
   const notStartedGames = new Map<string, NotStartedGameEntity>();
   const startedGames = new Map<string, StartedGameEntity>();
   const endedGames = new Map<string, EndedGameEntity>();
@@ -55,21 +70,31 @@ const makeInMemoryGameRepository = (): Context.Tag.Service<GameRepository> => {
     );
   };
 
+  const save = (gameToBeSaved: GameEntity) => {
+    const actualGame = Option.fromNullable(
+      startedGames.get(gameToBeSaved.id) ??
+        notStartedGames.get(gameToBeSaved.id),
+    );
+    if (shouldThrowOptimisticConcurrencyError(gameToBeSaved, actualGame)) {
+      return Effect.fail(new OptimisticConcurrencyError());
+    }
+    if (isNotStartedGame(gameToBeSaved)) {
+      notStartedGames.set(gameToBeSaved.id, gameToBeSaved);
+    } else {
+      startedGames.set(gameToBeSaved.id, gameToBeSaved as StartedGameEntity);
+    }
+    return Effect.succeed(void 0);
+  };
+
   return {
-    save: (gameToBeSaved: GameEntity) => {
-      const actualGame = Option.fromNullable(
-        startedGames.get(gameToBeSaved.id) ??
-          notStartedGames.get(gameToBeSaved.id),
-      );
-      if (shouldThrowOptimisticConcurrencyError(gameToBeSaved, actualGame)) {
-        return Effect.fail(new OptimisticConcurrencyError());
+    save,
+    // In-memory: save the game and optionally notify about events
+    saveWithEvents: (game, events) => {
+      const result = save(game);
+      if (options.onEvents && events.length > 0) {
+        options.onEvents(events);
       }
-      if (isNotStartedGame(gameToBeSaved)) {
-        notStartedGames.set(gameToBeSaved.id, gameToBeSaved);
-      } else {
-        startedGames.set(gameToBeSaved.id, gameToBeSaved as StartedGameEntity);
-      }
-      return Effect.succeed(void 0);
+      return result;
     },
     findById: (id: string) => {
       const staleGame = Option.fromNullable(
@@ -154,7 +179,31 @@ const makeInMemoryGameRepository = (): Context.Tag.Service<GameRepository> => {
   };
 };
 
+export { makeInMemoryGameRepository };
+
 export const InMemoryGameRepository = Layer.sync(
   GameRepository,
   makeInMemoryGameRepository,
+);
+
+/**
+ * In-memory repository that publishes events to the GameEventBus.
+ * Used in tests to simulate the outbox pattern behavior.
+ */
+export const InMemoryGameRepositoryWithEventBus = Layer.effect(
+  GameRepository,
+  Effect.gen(function* () {
+    const { GameEventBus } = yield* Effect.promise(() =>
+      import('./game-event-bus.js'),
+    );
+    const eventBus = yield* GameEventBus;
+
+    return makeInMemoryGameRepository({
+      onEvents: (events) => {
+        for (const event of events) {
+          Effect.runSync(eventBus.publish(event));
+        }
+      },
+    });
+  }),
 );

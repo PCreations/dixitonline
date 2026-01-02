@@ -33,13 +33,15 @@ export class SubmitClueUseCase extends Effect.Service<SubmitClueUseCase>()(
               onNone: () => Effect.fail(new Error("Game not found")),
               onSome: (gameEntity) =>
                 Effect.gen(function* () {
-                  const updatedGame = yield* gameEntity.submitClue({
-                    playerId: PlayerId(props.playerId),
-                    cardId: CardId(props.cardId),
-                    clue: props.clue,
-                  }); //?
+                  const { entity: updatedGame, events } =
+                    yield* gameEntity.submitClue({
+                      playerId: PlayerId(props.playerId),
+                      cardId: CardId(props.cardId),
+                      clue: props.clue,
+                    });
 
-                  yield* gameRepository.save(updatedGame);
+                  // Save game and events atomically (outbox pattern)
+                  yield* gameRepository.saveWithEvents(updatedGame, events);
                   yield* gameView.save(
                     yield* gameViewProjector.project(updatedGame.toSnapshot()),
                   );

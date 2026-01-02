@@ -32,12 +32,14 @@ export class SelectCardUseCase extends Effect.Service<SelectCardUseCase>()(
               onNone: () => Effect.fail(new Error("Game not found")),
               onSome: (gameEntity) =>
                 Effect.gen(function* () {
-                  const updatedGame = yield* gameEntity.selectCard({
-                    playerId: PlayerId(props.playerId),
-                    cardId: CardId(props.cardId),
-                  });
+                  const { entity: updatedGame, events } =
+                    yield* gameEntity.selectCard({
+                      playerId: PlayerId(props.playerId),
+                      cardId: CardId(props.cardId),
+                    });
 
-                  yield* gameRepository.save(updatedGame);
+                  // Save game and events atomically (outbox pattern)
+                  yield* gameRepository.saveWithEvents(updatedGame, events);
                   yield* gameView.save(
                     yield* gameViewProjector.project(updatedGame.toSnapshot()),
                   );

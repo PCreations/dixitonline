@@ -1,6 +1,5 @@
 import { Effect, Option } from "effect";
 import { InMemoryDeckRepository } from "./deck.repository.js";
-import { GameEventBus } from "./game-event-bus.js";
 import { isStartedGame } from "./game.entity.js";
 import { GameRepository, InMemoryGameRepository } from "./game.repository.js";
 import { GameView, InMemoryGameView } from "./game-view.js";
@@ -20,7 +19,6 @@ export class LeaveGameUseCase extends Effect.Service<LeaveGameUseCase>()(
       const gameRepository = yield* GameRepository;
       const gameView = yield* GameView;
       const gameViewProjector = yield* GameViewProjector;
-      const gameEventBus = yield* GameEventBus;
 
       return {
         leaveGame: (props: LeaveGameCommand) => {
@@ -31,11 +29,12 @@ export class LeaveGameUseCase extends Effect.Service<LeaveGameUseCase>()(
               onNone: () => Effect.fail(new Error("Game not found")),
               onSome: (gameEntity) =>
                 Effect.gen(function* () {
-                  const updatedGame = yield* gameEntity.removePlayer(
-                    PlayerId(props.playerId),
-                  );
+                  const { entity: updatedGame, events } =
+                    yield* gameEntity.removePlayer(PlayerId(props.playerId));
 
-                  yield* gameRepository.save(updatedGame);
+                  // Save game and events atomically (outbox pattern)
+                  yield* gameRepository.saveWithEvents(updatedGame, events);
+
                   if (isStartedGame(updatedGame)) {
                     yield* gameView.save(
                       yield* gameViewProjector.project(
@@ -43,13 +42,6 @@ export class LeaveGameUseCase extends Effect.Service<LeaveGameUseCase>()(
                       ),
                     );
                   }
-
-                  // Notify subscribers that a player left
-                  yield* gameEventBus.publish({
-                    type: "playerLeft",
-                    gameId: props.gameId,
-                    playerId: props.playerId,
-                  });
                 }),
             });
           });

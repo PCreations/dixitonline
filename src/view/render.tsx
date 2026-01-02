@@ -6,8 +6,8 @@ export function renderToString(vnode: VNode<any>): string {
   return render(vnode);
 }
 
-const supabaseUrl = process.env.SUPABASE_URL || 'http://127.0.0.1:54321';
-const supabasePublishableKey = process.env.SUPABASE_PUBLISHABLE_DEFAULT_KEY || '';
+const supabaseUrl = process.env.SUPABASE_URL || "http://127.0.0.1:54321";
+const supabasePublishableKey = process.env.SUPABASE_PUBLISHABLE_KEY || "";
 
 const authStoreScript = `
 // Helper to manage auth cookie for SSR

@@ -121,7 +121,7 @@ const makePlayerDriver = ({
           isAnonymous: props.isAnonymous,
         });
         yield* playerRepository.save(player);
-      }),
+      }).pipe(Effect.orDie),
   };
 
   const when: PlayerDriverDSL["when"] = {
@@ -155,7 +155,7 @@ const makePlayerDriver = ({
       Effect.gen(function* () {
         const maybePlayer = yield* playerRepository.findById(
           PlayerId(props.playerId),
-        );
+        ).pipe(Effect.orDie);
 
         if (Option.isNone(maybePlayer)) {
           testState.currentError = Option.some(new Error("Player not found"));
@@ -173,7 +173,7 @@ const makePlayerDriver = ({
           return;
         }
 
-        yield* playerRepository.save(result.right);
+        yield* playerRepository.save(result.right).pipe(Effect.orDie);
         testState.lastPlayer = Option.some(result.right);
       }),
   };
@@ -184,7 +184,7 @@ const makePlayerDriver = ({
         expect(testState.currentError).toEqual(Option.none());
         const maybePlayer = yield* playerRepository.findById(
           PlayerId(props.playerId),
-        );
+        ).pipe(Effect.orDie);
         expect(Option.isSome(maybePlayer)).toBe(true);
         if (Option.isSome(maybePlayer)) {
           const snapshot = maybePlayer.value.toSnapshot();
@@ -198,7 +198,7 @@ const makePlayerDriver = ({
         expect(testState.currentError).toEqual(Option.none());
         const maybePlayer = yield* playerRepository.findById(
           PlayerId(props.playerId),
-        );
+        ).pipe(Effect.orDie);
         expect(Option.isSome(maybePlayer)).toBe(true);
         if (Option.isSome(maybePlayer)) {
           expect(maybePlayer.value.toSnapshot().username).toBe(props.username);
@@ -210,7 +210,7 @@ const makePlayerDriver = ({
         expect(testState.currentError).toEqual(Option.none());
         const maybePlayer = yield* playerRepository.findById(
           PlayerId(props.playerId),
-        );
+        ).pipe(Effect.orDie);
         expect(Option.isSome(maybePlayer)).toBe(true);
         if (Option.isSome(maybePlayer)) {
           expect(maybePlayer.value.toSnapshot().email).toBe(props.email);
@@ -222,7 +222,7 @@ const makePlayerDriver = ({
         expect(testState.currentError).toEqual(Option.none());
         const maybePlayer = yield* playerRepository.findById(
           PlayerId(props.playerId),
-        );
+        ).pipe(Effect.orDie);
         expect(Option.isSome(maybePlayer)).toBe(true);
         if (Option.isSome(maybePlayer)) {
           expect(maybePlayer.value.toSnapshot().isAnonymous).toBe(false);

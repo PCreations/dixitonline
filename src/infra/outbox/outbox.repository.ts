@@ -77,7 +77,7 @@ export const DrizzleOutboxRepository = Layer.effect(
             aggregateType: input.aggregateType,
             aggregateId: input.aggregateId,
             aggregateVersion: input.aggregateVersion,
-            eventType: input.event.type,
+            eventType: input.event._tag,
             payload: input.event,
           };
 

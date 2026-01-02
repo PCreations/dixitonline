@@ -1,18 +1,7 @@
 import { Context, Effect, Layer, PubSub, Stream } from "effect";
+import { type GameEvent } from "./game-events.js";
 
-/**
- * Domain events for game state changes.
- * Events describe what happened (past tense), not what to do.
- */
-export type GameEvent =
-  | { readonly type: "playerJoined"; readonly gameId: string; readonly playerId: string }
-  | { readonly type: "playerLeft"; readonly gameId: string; readonly playerId: string }
-  | { readonly type: "gameStarted"; readonly gameId: string }
-  | { readonly type: "clueSubmitted"; readonly gameId: string }
-  | { readonly type: "cardSelected"; readonly gameId: string; readonly playerId: string }
-  | { readonly type: "voteSubmitted"; readonly gameId: string; readonly playerId: string }
-  | { readonly type: "turnScored"; readonly gameId: string }
-  | { readonly type: "gameEnded"; readonly gameId: string };
+export { type GameEvent } from "./game-events.js";
 
 /**
  * Event bus for publishing and subscribing to game events.

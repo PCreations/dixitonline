@@ -12,10 +12,17 @@ import {
   registerAuthHook,
 } from './auth/index.js';
 import { CreateGameUseCase } from './game/create-game.usecase.js';
+import { matchGameEvent } from './game/game-events.js';
 import { GameEventBus, GameLayerLiveWithDependencies } from './game/index.js';
 import { JoinGameUseCase } from './game/join-game.usecase.js';
 import { LobbyQueryService } from './game/lobby.query-service.js';
 import { Database } from './infra/db/database.service.js';
+import {
+  DrizzleOutboxRepository,
+  OutboxEventRelay,
+  OutboxEventRelayLive,
+} from './infra/outbox/index.js';
+import { makeSupabaseClientLive } from './infra/supabase/index.js';
 import { EnsurePlayerExistsUseCase, PlayerId, PlayerLayerLive } from './player/index.js';
 import { CreateGame } from './view/components/CreateGame.js';
 import { Game } from './view/components/Game.js';
@@ -35,19 +42,64 @@ const databaseUrl =
   process.env.DATABASE_URL ||
   'postgresql://postgres:postgres@localhost:5432/dixitonline';
 
-// Supabase configuration for JWT validation
+// Supabase configuration for JWT validation and Realtime
 const supabaseUrl = process.env.SUPABASE_URL || 'http://127.0.0.1:54321';
+const supabasePublishableKey = process.env.SUPABASE_PUBLISHABLE_KEY;
 const jwtVerifier = createJwtVerifier({ url: supabaseUrl });
 
 // Create the complete application layer with database
+const DatabaseLayer = Database.Live({ connectionString: databaseUrl });
+
+// Base application layer
 const AppLayer = Layer.mergeAll(
   GameLayerLiveWithDependencies,
   PlayerLayerLive,
-).pipe(Layer.provide(Database.Live({ connectionString: databaseUrl })));
+).pipe(Layer.provide(DatabaseLayer));
 
 // Create a long-lived ManagedRuntime with the AppLayer
 // This runtime will be used for all requests and maintains the database connection
 const appRuntime = ManagedRuntime.make(AppLayer);
+
+// Start the outbox event relay if Supabase credentials are available
+// The relay runs as a separate service that listens to Supabase Realtime
+if (supabasePublishableKey) {
+  console.log('Starting OutboxEventRelay for cross-instance event delivery...');
+
+  // Create all relay dependencies in a single merged layer, then provide Database
+  const RelayDependencies = Layer.mergeAll(
+    makeSupabaseClientLive({ url: supabaseUrl, publishableKey: supabasePublishableKey }),
+    DrizzleOutboxRepository,
+    GameLayerLiveWithDependencies,
+  ).pipe(Layer.provide(DatabaseLayer));
+
+  // Create the relay layer with all dependencies satisfied
+  const RelayLayer = OutboxEventRelayLive.pipe(Layer.provide(RelayDependencies));
+
+  // Run the relay startup in a separate runtime
+  const relayRuntime = ManagedRuntime.make(RelayLayer);
+
+  relayRuntime
+    .runPromise(
+      Effect.gen(function* () {
+        const relay = yield* OutboxEventRelay;
+        yield* relay.start();
+        console.log('OutboxEventRelay started successfully');
+      }),
+    )
+    .catch((error) => {
+      console.error('Failed to start OutboxEventRelay:', error);
+    });
+
+  // Add cleanup for relay runtime on server shutdown
+  process.on('SIGTERM', async () => {
+    console.log('Stopping OutboxEventRelay...');
+    await relayRuntime.dispose();
+  });
+} else {
+  console.log(
+    'SUPABASE_PUBLISHABLE_KEY not set, OutboxEventRelay disabled (events will only be delivered locally)',
+  );
+}
 
 const fastify: FastifyInstance = Fastify({
   logger: isDev
@@ -399,18 +451,29 @@ fastify.route({
             return;
           }
 
-          if (event.type === 'gameStarted') {
-            // Send redirect script for game start
-            const data = `<script>window.location.href='/game/${gameId}/play'</script>`;
-            reply.raw.write(`event: gameStarted\ndata: ${data}\n\n`);
-          } else if (event.type === 'playerJoined' || event.type === 'playerLeft') {
-            // Render and send updated lobby content
-            const html = yield* Effect.promise(() => renderLobbyFragment());
-            if (html) {
-              // SSE data must be on single line, encode newlines
-              const encodedHtml = html.replace(/\n/g, '');
-              reply.raw.write(`event: ${event.type}\ndata: ${encodedHtml}\n\n`);
-            }
+          yield* matchGameEvent(event, {
+            GameStarted: () =>
+              Effect.sync(() => {
+                const data = `<script>window.location.href='/game/${gameId}/play'</script>`;
+                reply.raw.write(`event: GameStarted\ndata: ${data}\n\n`);
+              }),
+            PlayerJoined: () => sendLobbyUpdate('PlayerJoined'),
+            PlayerLeft: () => sendLobbyUpdate('PlayerLeft'),
+            ClueSubmitted: () => Effect.void,
+            CardSelected: () => Effect.void,
+            VoteSubmitted: () => Effect.void,
+            TurnScored: () => Effect.void,
+            GameEnded: () => Effect.void,
+          });
+
+          function sendLobbyUpdate(eventName: string) {
+            return Effect.gen(function* () {
+              const html = yield* Effect.promise(() => renderLobbyFragment());
+              if (html) {
+                const encodedHtml = html.replace(/\n/g, '');
+                reply.raw.write(`event: ${eventName}\ndata: ${encodedHtml}\n\n`);
+              }
+            });
           }
         }),
       );
