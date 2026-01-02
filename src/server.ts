@@ -13,6 +13,8 @@ import {
 } from './auth/index.js';
 import { CreateGameUseCase } from './game/create-game.usecase.js';
 import { GameLayerLiveWithDependencies } from './game/index.js';
+import { JoinGameUseCase } from './game/join-game.usecase.js';
+import { LobbyQueryService } from './game/lobby.query-service.js';
 import { Database } from './infra/db/database.service.js';
 import { CreateGame } from './view/components/CreateGame.js';
 import { Game } from './view/components/Game.js';
@@ -20,6 +22,7 @@ import { Home } from './view/components/Home.js';
 import { Lobby } from './view/components/Lobby.js';
 import { Login } from './view/components/Login.js';
 import { renderHtmlPage, renderToString } from './view/render.js';
+import { createLobbyViewModel } from './view/view-models/lobby.view-model.js';
 
 const isDev = process.env.NODE_ENV === 'development';
 const __filename = fileURLToPath(import.meta.url);
@@ -123,16 +126,92 @@ fastify.route({
 
 fastify.route({
   method: 'GET',
-  url: '/lobby',
-  handler: async function handler(_request, reply) {
-    const component = h(Lobby, {
-      players: ['Jeck_Ship', 'Player_2', 'SuperGamer12'],
-      maxPlayers: 8,
-    });
-    const body = renderToString(component);
-    const html = renderHtmlPage('Lobby - Tixid Online', body);
+  url: '/game/:gameId/lobby',
+  handler: async function handler(request, reply) {
+    const { gameId } = request.params as { gameId: string };
 
-    reply.type('text/html').send(html);
+    // Redirect to login if not authenticated
+    if (Option.isNone(request.authUser)) {
+      return reply.redirect(`/login?redirect=/game/${gameId}/lobby`);
+    }
+
+    // Extract props from request context (user is authenticated at this point)
+    const currentPlayerId = request.authUser.value.playerId;
+    const currentPlayerName = request.authUser.value.username || 'Joueur';
+
+    const program = Effect.gen(function* () {
+      // Query: Load state via Query Service
+      const lobbyQueryService = yield* LobbyQueryService;
+      const maybeLobbyState = yield* lobbyQueryService.getLobbyState(gameId);
+
+      if (Option.isNone(maybeLobbyState)) {
+        return reply.status(404).send({ error: 'Game not found' });
+      }
+
+      // Transform: Pure view model function
+      const viewModel = createLobbyViewModel(maybeLobbyState.value, {
+        currentPlayerId,
+        currentPlayerName,
+      });
+
+      // Render: Pass view model to pure component
+      const component = h(Lobby, viewModel);
+      const body = renderToString(component);
+      const html = renderHtmlPage('Lobby - Tixid Online', body);
+
+      return reply.type('text/html').send(html);
+    });
+
+    return appRuntime.runPromise(program).catch((error) => {
+      // @ts-ignore - pino type issue with FastifyBaseLogger
+      request.log.error({ err: error }, 'Failed to load lobby');
+      return reply.status(500).send({
+        error: 'Failed to load lobby',
+        details: error.message || 'An unexpected error occurred',
+      });
+    });
+  },
+});
+
+fastify.route({
+  method: 'GET',
+  url: '/game/:gameId/join',
+  handler: async function handler(request, reply) {
+    const { gameId } = request.params as { gameId: string };
+
+    // Redirect to home if not authenticated
+    if (Option.isNone(request.authUser)) {
+      // TODO: Store gameId in session and redirect back after login
+      return reply.redirect(`/login?redirect=/game/${gameId}/join`);
+    }
+
+    const program = Effect.gen(function* () {
+      const { playerId } = yield* CurrentUser;
+
+      // Command: Join the game
+      const joinGameUseCase = yield* JoinGameUseCase;
+      yield* joinGameUseCase.joinGame({ gameId, playerId });
+
+      // Redirect to lobby on success
+      return reply.redirect(`/game/${gameId}/lobby`);
+    });
+
+    return appRuntime
+      .runPromise(program.pipe(Effect.provide(request.authLayer)))
+      .catch((error) => {
+        // @ts-ignore - pino type issue with FastifyBaseLogger
+        request.log.error({ err: error }, 'Failed to join game');
+
+        // Handle specific errors
+        if (error.message === 'Game not found') {
+          return reply.status(404).send({ error: 'Game not found' });
+        }
+
+        return reply.status(500).send({
+          error: 'Failed to join game',
+          details: error.message || 'An unexpected error occurred',
+        });
+      });
   },
 });
 

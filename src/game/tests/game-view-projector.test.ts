@@ -1,6 +1,10 @@
 import { describe, expect, it } from "@effect/vitest";
 import { Effect } from "effect";
-import { isEndedGameSnapshot, StartedGameSnapshot } from "../game.entity.js";
+import {
+  isEndedGameSnapshot,
+  isNotStartedGameSnapshot,
+  StartedGameSnapshot,
+} from "../game.entity.js";
 import {
   APlayerVotedOnYourCard,
   AtLeastOnePlayerFoundTheStorytellerCard,
@@ -822,6 +826,106 @@ describe("Game View Projector", () => {
         name: "id-player-4",
         phase: "ended",
         score: 7,
+      });
+    }).pipe(Effect.provide(makeGameDriverTestLayer()));
+  });
+
+  it.effect("Example: lobby phase with 2 players (cannot start)", () => {
+    return Effect.gen(function* () {
+      const gameDriver = yield* GameDriver;
+      const { game } = yield* gameDriver.given.existingGame(
+        gameDriver,
+        new GameBuilder("id-game-1")
+          .hostedBy("id-player-1")
+          .withPlayers("id-player-1", "id-player-2"),
+      );
+
+      if (!isNotStartedGameSnapshot(game)) {
+        throw new Error("Game should not be started");
+      }
+
+      const gameViewProjector = yield* GameViewProjector;
+      const {
+        "id-player-1": player1view,
+        "id-player-2": player2view,
+      } = yield* gameViewProjector.projectLobby(game);
+
+      expect(player1view).toEqual({
+        gameId: "id-game-1",
+        id: "id-player-1",
+        name: "id-player-1",
+        phase: "lobby",
+        hostId: "id-player-1",
+        players: ["id-player-1", "id-player-2"],
+        isHost: true,
+        canStart: false,
+      });
+
+      expect(player2view).toEqual({
+        gameId: "id-game-1",
+        id: "id-player-2",
+        name: "id-player-2",
+        phase: "lobby",
+        hostId: "id-player-1",
+        players: ["id-player-1", "id-player-2"],
+        isHost: false,
+        canStart: false,
+      });
+    }).pipe(Effect.provide(makeGameDriverTestLayer()));
+  });
+
+  it.effect("Example: lobby phase with 3 players (can start)", () => {
+    return Effect.gen(function* () {
+      const gameDriver = yield* GameDriver;
+      const { game } = yield* gameDriver.given.existingGame(
+        gameDriver,
+        new GameBuilder("id-game-1")
+          .hostedBy("id-player-1")
+          .withPlayers("id-player-1", "id-player-2", "id-player-3"),
+      );
+
+      if (!isNotStartedGameSnapshot(game)) {
+        throw new Error("Game should not be started");
+      }
+
+      const gameViewProjector = yield* GameViewProjector;
+      const {
+        "id-player-1": player1view,
+        "id-player-2": player2view,
+        "id-player-3": player3view,
+      } = yield* gameViewProjector.projectLobby(game);
+
+      expect(player1view).toEqual({
+        gameId: "id-game-1",
+        id: "id-player-1",
+        name: "id-player-1",
+        phase: "lobby",
+        hostId: "id-player-1",
+        players: ["id-player-1", "id-player-2", "id-player-3"],
+        isHost: true,
+        canStart: true,
+      });
+
+      expect(player2view).toEqual({
+        gameId: "id-game-1",
+        id: "id-player-2",
+        name: "id-player-2",
+        phase: "lobby",
+        hostId: "id-player-1",
+        players: ["id-player-1", "id-player-2", "id-player-3"],
+        isHost: false,
+        canStart: true,
+      });
+
+      expect(player3view).toEqual({
+        gameId: "id-game-1",
+        id: "id-player-3",
+        name: "id-player-3",
+        phase: "lobby",
+        hostId: "id-player-1",
+        players: ["id-player-1", "id-player-2", "id-player-3"],
+        isHost: false,
+        canStart: true,
       });
     }).pipe(Effect.provide(makeGameDriverTestLayer()));
   });

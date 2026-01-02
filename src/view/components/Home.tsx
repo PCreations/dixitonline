@@ -30,10 +30,10 @@ export function Home({ user }: HomeProps) {
         </p>
         <div className="button-container">
           {user ? [
-            <Button key="create" href="/game/new">Create a game</Button>,
-            <Button key="join" href="/game/join">Join a game</Button>
+            <Button key="create" href="/game/new">Créer une partie</Button>,
+            <Button key="join" href="/game/join">Rejoindre une partie</Button>
           ] : (
-            <Button href="/lobby">Start your adventure</Button>
+            <Button x-on:click="showUsernameModal = true">Commencer l'aventure</Button>
           )}
         </div>
         <div className="dune-wrapper">

@@ -4,10 +4,47 @@ import { DeckRepository, InMemoryDeckRepository } from "./deck.repository.js";
 import {
   EndedGameSnapshot,
   isStartedGameSnapshot,
+  MIN_PLAYERS,
+  NotStartedGameSnapshot,
   StartedGameSnapshot,
 } from "./game.entity.js";
 import { PlayerId } from "./player.entity.js";
 import { TurnId } from "./turn.entity.js";
+
+export type LobbyPlayerView = {
+  readonly gameId: string;
+  readonly id: string;
+  readonly name: string;
+  readonly phase: "lobby";
+  readonly hostId: string;
+  readonly players: ReadonlyArray<string>;
+  readonly isHost: boolean;
+  readonly canStart: boolean;
+};
+
+export type LobbyViewValueObject = Record<string, LobbyPlayerView>;
+
+class LobbyViewProjectorImpl {
+  static project(game: NotStartedGameSnapshot): LobbyViewValueObject {
+    const canStart = game.players.length >= MIN_PLAYERS;
+
+    return Object.fromEntries(
+      game.players.map((playerId) => [
+        playerId,
+        {
+          gameId: game.id,
+          id: playerId,
+          name: playerId,
+          phase: "lobby" as const,
+          hostId: game.createdBy,
+          players: game.players,
+          isHost: playerId === game.createdBy,
+          canStart,
+        },
+      ]),
+    );
+  }
+}
 
 export interface Shuffler {
   shuffle(
@@ -75,6 +112,9 @@ export class GameViewProjector extends Effect.Service<GameViewProjector>()(
             );
             return impl.project(game);
           }),
+
+        projectLobby: (game: NotStartedGameSnapshot) =>
+          Effect.succeed(LobbyViewProjectorImpl.project(game)),
       };
     }),
     dependencies: [

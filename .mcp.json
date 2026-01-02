@@ -19,6 +19,10 @@
         "node ~/.console-ninja/mcp"
       ],
       "env": {}
+    },
+    "supabase": {
+      "type": "http",
+      "url": "http://127.0.0.1:44321/mcp?read_only=true"
     }
   }
 }

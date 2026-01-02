@@ -1,5 +1,5 @@
 import { Effect, Option } from "effect";
-import { GameRepository, InMemoryGameRepository } from "./game.repository.js";
+import { GameRepository } from "./game.repository.js";
 import { withOptimisticRetry } from "./optimistic-retry.js";
 import { PlayerId } from "./player.entity.js";
 
@@ -12,7 +12,7 @@ export class JoinGameUseCase extends Effect.Service<JoinGameUseCase>()(
   "game/JoinGameUseCase",
   {
     effect: Effect.gen(function* () {
-      const gameRepository = yield* GameRepository;
+      const gameRepository = yield* GameRepository; // Depends on abstraction
 
       return {
         joinGame: (props: JoinGameCommand) => {
@@ -38,6 +38,6 @@ export class JoinGameUseCase extends Effect.Service<JoinGameUseCase>()(
         },
       };
     }),
-    dependencies: [InMemoryGameRepository],
+    // No dependencies - GameRepository provided by layer composition
   },
 ) {}

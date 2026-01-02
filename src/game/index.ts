@@ -11,6 +11,7 @@ import { DrizzleGameRepository } from "./infra/drizzle/drizzle-game.repository.j
 import { JsonDeckRepository } from "./infra/json/json-deck.repository.js";
 import { JoinGameUseCase } from "./join-game.usecase.js";
 import { LeaveGameUseCase } from "./leave-game.usecase.js";
+import { LobbyQueryService } from "./lobby.query-service.js";
 import { NotifyReadyForNextTurnUseCase } from "./notify-ready-for-next-turn.usecase.js";
 import { SelectCardUseCase } from "./select-card.usecase.js";
 import { StartGameUseCase } from "./start-game.usecase.js";
@@ -30,7 +31,7 @@ export const GameLayerLive = Layer.mergeAll(
 
 export const GameLayerWithoutDependencies = Layer.mergeAll(
   CreateGameUseCase.DefaultWithoutDependencies,
-  JoinGameUseCase.DefaultWithoutDependencies,
+  JoinGameUseCase.Default, // No baked-in dependencies, .Default requires GameRepository
   LeaveGameUseCase.DefaultWithoutDependencies,
   StartGameUseCase.DefaultWithoutDependencies,
   SubmitClueUseCase.DefaultWithoutDependencies,
@@ -40,18 +41,29 @@ export const GameLayerWithoutDependencies = Layer.mergeAll(
 );
 
 /**
+ * Query services that need GameRepository
+ */
+const QueryServicesWithoutDependencies = Layer.mergeAll(
+  LobbyQueryService.Default,
+);
+
+/**
  * Complete game layer with all dependencies including database
  * This layer requires Database to be provided
  *
  * The layer structure is:
  * 1. Use cases (without baked-in dependencies) - requires GameRepository, DeckRepository
- * 2. DrizzleGameRepository - provides GameRepository (requires Database)
- * 3. JsonDeckRepository - provides DeckRepository (loads deck from JSON config)
- * 4. Other services - GameViewProjector, TurnBoardCardsShuffler, etc.
+ * 2. Query services (without baked-in dependencies) - requires GameRepository
+ * 3. DrizzleGameRepository - provides GameRepository (requires Database)
+ * 4. JsonDeckRepository - provides DeckRepository (loads deck from JSON config)
+ * 5. Other services - GameViewProjector, TurnBoardCardsShuffler, etc.
  *
  * Using Layer.provideMerge ensures dependencies are properly wired.
  */
-export const GameLayerLiveWithDependencies = GameLayerWithoutDependencies.pipe(
+export const GameLayerLiveWithDependencies = Layer.mergeAll(
+  GameLayerWithoutDependencies,
+  QueryServicesWithoutDependencies,
+).pipe(
   // First, provide the repository implementations
   Layer.provideMerge(DrizzleGameRepository),
   Layer.provideMerge(JsonDeckRepository),

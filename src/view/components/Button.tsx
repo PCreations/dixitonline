@@ -1,13 +1,22 @@
 /** @jsx h */
+import type { ComponentChildren } from 'preact';
 import { h } from 'preact';
 
 interface ButtonProps {
-  children: string;
+  children: ComponentChildren;
   onClick?: () => void;
   href?: string;
+  type?: 'button' | 'submit' | 'reset';
+  disabled?: boolean;
 }
 
-export function Button({ children, onClick, href }: ButtonProps) {
+export function Button({
+  children,
+  onClick,
+  href,
+  type,
+  disabled,
+}: ButtonProps) {
   if (href) {
     return (
       <a href={href} className="adventure-button">
@@ -17,7 +26,12 @@ export function Button({ children, onClick, href }: ButtonProps) {
   }
 
   return (
-    <button className="adventure-button" onClick={onClick}>
+    <button
+      className="adventure-button"
+      onClick={onClick}
+      type={type}
+      disabled={disabled}
+    >
       {children}
     </button>
   );
