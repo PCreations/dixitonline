@@ -1,4 +1,5 @@
 import { Layer } from "effect";
+import { DrizzlePlayerRepository } from "../player/infra/drizzle/drizzle-player.repository.js";
 import { CreateGameUseCase } from "./create-game.usecase.js";
 import { InMemoryGameView } from "./game-view.js";
 import {
@@ -41,7 +42,7 @@ export const GameLayerWithoutDependencies = Layer.mergeAll(
 );
 
 /**
- * Query services that need GameRepository
+ * Query services that need GameRepository and PlayerRepository
  */
 const QueryServicesWithoutDependencies = Layer.mergeAll(
   LobbyQueryService.Default,
@@ -53,10 +54,11 @@ const QueryServicesWithoutDependencies = Layer.mergeAll(
  *
  * The layer structure is:
  * 1. Use cases (without baked-in dependencies) - requires GameRepository, DeckRepository
- * 2. Query services (without baked-in dependencies) - requires GameRepository
+ * 2. Query services (without baked-in dependencies) - requires GameRepository, PlayerRepository
  * 3. DrizzleGameRepository - provides GameRepository (requires Database)
- * 4. JsonDeckRepository - provides DeckRepository (loads deck from JSON config)
- * 5. Other services - GameViewProjector, TurnBoardCardsShuffler, etc.
+ * 4. DrizzlePlayerRepository - provides PlayerRepository (requires Database)
+ * 5. JsonDeckRepository - provides DeckRepository (loads deck from JSON config)
+ * 6. Other services - GameViewProjector, TurnBoardCardsShuffler, etc.
  *
  * Using Layer.provideMerge ensures dependencies are properly wired.
  */
@@ -66,6 +68,7 @@ export const GameLayerLiveWithDependencies = Layer.mergeAll(
 ).pipe(
   // First, provide the repository implementations
   Layer.provideMerge(DrizzleGameRepository),
+  Layer.provideMerge(DrizzlePlayerRepository),
   Layer.provideMerge(JsonDeckRepository),
   Layer.provideMerge(InMemoryGameView),
   Layer.provideMerge(TurnBoardCardsShuffler.Default),

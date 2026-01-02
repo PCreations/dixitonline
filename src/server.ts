@@ -151,7 +151,6 @@ fastify.route({
 
     // Extract props from request context (user is authenticated at this point)
     const currentPlayerId = request.authUser.value.playerId;
-    const currentPlayerName = request.authUser.value.username || 'Joueur';
 
     const program = Effect.gen(function* () {
       // Query: Load state via Query Service
@@ -165,7 +164,6 @@ fastify.route({
       // Transform: Pure view model function
       const viewModel = createLobbyViewModel(maybeLobbyState.value, {
         currentPlayerId,
-        currentPlayerName,
       });
 
       // Render: Pass view model to pure component

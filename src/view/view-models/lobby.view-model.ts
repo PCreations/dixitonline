@@ -1,4 +1,4 @@
-import type { LobbyState } from "../../game/lobby.query-service.js";
+import type { LobbyPlayer, LobbyState } from "../../game/lobby.query-service.js";
 
 const MIN_PLAYERS_TO_START = 3;
 const MAX_PLAYERS = 6;
@@ -29,7 +29,6 @@ export interface LobbyViewModel {
 
 export interface LobbyViewModelProps {
   readonly currentPlayerId: string;
-  readonly currentPlayerName: string;
 }
 
 /**
@@ -41,7 +40,7 @@ export function createLobbyViewModel(
   props: LobbyViewModelProps,
 ): LobbyViewModel {
   const { gameId, hostId, players } = state;
-  const { currentPlayerId, currentPlayerName } = props;
+  const { currentPlayerId } = props;
 
   const isHost = hostId === currentPlayerId;
   const canStart = isHost && players.length >= MIN_PLAYERS_TO_START;
@@ -52,7 +51,7 @@ export function createLobbyViewModel(
     title: "Lobby",
     statusMessage: deriveStatusMessage({ canStart, needsMore, isHost }),
     playerCount: `${players.length}/${MAX_PLAYERS}`,
-    players: derivePlayers(players, { currentPlayerId, currentPlayerName, hostId }),
+    players: derivePlayers(players, { currentPlayerId, hostId }),
     inviteUrl: `/game/${gameId}/join`,
     actions: deriveActions(gameId, { isHost, canStart }),
   };
@@ -78,25 +77,14 @@ function deriveStatusMessage(flags: {
 }
 
 function derivePlayers(
-  players: ReadonlyArray<string>,
-  context: { currentPlayerId: string; currentPlayerName: string; hostId: string },
+  players: ReadonlyArray<LobbyPlayer>,
+  context: { currentPlayerId: string; hostId: string },
 ): ReadonlyArray<LobbyPlayerViewModel> {
-  return players.map((playerId) => ({
-    name: derivePlayerName(playerId, context),
-    isCurrentUser: playerId === context.currentPlayerId,
-    isHost: playerId === context.hostId,
+  return players.map((player) => ({
+    name: player.username,
+    isCurrentUser: player.id === context.currentPlayerId,
+    isHost: player.id === context.hostId,
   }));
-}
-
-function derivePlayerName(
-  playerId: string,
-  context: { currentPlayerId: string; currentPlayerName: string },
-): string {
-  if (playerId === context.currentPlayerId) {
-    return context.currentPlayerName;
-  }
-  // For other players, show shortened ID (TODO: fetch real names)
-  return `Joueur ${playerId.slice(0, 8)}`;
 }
 
 function deriveActions(

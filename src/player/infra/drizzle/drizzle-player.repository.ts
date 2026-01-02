@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { Context, Effect, Layer, Option } from "effect";
 import { PlayerId, PlayerEntity } from "../../player.entity.js";
@@ -37,6 +37,36 @@ export const makeDrizzlePlayerRepository = ({
             updatedAt: row.updatedAt,
           }),
         );
+      });
+    },
+
+    findByIds: (ids: ReadonlyArray<PlayerId>) => {
+      return Effect.gen(function* () {
+        if (ids.length === 0) {
+          return new Map() as ReadonlyMap<PlayerId, PlayerEntity>;
+        }
+
+        const result = yield* Effect.promise(async () => {
+          return await db
+            .select()
+            .from(playersTable)
+            .where(inArray(playersTable.id, [...ids] as Array<string>));
+        });
+
+        const playerMap = new Map<PlayerId, PlayerEntity>();
+        for (const row of result) {
+          const player = PlayerEntity.fromSnapshot({
+            id: row.id,
+            username: row.username,
+            email: row.email,
+            isAnonymous: row.isAnonymous,
+            createdAt: row.createdAt,
+            updatedAt: row.updatedAt,
+          });
+          playerMap.set(PlayerId(row.id), player);
+        }
+
+        return playerMap as ReadonlyMap<PlayerId, PlayerEntity>;
       });
     },
 
