@@ -42,6 +42,7 @@ export const playersTable = pgTable('players', {
   username: text().notNull(),
   email: text(), // nullable - set when user links email
   isAnonymous: boolean().notNull().default(true),
+  version: integer().notNull().default(1),
   createdAt: timestamp().notNull().defaultNow(),
   updatedAt: timestamp().notNull().defaultNow(),
 });

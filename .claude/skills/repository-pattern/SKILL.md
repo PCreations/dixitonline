@@ -152,6 +152,125 @@ export const InMemoryMyRepository = Layer.sync(
 );
 ```
 
+## Validation des données avec Effect.Schema
+
+**IMPORTANT** : Toujours valider les données en entrée (lecture DB) et en sortie (écriture DB) avec `Effect.Schema`.
+
+### 1. Créer un Schema pour le snapshot
+
+```typescript
+// src/domain/my-snapshot.schema.ts
+import { Schema } from "effect";
+
+export const MySnapshotSchema = Schema.Struct({
+  id: Schema.String,
+  name: Schema.String,
+  email: Schema.NullOr(Schema.String),
+  version: Schema.Number,
+  createdAt: Schema.Date,
+  updatedAt: Schema.Date,
+});
+
+export type MySnapshot = typeof MySnapshotSchema.Type;
+```
+
+### 2. Valider en lecture (decode)
+
+```typescript
+findById: (id) => Effect.gen(function* () {
+  const result = yield* Effect.promise(() =>
+    db.select().from(myTable).where(eq(myTable.id, id)).limit(1)
+  );
+
+  if (result.length === 0) {
+    return Option.none();
+  }
+
+  // Valider les données de la DB avec le schema
+  const snapshot = yield* Schema.decodeUnknown(MySnapshotSchema)(result[0]);
+  return Option.some(MyEntity.fromSnapshot(snapshot));
+}),
+```
+
+### 3. Valider en écriture (avant save)
+
+```typescript
+save: (entity) => Effect.gen(function* () {
+  const snapshot = entity.toSnapshot();
+
+  // Valider le snapshot avant écriture
+  yield* Schema.decodeUnknown(MySnapshotSchema)(snapshot);
+
+  // Puis écrire en DB...
+}),
+```
+
+### 4. Types d'erreur dans l'interface
+
+```typescript
+import { ParseResult } from "effect";
+
+export class MyRepository extends Effect.Tag("domain/MyRepository")<
+  MyRepository,
+  {
+    readonly save: (entity: MyEntity) => Effect.Effect<
+      void,
+      OptimisticConcurrencyError | ParseResult.ParseError
+    >;
+    readonly findById: (id: MyId) => Effect.Effect<
+      Option.Option<MyEntity>,
+      ParseResult.ParseError
+    >;
+  }
+>() {}
+```
+
+### 5. Test unitaire du Schema
+
+**IMPORTANT** : Créer un test unitaire simple pour valider le schema dans les deux sens (encode/decode).
+
+```typescript
+// src/domain/my-snapshot.schema.test.ts
+import { describe, it, expect } from "vitest";
+import { Schema, Effect } from "effect";
+import { MySnapshotSchema } from "./my-snapshot.schema.js";
+
+describe("MySnapshotSchema", () => {
+  const validSnapshot = {
+    id: "test-id",
+    name: "Test Name",
+    email: null,
+    version: 1,
+    createdAt: new Date("2024-01-01"),
+    updatedAt: new Date("2024-01-01"),
+  };
+
+  it("should decode a valid snapshot", () => {
+    const result = Schema.decodeUnknownSync(MySnapshotSchema)(validSnapshot);
+    expect(result.id).toBe("test-id");
+    expect(result.version).toBe(1);
+  });
+
+  it("should encode a snapshot back to the same structure", () => {
+    const decoded = Schema.decodeUnknownSync(MySnapshotSchema)(validSnapshot);
+    const encoded = Schema.encodeSync(MySnapshotSchema)(decoded);
+
+    expect(encoded.id).toBe(validSnapshot.id);
+    expect(encoded.version).toBe(validSnapshot.version);
+  });
+
+  it("should fail on invalid data", () => {
+    const invalidSnapshot = { ...validSnapshot, version: "not-a-number" };
+
+    expect(() =>
+      Schema.decodeUnknownSync(MySnapshotSchema)(invalidSnapshot)
+    ).toThrow();
+  });
+});
+```
+
+Voir [game-snapshot.schema.test.ts](src/game/infra/drizzle/game-snapshot.schema.test.ts) pour un exemple complet.
+
 ## Implémentation Drizzle
 
 ```typescript
@@ -164,17 +283,26 @@ export const makeDrizzleMyRepository = ({
     save: (entity) => Effect.gen(function* () {
       const snapshot = entity.toSnapshot();
 
-      yield* Effect.promise(() =>
+      // Valider le snapshot avant écriture
+      yield* Schema.decodeUnknown(MySnapshotSchema)(snapshot);
+
+      const result = yield* Effect.tryPromise(() =>
         db.insert(myTable)
           .values(snapshot)
           .onConflictDoUpdate({
             target: myTable.id,
             set: {
               ...snapshot,
-              updatedAt: new Date(),
+              version: snapshot.version,
+              updatedAt: snapshot.updatedAt,
             },
+            where: eq(myTable.version, entity.version - 1), // Optimistic lock
           })
       );
+
+      if (result.rowCount === 0) {
+        return yield* Effect.fail(new OptimisticConcurrencyError({ entityId: snapshot.id }));
+      }
     }),
 
     findById: (id) => Effect.gen(function* () {
@@ -186,7 +314,9 @@ export const makeDrizzleMyRepository = ({
         return Option.none();
       }
 
-      return Option.some(MyEntity.fromSnapshot(result[0]));
+      // Valider les données de la DB
+      const snapshot = yield* Schema.decodeUnknown(MySnapshotSchema)(result[0]);
+      return Option.some(MyEntity.fromSnapshot(snapshot));
     }),
   };
 };
@@ -202,8 +332,8 @@ export const DrizzleMyRepository = Layer.effect(
 
 ## Exemples
 
-- [GameRepository](src/game/game.repository.ts) - `save`, `findById`, `findNotStartedGameById`, `isPlayerInGame`
-- [PlayerRepository](src/player/player.repository.ts) - `save`, `findById`
+- [GameRepository](src/game/game.repository.ts) - avec [GameSnapshotSchema](src/game/game-snapshot.schema.ts)
+- [PlayerRepository](src/player/player.repository.ts) - avec [PlayerSnapshotSchema](src/player/player-snapshot.schema.ts)
 - [DeckRepository](src/game/deck.repository.ts) - `save`, `findById`
 
 ## Anti-patterns
@@ -233,8 +363,12 @@ interface BadRepository {
 
 1. [ ] Une seule méthode `save` (upsert)
 2. [ ] Méthodes de lecture nommées `find*`, `is*`, `count*`
-3. [ ] `save` retourne `Effect<void, OptimisticConcurrencyError>`
-4. [ ] `find*` retourne `Effect<Option<Entity>>`
+3. [ ] `save` retourne `Effect<void, OptimisticConcurrencyError | ParseResult.ParseError>`
+4. [ ] `find*` retourne `Effect<Option<Entity>, ParseResult.ParseError>`
 5. [ ] Pas de logique métier dans le repository
 6. [ ] Implémentation InMemory pour tests
 7. [ ] Implémentation Drizzle pour production
+8. [ ] **Schema de validation** créé pour le snapshot (`*-snapshot.schema.ts`)
+9. [ ] **Validation en lecture** : `Schema.decodeUnknown()` sur les données de la DB
+10. [ ] **Validation en écriture** : `Schema.decodeUnknown()` avant INSERT/UPDATE
+11. [ ] **Optimistic concurrency** : champ `version` dans l'entité et WHERE clause

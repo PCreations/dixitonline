@@ -1,7 +1,14 @@
-import { Context, Effect, Layer, Option } from "effect";
-import { PlayerId, PlayerEntity } from "./player.entity.js";
+import { Context, Data, Effect, Layer, Option, ParseResult } from 'effect';
+import { UnknownException } from 'effect/Cause';
+import { PlayerEntity, PlayerId } from './player.entity.js';
 
-export class PlayerRepository extends Effect.Tag("player/PlayerRepository")<
+export class OptimisticConcurrencyError extends Data.TaggedError(
+  'OptimisticConcurrencyError',
+)<{
+  readonly playerId: PlayerId;
+}> {}
+
+export class PlayerRepository extends Effect.Tag('player/PlayerRepository')<
   PlayerRepository,
   {
     /**
@@ -10,7 +17,7 @@ export class PlayerRepository extends Effect.Tag("player/PlayerRepository")<
      */
     readonly findById: (
       id: PlayerId,
-    ) => Effect.Effect<Option.Option<PlayerEntity>>;
+    ) => Effect.Effect<Option.Option<PlayerEntity>, ParseResult.ParseError>;
 
     /**
      * Find multiple players by their IDs in a single query.
@@ -18,44 +25,63 @@ export class PlayerRepository extends Effect.Tag("player/PlayerRepository")<
      */
     readonly findByIds: (
       ids: ReadonlyArray<PlayerId>,
-    ) => Effect.Effect<ReadonlyMap<PlayerId, PlayerEntity>>;
+    ) => Effect.Effect<
+      ReadonlyMap<PlayerId, PlayerEntity>,
+      ParseResult.ParseError
+    >;
 
     /**
-     * Save a player (always upsert: insert if not exists, update if exists).
-     * Following repository-pattern skill: single write method.
+     * Save a player (upsert with optimistic concurrency control).
+     * - Insert if not exists
+     * - Update if exists and version matches (version - 1)
+     * - Fail with OptimisticConcurrencyError if version mismatch
      */
-    readonly save: (player: PlayerEntity) => Effect.Effect<void>;
+    readonly save: (
+      player: PlayerEntity,
+    ) => Effect.Effect<
+      void,
+      OptimisticConcurrencyError | UnknownException | ParseResult.ParseError
+    >;
   }
 >() {}
 
-const makeInMemoryPlayerRepository = (): Context.Tag.Service<PlayerRepository> => {
-  const players = new Map<string, PlayerEntity>();
+const makeInMemoryPlayerRepository =
+  (): Context.Tag.Service<PlayerRepository> => {
+    const players = new Map<string, PlayerEntity>();
 
-  return {
-    findById: (id: PlayerId) => {
-      const player = players.get(id);
-      return Effect.succeed(Option.fromNullable(player));
-    },
-
-    findByIds: (ids: ReadonlyArray<PlayerId>) => {
-      const result = new Map<PlayerId, PlayerEntity>();
-      for (const id of ids) {
+    return {
+      findById: (id: PlayerId) => {
         const player = players.get(id);
-        if (player) {
-          result.set(id, player);
-        }
-      }
-      return Effect.succeed(result as ReadonlyMap<PlayerId, PlayerEntity>);
-    },
+        return Effect.succeed(Option.fromNullable(player));
+      },
 
-    // save does upsert: insert if not exists, update if exists
-    save: (player: PlayerEntity) => {
-      const snapshot = player.toSnapshot();
-      players.set(snapshot.id, player);
-      return Effect.succeed(void 0);
-    },
+      findByIds: (ids: ReadonlyArray<PlayerId>) => {
+        const result = new Map<PlayerId, PlayerEntity>();
+        for (const id of ids) {
+          const player = players.get(id);
+          if (player) {
+            result.set(id, player);
+          }
+        }
+        return Effect.succeed(result as ReadonlyMap<PlayerId, PlayerEntity>);
+      },
+
+      // save with optimistic concurrency control
+      save: (player: PlayerEntity) => {
+        const existingPlayer = players.get(player.id);
+
+        // Check optimistic concurrency: version must be previous + 1
+        if (existingPlayer && existingPlayer.version !== player.version - 1) {
+          return Effect.fail(
+            new OptimisticConcurrencyError({ playerId: player.id }),
+          );
+        }
+
+        players.set(player.id, player);
+        return Effect.succeed(void 0);
+      },
+    };
   };
-};
 
 export const InMemoryPlayerRepository = Layer.sync(
   PlayerRepository,

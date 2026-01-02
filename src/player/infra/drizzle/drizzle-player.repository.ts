@@ -1,10 +1,15 @@
-import { eq, inArray } from "drizzle-orm";
-import type { NodePgDatabase } from "drizzle-orm/node-postgres";
-import { Context, Effect, Layer, Option } from "effect";
-import { PlayerId, PlayerEntity } from "../../player.entity.js";
-import { PlayerRepository } from "../../player.repository.js";
-import { Database } from "../../../infra/db/database.service.js";
-import { playersTable } from "../../../infra/db/schema.js";
+import { eq, inArray } from 'drizzle-orm';
+import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import type { Context } from 'effect';
+import { Effect, Layer, Option, Schema } from 'effect';
+import { Database } from '../../../infra/db/database.service.js';
+import { playersTable } from '../../../infra/db/schema.js';
+import { PlayerEntity, PlayerId } from '../../player.entity.js';
+import {
+  OptimisticConcurrencyError,
+  PlayerRepository,
+} from '../../player.repository.js';
+import { PlayerSnapshotSchema } from '../../player-snapshot.schema.js';
 
 export const makeDrizzlePlayerRepository = ({
   db,
@@ -27,16 +32,19 @@ export const makeDrizzlePlayerRepository = ({
         }
 
         const row = result[0];
-        return Option.some(
-          PlayerEntity.fromSnapshot({
-            id: row.id,
-            username: row.username,
-            email: row.email,
-            isAnonymous: row.isAnonymous,
-            createdAt: row.createdAt,
-            updatedAt: row.updatedAt,
-          }),
-        );
+
+        // Decode and validate the row data using Schema
+        const snapshot = yield* Schema.decodeUnknown(PlayerSnapshotSchema)({
+          id: row.id,
+          username: row.username,
+          email: row.email,
+          isAnonymous: row.isAnonymous,
+          version: row.version,
+          createdAt: row.createdAt,
+          updatedAt: row.updatedAt,
+        });
+
+        return Option.some(PlayerEntity.fromSnapshot(snapshot));
       });
     },
 
@@ -55,14 +63,18 @@ export const makeDrizzlePlayerRepository = ({
 
         const playerMap = new Map<PlayerId, PlayerEntity>();
         for (const row of result) {
-          const player = PlayerEntity.fromSnapshot({
+          // Decode and validate each row
+          const snapshot = yield* Schema.decodeUnknown(PlayerSnapshotSchema)({
             id: row.id,
             username: row.username,
             email: row.email,
             isAnonymous: row.isAnonymous,
+            version: row.version,
             createdAt: row.createdAt,
             updatedAt: row.updatedAt,
           });
+
+          const player = PlayerEntity.fromSnapshot(snapshot);
           playerMap.set(PlayerId(row.id), player);
         }
 
@@ -70,12 +82,18 @@ export const makeDrizzlePlayerRepository = ({
       });
     },
 
-    // save does upsert: insert if not exists, update if exists
+    // save with optimistic concurrency control
     save: (player: PlayerEntity) => {
       return Effect.gen(function* () {
         const snapshot = player.toSnapshot();
 
-        yield* Effect.promise(async () => {
+        // Validate the snapshot structure before saving
+        yield* Schema.decodeUnknown(PlayerSnapshotSchema)(snapshot);
+
+        // Insert/update with optimistic concurrency control
+        // For version 1 (new player): INSERT succeeds
+        // For version > 1: UPDATE only if WHERE version = player.version - 1 matches
+        const result = yield* Effect.tryPromise(async () => {
           return await db
             .insert(playersTable)
             .values({
@@ -83,6 +101,7 @@ export const makeDrizzlePlayerRepository = ({
               username: snapshot.username,
               email: snapshot.email,
               isAnonymous: snapshot.isAnonymous,
+              version: snapshot.version,
               createdAt: snapshot.createdAt,
               updatedAt: snapshot.updatedAt,
             })
@@ -92,10 +111,21 @@ export const makeDrizzlePlayerRepository = ({
                 username: snapshot.username,
                 email: snapshot.email,
                 isAnonymous: snapshot.isAnonymous,
+                version: snapshot.version,
                 updatedAt: snapshot.updatedAt,
               },
+              where: eq(playersTable.version, player.version - 1),
             });
         });
+
+        // Check if update was successful (affected rows)
+        // When onConflictDoUpdate WHERE clause doesn't match any rows (version mismatch),
+        // rowCount will be 0, indicating an optimistic concurrency conflict
+        if (result.rowCount === 0) {
+          return yield* Effect.fail(
+            new OptimisticConcurrencyError({ playerId: player.id }),
+          );
+        }
 
         return yield* Effect.void;
       });

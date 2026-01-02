@@ -19,10 +19,19 @@ export class PlayerEntity {
       readonly username: string;
       readonly email: Option.Option<string>;
       readonly isAnonymous: boolean;
+      readonly version: number;
       readonly createdAt: Date;
       readonly updatedAt: Date;
     },
   ) {}
+
+  get id(): PlayerId {
+    return this.props.id;
+  }
+
+  get version(): number {
+    return this.props.version;
+  }
 
   // === Factory ===
   static createFromAuth(authUser: {
@@ -37,6 +46,7 @@ export class PlayerEntity {
       username: authUser.username,
       email: Option.fromNullable(authUser.email),
       isAnonymous: authUser.isAnonymous,
+      version: 1,
       createdAt: now,
       updatedAt: now,
     });
@@ -55,6 +65,7 @@ export class PlayerEntity {
     return new PlayerEntity({
       ...this.props,
       username: newUsername,
+      version: this.props.version + 1,
       updatedAt: new Date(),
     });
   }
@@ -72,6 +83,7 @@ export class PlayerEntity {
             ...this.props,
             email: Option.some(email),
             isAnonymous: false,
+            version: this.props.version + 1,
             updatedAt: new Date(),
           }),
         ),
@@ -93,19 +105,27 @@ export class PlayerEntity {
       username: this.props.username,
       email: Option.getOrNull(this.props.email),
       isAnonymous: this.props.isAnonymous,
+      version: this.props.version,
       createdAt: this.props.createdAt,
       updatedAt: this.props.updatedAt,
     };
   }
 
-  static fromSnapshot(
-    snapshot: ReturnType<PlayerEntity["toSnapshot"]>,
-  ): PlayerEntity {
+  static fromSnapshot(snapshot: {
+    id: string;
+    username: string;
+    email: string | null;
+    isAnonymous: boolean;
+    version: number;
+    createdAt: Date;
+    updatedAt: Date;
+  }): PlayerEntity {
     return new PlayerEntity({
       id: PlayerId(snapshot.id),
       username: snapshot.username,
       email: Option.fromNullable(snapshot.email),
       isAnonymous: snapshot.isAnonymous,
+      version: snapshot.version,
       createdAt: snapshot.createdAt,
       updatedAt: snapshot.updatedAt,
     });

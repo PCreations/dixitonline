@@ -5,7 +5,7 @@ import { InMemoryPlayerRepository } from "./player.repository.js";
 
 // Re-export public API
 export { PlayerId, PlayerEntity, EmailAlreadyLinkedError } from "./player.entity.js";
-export { PlayerRepository } from "./player.repository.js";
+export { PlayerRepository, OptimisticConcurrencyError } from "./player.repository.js";
 export { EnsurePlayerExistsUseCase, type EnsurePlayerExistsCommand } from "./ensure-player-exists.usecase.js";
 
 /**
