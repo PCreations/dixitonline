@@ -257,7 +257,7 @@ body {
 .login-form {
   @apply flex flex-col;
   width: 325px;
-  gap: 67px;
+  gap: 32px;
 }
 
 .login-field {
@@ -308,6 +308,43 @@ body {
 
 .login-button:active {
   transform: translateY(0);
+}
+
+.login-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.login-button:disabled:hover {
+  transform: none;
+}
+
+.login-optional {
+  font-weight: 400;
+  font-size: 14px;
+  opacity: 0.5;
+}
+
+.login-input-error {
+  border-bottom-color: #ef4444 !important;
+}
+
+.login-field-error {
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  color: #ef4444;
+  margin: 0;
+}
+
+.login-error {
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  color: #ef4444;
+  margin: 0;
+  text-align: center;
 }
 
 /* Lobby page styles */

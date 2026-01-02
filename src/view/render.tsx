@@ -117,6 +117,88 @@ document.addEventListener('alpine:init', () => {
       window.location.reload();
     }
   }));
+
+  // Login form for /login page
+  Alpine.data('loginForm', () => ({
+    username: '',
+    email: '',
+    loading: false,
+    error: null,
+    submitted: false,
+    emailError: null,
+
+    validateEmail() {
+      if (!this.email) {
+        this.emailError = null;
+        return true;
+      }
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(this.email)) {
+        this.emailError = 'Email invalide';
+        return false;
+      }
+      this.emailError = null;
+      return true;
+    },
+
+    validate() {
+      this.submitted = true;
+      let valid = true;
+
+      if (!this.username.trim()) {
+        valid = false;
+      }
+
+      if (!this.validateEmail()) {
+        valid = false;
+      }
+
+      return valid;
+    },
+
+    async submit() {
+      if (!this.validate()) {
+        return;
+      }
+
+      this.loading = true;
+      this.error = null;
+
+      try {
+        if (this.email) {
+          // Magic link flow
+          const { error } = await window.supabase.auth.signInWithOtp({
+            email: this.email,
+            options: {
+              data: { username: this.username.trim() },
+              emailRedirectTo: window.location.origin + this.getRedirectUrl()
+            }
+          });
+          if (error) throw error;
+          alert('Un lien magique a été envoyé à votre email !');
+        } else {
+          // Anonymous flow
+          const { data, error } = await window.supabase.auth.signInAnonymously({
+            options: {
+              data: { username: this.username.trim() }
+            }
+          });
+          if (error) throw error;
+          setAuthCookie(data.session?.access_token);
+          window.location.href = this.getRedirectUrl();
+        }
+      } catch (e) {
+        this.error = e.message;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    getRedirectUrl() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('redirect') || '/';
+    }
+  }));
 });
 
 // Inject JWT into all HTMX requests (wait for DOM to be ready)
