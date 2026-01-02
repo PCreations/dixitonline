@@ -47,7 +47,14 @@ export class VoteOnCardUseCase extends Effect.Service<VoteOnCardUseCase>()(
             });
           });
 
-          return withOptimisticRetry(voteOnCardLogic);
+          return withOptimisticRetry(voteOnCardLogic).pipe(
+            Effect.withSpan('VoteOnCardUseCase.voteOnCard', {
+              attributes: {
+                'game.id': props.gameId,
+                'player.id': props.playerId,
+              },
+            }),
+          );
         },
       };
     }),

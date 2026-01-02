@@ -61,7 +61,14 @@ export class StartGameUseCase extends Effect.Service<StartGameUseCase>()(
             );
           });
 
-          return withOptimisticRetry(startGameLogic);
+          return withOptimisticRetry(startGameLogic).pipe(
+            Effect.withSpan('StartGameUseCase.startGame', {
+              attributes: {
+                'game.id': props.gameId,
+                'player.id': props.playerId,
+              },
+            }),
+          );
         },
       };
     }),

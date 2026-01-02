@@ -34,7 +34,14 @@ export class JoinGameUseCase extends Effect.Service<JoinGameUseCase>()(
             });
           });
 
-          return withOptimisticRetry(joinGameLogic);
+          return withOptimisticRetry(joinGameLogic).pipe(
+            Effect.withSpan('JoinGameUseCase.joinGame', {
+              attributes: {
+                'game.id': props.gameId,
+                'player.id': props.playerId,
+              },
+            }),
+          );
         },
       };
     }),

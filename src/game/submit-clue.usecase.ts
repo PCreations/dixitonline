@@ -49,7 +49,14 @@ export class SubmitClueUseCase extends Effect.Service<SubmitClueUseCase>()(
             });
           });
 
-          return withOptimisticRetry(submitClueLogic);
+          return withOptimisticRetry(submitClueLogic).pipe(
+            Effect.withSpan('SubmitClueUseCase.submitClue', {
+              attributes: {
+                'game.id': props.gameId,
+                'player.id': props.playerId,
+              },
+            }),
+          );
         },
       };
     }),

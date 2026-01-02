@@ -47,7 +47,14 @@ export class SelectCardUseCase extends Effect.Service<SelectCardUseCase>()(
             });
           });
 
-          return withOptimisticRetry(selectCardLogic);
+          return withOptimisticRetry(selectCardLogic).pipe(
+            Effect.withSpan('SelectCardUseCase.selectCard', {
+              attributes: {
+                'game.id': props.gameId,
+                'player.id': props.playerId,
+              },
+            }),
+          );
         },
       };
     }),

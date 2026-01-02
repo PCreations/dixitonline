@@ -83,7 +83,14 @@ export class CreateGameUseCase extends Effect.Service<CreateGameUseCase>()(
             const result = yield* Effect.either(gameRepository.save(game));
 
             return yield* Effect.succeed(result);
-          }),
+          }).pipe(
+            Effect.withSpan('CreateGameUseCase.createGame', {
+              attributes: {
+                'game.id': props.gameId,
+                'player.id': props.hostId,
+              },
+            }),
+          ),
       };
     }),
     dependencies: [InMemoryGameRepository, InMemoryDeckRepository],

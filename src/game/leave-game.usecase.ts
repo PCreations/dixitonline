@@ -46,7 +46,14 @@ export class LeaveGameUseCase extends Effect.Service<LeaveGameUseCase>()(
             });
           });
 
-          return withOptimisticRetry(leaveGameLogic);
+          return withOptimisticRetry(leaveGameLogic).pipe(
+            Effect.withSpan('LeaveGameUseCase.leaveGame', {
+              attributes: {
+                'game.id': props.gameId,
+                'player.id': props.playerId,
+              },
+            }),
+          );
         },
       };
     }),

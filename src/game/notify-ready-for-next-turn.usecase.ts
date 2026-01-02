@@ -52,7 +52,14 @@ export class NotifyReadyForNextTurnUseCase
               });
             });
 
-            return withOptimisticRetry(notifyReadyForNextTurnLogic);
+            return withOptimisticRetry(notifyReadyForNextTurnLogic).pipe(
+              Effect.withSpan('NotifyReadyForNextTurnUseCase.notifyReadyForNextTurn', {
+                attributes: {
+                  'game.id': props.gameId,
+                  'player.id': props.playerId,
+                },
+              }),
+            );
           },
         };
       }),
