@@ -50,6 +50,25 @@ export const playersTable = pgTable('players', {
 export type InsertDrizzlePlayerDto = typeof playersTable.$inferInsert;
 export type SelectDrizzlePlayerDto = typeof playersTable.$inferSelect;
 
+/**
+ * Outbox table for reliable event delivery.
+ * Events are inserted atomically with aggregate saves,
+ * then relayed to subscribers via Supabase Realtime.
+ */
+export const outboxEventsTable = pgTable('outbox_events', {
+  id: uuid().primaryKey().defaultRandom(),
+  aggregateType: text().notNull(), // 'game', 'player', etc.
+  aggregateId: uuid().notNull(),
+  aggregateVersion: integer().notNull(),
+  eventType: text().notNull(), // 'playerJoined', 'gameStarted', etc.
+  payload: jsonb().notNull(),
+  createdAt: timestamp().notNull().defaultNow(),
+  processedAt: timestamp(), // null until relayed, for cleanup
+});
+
+export type InsertOutboxEventDto = typeof outboxEventsTable.$inferInsert;
+export type SelectOutboxEventDto = typeof outboxEventsTable.$inferSelect;
+
 export const InsertDrizzleNotStartedGameDtoSchema = Schema.Struct({
   id: Schema.String,
   createdAt: Schema.Date,
