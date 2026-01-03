@@ -101,6 +101,9 @@ export const makeDrizzleGameRepository = ({
   return {
     save: (game: GameEntity) => {
       return Effect.gen(function* () {
+        const snapshot = game.toSnapshot();
+        yield* Effect.annotateCurrentSpan('context.input', JSON.stringify(snapshot));
+
         const encodedData = yield* encodeGameSnapshot(game);
 
         const result = yield* Effect.tryPromise({
@@ -112,19 +115,26 @@ export const makeDrizzleGameRepository = ({
         // When onConflictDoUpdate WHERE clause doesn't match any rows (version mismatch),
         // rowCount will be 0, indicating an optimistic concurrency conflict
         if (result.rowCount === 0) {
+          yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({
+            saved: false,
+            error: 'OptimisticConcurrencyError',
+          }));
           return yield* Effect.fail(new OptimisticConcurrencyError());
         }
 
+        yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({ saved: true }));
         return yield* Effect.void;
-      }).pipe(
-        Effect.withSpan('GameRepository.save', {
-          attributes: { 'game.id': game.id },
-        }),
-      );
+      }).pipe(Effect.withSpan('GameRepository.save'));
     },
 
     saveWithEvents: (game: GameEntity, events: ReadonlyArray<GameEvent>) => {
       return Effect.gen(function* () {
+        const snapshot = game.toSnapshot();
+        yield* Effect.annotateCurrentSpan('context.input', JSON.stringify({
+          snapshot,
+          events,
+        }));
+
         const encodedData = yield* encodeGameSnapshot(game);
 
         const result = yield* Effect.tryPromise({
@@ -164,21 +174,24 @@ export const makeDrizzleGameRepository = ({
         // The transaction already checked for optimistic concurrency
         // If we got here, the save was successful
         if (result instanceof OptimisticConcurrencyError) {
+          yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({
+            saved: false,
+            error: 'OptimisticConcurrencyError',
+          }));
           return yield* Effect.fail(result);
         }
 
+        yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({
+          saved: true,
+          eventsInserted: events.length,
+        }));
         return yield* Effect.void;
-      }).pipe(
-        Effect.withSpan('GameRepository.saveWithEvents', {
-          attributes: {
-            'game.id': game.id,
-            'events.count': events.length,
-          },
-        }),
-      );
+      }).pipe(Effect.withSpan('GameRepository.saveWithEvents'));
     },
     findById: (id: string) => {
       return Effect.gen(function* () {
+        yield* Effect.annotateCurrentSpan('context.input', JSON.stringify({ gameId: id }));
+
         const result = yield* Effect.tryPromise({
           try: async () => {
             return await db
@@ -191,6 +204,7 @@ export const makeDrizzleGameRepository = ({
         });
 
         if (result.length === 0) {
+          yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({ found: false }));
           return Option.none();
         }
 
@@ -200,6 +214,10 @@ export const makeDrizzleGameRepository = ({
           const snapshot = yield* Schema.decodeUnknown(
             NotStartedGameSnapshotSchema,
           )(row.data);
+          yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({
+            found: true,
+            snapshot,
+          }));
           return Option.some(NotStartedGameEntity.fromSnapshot(snapshot));
         }
 
@@ -221,6 +239,10 @@ export const makeDrizzleGameRepository = ({
                     ),
             },
           };
+          yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({
+            found: true,
+            snapshot,
+          }));
           // Cast to remove readonly modifiers - the schema returns readonly types for safety
           return Option.some(
             StartedGameEntity.fromSnapshot(
@@ -229,15 +251,14 @@ export const makeDrizzleGameRepository = ({
           );
         }
 
+        yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({ found: false }));
         return Option.none();
-      }).pipe(
-        Effect.withSpan('GameRepository.findById', {
-          attributes: { 'game.id': id },
-        }),
-      );
+      }).pipe(Effect.withSpan('GameRepository.findById'));
     },
     findNotStartedGameById: (id: string) => {
       return Effect.gen(function* () {
+        yield* Effect.annotateCurrentSpan('context.input', JSON.stringify({ gameId: id }));
+
         const result = yield* Effect.tryPromise({
           try: async () => {
             return await db
@@ -250,21 +271,25 @@ export const makeDrizzleGameRepository = ({
         });
 
         if (result.length === 0 || result[0].status !== 'NotStartedGame') {
+          yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({ found: false }));
           return Option.none();
         }
 
         const snapshot = yield* Schema.decodeUnknown(
           NotStartedGameSnapshotSchema,
         )(result[0].data);
+
+        yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({
+          found: true,
+          snapshot,
+        }));
         return Option.some(NotStartedGameEntity.fromSnapshot(snapshot));
-      }).pipe(
-        Effect.withSpan('GameRepository.findNotStartedGameById', {
-          attributes: { 'game.id': id },
-        }),
-      );
+      }).pipe(Effect.withSpan('GameRepository.findNotStartedGameById'));
     },
     findStartedGameById: (id: string) => {
       return Effect.gen(function* () {
+        yield* Effect.annotateCurrentSpan('context.input', JSON.stringify({ gameId: id }));
+
         const result = yield* Effect.tryPromise({
           try: async () => {
             return await db
@@ -277,6 +302,7 @@ export const makeDrizzleGameRepository = ({
         });
 
         if (result.length === 0 || result[0].status !== 'StartedGame') {
+          yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({ found: false }));
           return Option.none();
         }
 
@@ -295,20 +321,23 @@ export const makeDrizzleGameRepository = ({
                 : new Map(Object.entries(snapshot.currentTurn.pointsByPlayer)),
           },
         };
+
+        yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({
+          found: true,
+          snapshot,
+        }));
         // Cast to remove readonly modifiers - the schema returns readonly types for safety
         return Option.some(
           StartedGameEntity.fromSnapshot(
             snapshotWithMap as unknown as Omit<StartedGameSnapshot, 'status'>,
           ),
         );
-      }).pipe(
-        Effect.withSpan('GameRepository.findStartedGameById', {
-          attributes: { 'game.id': id },
-        }),
-      );
+      }).pipe(Effect.withSpan('GameRepository.findStartedGameById'));
     },
     findEndedGameById: (id: string) => {
       return Effect.gen(function* () {
+        yield* Effect.annotateCurrentSpan('context.input', JSON.stringify({ gameId: id }));
+
         const result = yield* Effect.tryPromise({
           try: async () => {
             return await db
@@ -321,21 +350,25 @@ export const makeDrizzleGameRepository = ({
         });
 
         if (result.length === 0 || result[0].status !== 'EndedGame') {
+          yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({ found: false }));
           return Option.none();
         }
 
         const snapshot = yield* Schema.decodeUnknown(EndedGameSnapshotSchema)(
           result[0].data,
         );
+
+        yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({
+          found: true,
+          snapshot,
+        }));
         return Option.some(EndedGameEntity.fromSnapshot(snapshot));
-      }).pipe(
-        Effect.withSpan('GameRepository.findEndedGameById', {
-          attributes: { 'game.id': id },
-        }),
-      );
+      }).pipe(Effect.withSpan('GameRepository.findEndedGameById'));
     },
     isPlayerInGame: (gameId: string, playerId: string) => {
       return Effect.gen(function* () {
+        yield* Effect.annotateCurrentSpan('context.input', JSON.stringify({ gameId, playerId }));
+
         const result = yield* Effect.tryPromise({
           try: async () => {
             return await db
@@ -348,16 +381,22 @@ export const makeDrizzleGameRepository = ({
         });
 
         if (result.length === 0) {
+          yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({
+            gameFound: false,
+            isInGame: false,
+          }));
           return false;
         }
 
         const game = result[0];
-        return game.data.players.includes(playerId);
-      }).pipe(
-        Effect.withSpan('GameRepository.isPlayerInGame', {
-          attributes: { 'game.id': gameId, 'player.id': playerId },
-        }),
-      );
+        const isInGame = game.data.players.includes(playerId);
+
+        yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({
+          gameFound: true,
+          isInGame,
+        }));
+        return isInGame;
+      }).pipe(Effect.withSpan('GameRepository.isPlayerInGame'));
     },
     simulateStaleRead: () => Effect.void,
   };

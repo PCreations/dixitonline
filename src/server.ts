@@ -33,7 +33,7 @@ import { GameEventBus, GameLayerLiveWithDependencies } from './game/index.js';
 import { JoinGameUseCase } from './game/join-game.usecase.js';
 import { LobbyQueryService } from './game/lobby.query-service.js';
 import { Database } from './infra/db/database.service.js';
-import { TracingLive, withSentryErrorCapture } from './infra/observability/index.js';
+import { TracingLive, withHttpSpan, withSentryErrorCapture } from './infra/observability/index.js';
 import {
   DrizzleOutboxRepository,
   OutboxEventRelay,
@@ -252,7 +252,10 @@ fastify.route({
     });
 
     return appRuntime
-      .runPromise(program.pipe(withSentryErrorCapture))
+      .runPromise(program.pipe(
+        withHttpSpan({ method: 'GET', url: `/game/${gameId}/lobby` }),
+        withSentryErrorCapture,
+      ))
       .catch((error) => {
         // Error already captured to Sentry by withSentryErrorCapture
         // @ts-ignore - pino type issue with FastifyBaseLogger
@@ -289,7 +292,10 @@ fastify.route({
     });
 
     return appRuntime
-      .runPromise(program.pipe(Effect.provide(request.authLayer)))
+      .runPromise(program.pipe(
+        Effect.provide(request.authLayer),
+        withHttpSpan({ method: 'GET', url: `/game/${gameId}/join` }),
+      ))
       .catch((error) => {
         // @ts-ignore - pino type issue with FastifyBaseLogger
         request.log.error({ err: error }, 'Failed to join game');
@@ -397,7 +403,10 @@ fastify.route({
     });
 
     return appRuntime
-      .runPromise(program.pipe(Effect.provide(request.authLayer)))
+      .runPromise(program.pipe(
+        Effect.provide(request.authLayer),
+        withHttpSpan({ method: 'POST', url: '/game/create' }),
+      ))
       .catch((error) => {
         if (error._tag === 'MissingAuthorizationHeader') {
           return reply.redirect('/');
@@ -556,7 +565,10 @@ fastify.route({
     });
 
     return appRuntime
-      .runPromise(program.pipe(withSentryErrorCapture))
+      .runPromise(program.pipe(
+        withHttpSpan({ method: 'GET', url: `/game/${gameId}/lobby/content` }),
+        withSentryErrorCapture,
+      ))
       .catch((error) => {
         // Error already captured to Sentry by withSentryErrorCapture
         // @ts-ignore - pino type issue

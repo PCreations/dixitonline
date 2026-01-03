@@ -32,17 +32,25 @@ export class StartGameUseCase extends Effect.Service<StartGameUseCase>()(
       return {
         startGame: (props: StartGameCommand) => {
           const startGameLogic = Effect.gen(function* () {
+            yield* Effect.annotateCurrentSpan('context.input', JSON.stringify(props));
+
             const game = yield* gameRepository.findNotStartedGameById(
               props.gameId,
             );
             const gameEntity = yield* Option.match(game, {
-              onNone: () => Effect.fail(new Error("Game not found")),
+              onNone: () => {
+                Effect.runSync(Effect.annotateCurrentSpan('context.output', JSON.stringify({ error: 'Game not found' })));
+                return Effect.fail(new Error("Game not found"));
+              },
               onSome: Effect.succeed,
             });
 
             const deck = yield* deckRepository.findById(gameEntity.deckId);
             const deckEntity = yield* Option.match(deck, {
-              onNone: () => Effect.fail(new Error("Deck not found")),
+              onNone: () => {
+                Effect.runSync(Effect.annotateCurrentSpan('context.output', JSON.stringify({ error: 'Deck not found' })));
+                return Effect.fail(new Error("Deck not found"));
+              },
               onSome: Effect.succeed,
             });
 
@@ -59,15 +67,15 @@ export class StartGameUseCase extends Effect.Service<StartGameUseCase>()(
             yield* gameView.save(
               yield* gameViewProjector.project(updatedGame.toSnapshot()),
             );
+
+            yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({
+              snapshot: updatedGame.toSnapshot(),
+              events,
+            }));
           });
 
           return withOptimisticRetry(startGameLogic).pipe(
-            Effect.withSpan('StartGameUseCase.startGame', {
-              attributes: {
-                'game.id': props.gameId,
-                'player.id': props.playerId,
-              },
-            }),
+            Effect.withSpan('StartGameUseCase.startGame'),
           );
         },
       };

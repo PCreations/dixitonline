@@ -25,12 +25,17 @@ export class SubmitClueUseCase extends Effect.Service<SubmitClueUseCase>()(
       return {
         submitClue: (props: SubmitClueCommand) => {
           const submitClueLogic = Effect.gen(function* () {
+            yield* Effect.annotateCurrentSpan('context.input', JSON.stringify(props));
+
             const game = yield* gameRepository.findStartedGameById(
               props.gameId,
             );
 
             return yield* Option.match(game, {
-              onNone: () => Effect.fail(new Error("Game not found")),
+              onNone: () => {
+                Effect.runSync(Effect.annotateCurrentSpan('context.output', JSON.stringify({ error: 'Game not found' })));
+                return Effect.fail(new Error("Game not found"));
+              },
               onSome: (gameEntity) =>
                 Effect.gen(function* () {
                   const { entity: updatedGame, events } =
@@ -45,17 +50,17 @@ export class SubmitClueUseCase extends Effect.Service<SubmitClueUseCase>()(
                   yield* gameView.save(
                     yield* gameViewProjector.project(updatedGame.toSnapshot()),
                   );
+
+                  yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({
+                    snapshot: updatedGame.toSnapshot(),
+                    events,
+                  }));
                 }),
             });
           });
 
           return withOptimisticRetry(submitClueLogic).pipe(
-            Effect.withSpan('SubmitClueUseCase.submitClue', {
-              attributes: {
-                'game.id': props.gameId,
-                'player.id': props.playerId,
-              },
-            }),
+            Effect.withSpan('SubmitClueUseCase.submitClue'),
           );
         },
       };

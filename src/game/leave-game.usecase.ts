@@ -23,10 +23,15 @@ export class LeaveGameUseCase extends Effect.Service<LeaveGameUseCase>()(
       return {
         leaveGame: (props: LeaveGameCommand) => {
           const leaveGameLogic = Effect.gen(function* () {
+            yield* Effect.annotateCurrentSpan('context.input', JSON.stringify(props));
+
             const game = yield* gameRepository.findById(props.gameId);
 
             return yield* Option.match(game, {
-              onNone: () => Effect.fail(new Error("Game not found")),
+              onNone: () => {
+                Effect.runSync(Effect.annotateCurrentSpan('context.output', JSON.stringify({ error: 'Game not found' })));
+                return Effect.fail(new Error("Game not found"));
+              },
               onSome: (gameEntity) =>
                 Effect.gen(function* () {
                   const { entity: updatedGame, events } =
@@ -42,17 +47,17 @@ export class LeaveGameUseCase extends Effect.Service<LeaveGameUseCase>()(
                       ),
                     );
                   }
+
+                  yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({
+                    snapshot: updatedGame.toSnapshot(),
+                    events,
+                  }));
                 }),
             });
           });
 
           return withOptimisticRetry(leaveGameLogic).pipe(
-            Effect.withSpan('LeaveGameUseCase.leaveGame', {
-              attributes: {
-                'game.id': props.gameId,
-                'player.id': props.playerId,
-              },
-            }),
+            Effect.withSpan('LeaveGameUseCase.leaveGame'),
           );
         },
       };

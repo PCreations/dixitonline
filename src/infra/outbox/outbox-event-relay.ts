@@ -74,9 +74,21 @@ export const OutboxEventRelayLive = Layer.scoped(
 
       // Publish to local PubSub and mark as processed
       const program = Effect.gen(function* () {
+        yield* Effect.annotateCurrentSpan('context.input', JSON.stringify({
+          eventId: row.id,
+          eventType: row.event_type,
+          aggregateId: row.aggregate_id,
+          aggregateVersion: row.aggregate_version,
+        }));
+
         yield* gameEventBus.publish(event);
         yield* outboxRepository.markAsProcessed(row.id);
-      }).pipe(Effect.catchAll(() => Effect.void)); // Don't fail on relay errors
+
+        yield* Effect.annotateCurrentSpan('context.output', 'no data');
+      }).pipe(
+        Effect.withSpan('OutboxEventRelay.handleEvent'),
+        Effect.catchAll(() => Effect.void), // Don't fail on relay errors
+      );
 
       // Run the effect using the runtime
       Runtime.runPromise(runtime)(program);

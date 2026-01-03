@@ -3,30 +3,31 @@ import { Schema } from "effect";
 import { PlayerSnapshotSchema } from "./player-snapshot.schema.js";
 
 describe("PlayerSnapshotSchema", () => {
-  // Schema.Date expects string input for decoding (ISO date string)
-  // and outputs Date objects
-  const validEncodedSnapshot = {
+  // Schema.DateFromSelf expects Date objects directly (no string transformation)
+  const testDate = new Date("2024-01-01T00:00:00.000Z");
+
+  const validSnapshot = {
     id: "test-player-id",
     username: "TestPlayer",
     email: "test@example.com",
     isAnonymous: false,
     version: 1,
-    createdAt: "2024-01-01T00:00:00.000Z",
-    updatedAt: "2024-01-01T00:00:00.000Z",
+    createdAt: testDate,
+    updatedAt: testDate,
   };
 
-  const anonymousEncodedSnapshot = {
+  const anonymousSnapshot = {
     id: "anonymous-player-id",
     username: "Anonymous",
     email: null,
     isAnonymous: true,
     version: 1,
-    createdAt: "2024-01-01T00:00:00.000Z",
-    updatedAt: "2024-01-01T00:00:00.000Z",
+    createdAt: testDate,
+    updatedAt: testDate,
   };
 
   it("should decode a valid player snapshot with email", () => {
-    const result = Schema.decodeUnknownSync(PlayerSnapshotSchema)(validEncodedSnapshot);
+    const result = Schema.decodeUnknownSync(PlayerSnapshotSchema)(validSnapshot);
 
     expect(result.id).toBe("test-player-id");
     expect(result.username).toBe("TestPlayer");
@@ -38,7 +39,7 @@ describe("PlayerSnapshotSchema", () => {
   });
 
   it("should decode a valid anonymous player snapshot with null email", () => {
-    const result = Schema.decodeUnknownSync(PlayerSnapshotSchema)(anonymousEncodedSnapshot);
+    const result = Schema.decodeUnknownSync(PlayerSnapshotSchema)(anonymousSnapshot);
 
     expect(result.id).toBe("anonymous-player-id");
     expect(result.username).toBe("Anonymous");
@@ -48,17 +49,18 @@ describe("PlayerSnapshotSchema", () => {
     expect(result.createdAt).toBeInstanceOf(Date);
   });
 
-  it("should encode a snapshot back to string dates", () => {
-    const decoded = Schema.decodeUnknownSync(PlayerSnapshotSchema)(validEncodedSnapshot);
+  it("should keep Date objects as-is (no transformation)", () => {
+    const decoded = Schema.decodeUnknownSync(PlayerSnapshotSchema)(validSnapshot);
     const encoded = Schema.encodeSync(PlayerSnapshotSchema)(decoded);
 
-    expect(encoded.id).toBe(validEncodedSnapshot.id);
-    expect(encoded.username).toBe(validEncodedSnapshot.username);
-    expect(encoded.email).toBe(validEncodedSnapshot.email);
-    expect(encoded.isAnonymous).toBe(validEncodedSnapshot.isAnonymous);
-    expect(encoded.version).toBe(validEncodedSnapshot.version);
-    expect(typeof encoded.createdAt).toBe("string");
-    expect(typeof encoded.updatedAt).toBe("string");
+    expect(encoded.id).toBe(validSnapshot.id);
+    expect(encoded.username).toBe(validSnapshot.username);
+    expect(encoded.email).toBe(validSnapshot.email);
+    expect(encoded.isAnonymous).toBe(validSnapshot.isAnonymous);
+    expect(encoded.version).toBe(validSnapshot.version);
+    // DateFromSelf keeps Date objects as-is
+    expect(encoded.createdAt).toBeInstanceOf(Date);
+    expect(encoded.updatedAt).toBeInstanceOf(Date);
   });
 
   it("should fail on invalid data - missing required field", () => {
@@ -68,8 +70,8 @@ describe("PlayerSnapshotSchema", () => {
       email: null,
       isAnonymous: true,
       version: 1,
-      createdAt: "2024-01-01T00:00:00.000Z",
-      updatedAt: "2024-01-01T00:00:00.000Z",
+      createdAt: testDate,
+      updatedAt: testDate,
     };
 
     expect(() =>
@@ -79,7 +81,7 @@ describe("PlayerSnapshotSchema", () => {
 
   it("should fail on invalid data - wrong type for version", () => {
     const invalidSnapshot = {
-      ...validEncodedSnapshot,
+      ...validSnapshot,
       version: "not-a-number",
     };
 
@@ -90,7 +92,7 @@ describe("PlayerSnapshotSchema", () => {
 
   it("should fail on invalid data - wrong type for isAnonymous", () => {
     const invalidSnapshot = {
-      ...validEncodedSnapshot,
+      ...validSnapshot,
       isAnonymous: "not-a-boolean",
     };
 

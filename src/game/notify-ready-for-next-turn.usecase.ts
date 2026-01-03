@@ -24,12 +24,17 @@ export class NotifyReadyForNextTurnUseCase
         return {
           notifyReadyForNextTurn: (props: NotifyReadyForNextTurnCommand) => {
             const notifyReadyForNextTurnLogic = Effect.gen(function* () {
+              yield* Effect.annotateCurrentSpan('context.input', JSON.stringify(props));
+
               const game = yield* gameRepository.findStartedGameById(
                 props.gameId,
               );
 
               return yield* Option.match(game, {
-                onNone: () => Effect.fail(new Error("Game not found")),
+                onNone: () => {
+                  Effect.runSync(Effect.annotateCurrentSpan('context.output', JSON.stringify({ error: 'Game not found' })));
+                  return Effect.fail(new Error("Game not found"));
+                },
                 onSome: (gameEntity) =>
                   Effect.gen(function* () {
                     const { entity: updatedGame, events } =
@@ -48,17 +53,17 @@ export class NotifyReadyForNextTurnUseCase
                         ),
                       );
                     }
+
+                    yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({
+                      snapshot: updatedGame.toSnapshot(),
+                      events,
+                    }));
                   }),
               });
             });
 
             return withOptimisticRetry(notifyReadyForNextTurnLogic).pipe(
-              Effect.withSpan('NotifyReadyForNextTurnUseCase.notifyReadyForNextTurn', {
-                attributes: {
-                  'game.id': props.gameId,
-                  'player.id': props.playerId,
-                },
-              }),
+              Effect.withSpan('NotifyReadyForNextTurnUseCase.notifyReadyForNextTurn'),
             );
           },
         };

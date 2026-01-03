@@ -10,8 +10,8 @@ export const PlayerSnapshotSchema = Schema.Struct({
   email: Schema.NullOr(Schema.String),
   isAnonymous: Schema.Boolean,
   version: Schema.Number,
-  createdAt: Schema.Date,
-  updatedAt: Schema.Date,
+  createdAt: Schema.DateFromSelf,
+  updatedAt: Schema.DateFromSelf,
 });
 
 export type PlayerSnapshot = typeof PlayerSnapshotSchema.Type;

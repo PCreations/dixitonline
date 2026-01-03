@@ -72,7 +72,14 @@ export const DrizzleOutboxRepository = Layer.effect(
 
     return {
       insertWithinTransaction: (tx, input) =>
-        Effect.tryPromise(async () => {
+        Effect.gen(function* () {
+          yield* Effect.annotateCurrentSpan('context.input', JSON.stringify({
+            aggregateType: input.aggregateType,
+            aggregateId: input.aggregateId,
+            aggregateVersion: input.aggregateVersion,
+            eventType: input.event._tag,
+          }));
+
           const dto: InsertOutboxEventDto = {
             aggregateType: input.aggregateType,
             aggregateId: input.aggregateId,
@@ -81,35 +88,67 @@ export const DrizzleOutboxRepository = Layer.effect(
             payload: input.event,
           };
 
-          await tx.insert(outboxEventsTable).values(dto);
-        }),
+          yield* Effect.tryPromise(async () => {
+            await tx.insert(outboxEventsTable).values(dto);
+          });
+
+          yield* Effect.annotateCurrentSpan('context.output', 'no data');
+        }).pipe(Effect.withSpan('OutboxRepository.insertWithinTransaction')),
 
       findUnprocessed: (limit) =>
-        Effect.tryPromise(async () => {
-          return await db
-            .select()
-            .from(outboxEventsTable)
-            .where(isNull(outboxEventsTable.processedAt))
-            .orderBy(outboxEventsTable.createdAt)
-            .limit(limit);
-        }),
+        Effect.gen(function* () {
+          yield* Effect.annotateCurrentSpan('context.input', JSON.stringify({ limit }));
+
+          const result = yield* Effect.tryPromise(async () => {
+            return await db
+              .select()
+              .from(outboxEventsTable)
+              .where(isNull(outboxEventsTable.processedAt))
+              .orderBy(outboxEventsTable.createdAt)
+              .limit(limit);
+          });
+
+          yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({
+            count: result.length,
+            eventIds: result.map((e) => e.id),
+          }));
+
+          return result;
+        }).pipe(Effect.withSpan('OutboxRepository.findUnprocessed')),
 
       markAsProcessed: (eventId) =>
-        Effect.tryPromise(async () => {
-          await db
-            .update(outboxEventsTable)
-            .set({ processedAt: new Date() })
-            .where(eq(outboxEventsTable.id, eventId));
-        }),
+        Effect.gen(function* () {
+          yield* Effect.annotateCurrentSpan('context.input', JSON.stringify({ eventId }));
+
+          yield* Effect.tryPromise(async () => {
+            await db
+              .update(outboxEventsTable)
+              .set({ processedAt: new Date() })
+              .where(eq(outboxEventsTable.id, eventId));
+          });
+
+          yield* Effect.annotateCurrentSpan('context.output', 'no data');
+        }).pipe(Effect.withSpan('OutboxRepository.markAsProcessed')),
 
       deleteOlderThan: (date) =>
-        Effect.tryPromise(async () => {
-          const result = await db
-            .delete(outboxEventsTable)
-            .where(lt(outboxEventsTable.processedAt, date));
+        Effect.gen(function* () {
+          yield* Effect.annotateCurrentSpan('context.input', JSON.stringify({
+            olderThan: date.toISOString(),
+          }));
 
-          return result.rowCount ?? 0;
-        }),
+          const result = yield* Effect.tryPromise(async () => {
+            const res = await db
+              .delete(outboxEventsTable)
+              .where(lt(outboxEventsTable.processedAt, date));
+            return res.rowCount ?? 0;
+          });
+
+          yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({
+            deletedCount: result,
+          }));
+
+          return result;
+        }).pipe(Effect.withSpan('OutboxRepository.deleteOlderThan')),
     };
   }),
 );

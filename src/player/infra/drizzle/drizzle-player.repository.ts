@@ -27,6 +27,8 @@ export const makeDrizzlePlayerRepository = ({
   return {
     findById: (id: PlayerId) => {
       return Effect.gen(function* () {
+        yield* Effect.annotateCurrentSpan('context.input', JSON.stringify({ playerId: id }));
+
         const result = yield* Effect.tryPromise({
           try: async () => {
             return await db
@@ -39,6 +41,7 @@ export const makeDrizzlePlayerRepository = ({
         });
 
         if (result.length === 0) {
+          yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({ found: false }));
           return Option.none();
         }
 
@@ -55,17 +58,24 @@ export const makeDrizzlePlayerRepository = ({
           updatedAt: row.updatedAt,
         });
 
+        yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({
+          found: true,
+          snapshot,
+        }));
+
         return Option.some(PlayerEntity.fromSnapshot(snapshot));
-      }).pipe(
-        Effect.withSpan('PlayerRepository.findById', {
-          attributes: { 'player.id': id },
-        }),
-      );
+      }).pipe(Effect.withSpan('PlayerRepository.findById'));
     },
 
     findByIds: (ids: ReadonlyArray<PlayerId>) => {
       return Effect.gen(function* () {
+        yield* Effect.annotateCurrentSpan('context.input', JSON.stringify({
+          playerIds: ids,
+          count: ids.length,
+        }));
+
         if (ids.length === 0) {
+          yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({ foundCount: 0 }));
           return new Map() as ReadonlyMap<PlayerId, PlayerEntity>;
         }
 
@@ -80,6 +90,7 @@ export const makeDrizzlePlayerRepository = ({
         });
 
         const playerMap = new Map<PlayerId, PlayerEntity>();
+        const snapshots: Array<unknown> = [];
         for (const row of result) {
           // Decode and validate each row
           const snapshot = yield* Schema.decodeUnknown(PlayerSnapshotSchema)({
@@ -92,16 +103,18 @@ export const makeDrizzlePlayerRepository = ({
             updatedAt: row.updatedAt,
           });
 
+          snapshots.push(snapshot);
           const player = PlayerEntity.fromSnapshot(snapshot);
           playerMap.set(PlayerId(row.id), player);
         }
 
+        yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({
+          foundCount: playerMap.size,
+          snapshots,
+        }));
+
         return playerMap as ReadonlyMap<PlayerId, PlayerEntity>;
-      }).pipe(
-        Effect.withSpan('PlayerRepository.findByIds', {
-          attributes: { 'player.ids.count': ids.length },
-        }),
-      );
+      }).pipe(Effect.withSpan('PlayerRepository.findByIds'));
     },
 
     // save with optimistic concurrency control
@@ -109,8 +122,7 @@ export const makeDrizzlePlayerRepository = ({
       return Effect.gen(function* () {
         const snapshot = player.toSnapshot();
 
-        // Validate the snapshot structure before saving
-        yield* Schema.decodeUnknown(PlayerSnapshotSchema)(snapshot);
+        yield* Effect.annotateCurrentSpan('context.input', JSON.stringify(snapshot));
 
         // Insert/update with optimistic concurrency control
         // For version 1 (new player): INSERT succeeds
@@ -147,17 +159,18 @@ export const makeDrizzlePlayerRepository = ({
         // When onConflictDoUpdate WHERE clause doesn't match any rows (version mismatch),
         // rowCount will be 0, indicating an optimistic concurrency conflict
         if (result.rowCount === 0) {
+          yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({
+            saved: false,
+            error: 'OptimisticConcurrencyError',
+          }));
           return yield* Effect.fail(
             new OptimisticConcurrencyError({ playerId: player.id }),
           );
         }
 
+        yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({ saved: true }));
         return yield* Effect.void;
-      }).pipe(
-        Effect.withSpan('PlayerRepository.save', {
-          attributes: { 'player.id': player.id },
-        }),
-      );
+      }).pipe(Effect.withSpan('PlayerRepository.save'));
     },
   };
 };

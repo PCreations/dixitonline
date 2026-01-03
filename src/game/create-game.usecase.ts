@@ -57,6 +57,8 @@ export class CreateGameUseCase extends Effect.Service<CreateGameUseCase>()(
       return {
         createGame: (props: CreateGameCommand) =>
           Effect.gen(function* () {
+            yield* Effect.annotateCurrentSpan('context.input', JSON.stringify(props));
+
             const defaultDeckId = yield* deckRepository.getDefaultDeckId();
 
             const endCondition = Option.match(props.endCondition, {
@@ -82,15 +84,13 @@ export class CreateGameUseCase extends Effect.Service<CreateGameUseCase>()(
 
             const result = yield* Effect.either(gameRepository.save(game));
 
+            yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({
+              snapshot: game.toSnapshot(),
+              result: result._tag,
+            }));
+
             return yield* Effect.succeed(result);
-          }).pipe(
-            Effect.withSpan('CreateGameUseCase.createGame', {
-              attributes: {
-                'game.id': props.gameId,
-                'player.id': props.hostId,
-              },
-            }),
-          ),
+          }).pipe(Effect.withSpan('CreateGameUseCase.createGame')),
       };
     }),
     dependencies: [InMemoryGameRepository, InMemoryDeckRepository],

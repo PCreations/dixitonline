@@ -89,3 +89,37 @@ export const withSentryErrorCapture = <A, E, R>(
       }),
     ),
   );
+
+/**
+ * Wrap an Effect with an HTTP span to create a parent transaction.
+ * All child spans (use cases, repositories) will be nested under this HTTP span.
+ *
+ * Usage:
+ * ```ts
+ * await runtime.runPromise(
+ *   myEffect.pipe(withHttpSpan({ method: 'GET', url: '/game/123' }))
+ * );
+ * ```
+ */
+export const withHttpSpan =
+  (request: { method: string; url: string }) =>
+  <A, E, R>(effect: Effect.Effect<A, E, R>): Effect.Effect<A, E, R> =>
+    Effect.gen(function* () {
+      yield* Effect.annotateCurrentSpan('context.input', JSON.stringify({
+        method: request.method,
+        url: request.url,
+      }));
+
+      const result = yield* effect;
+
+      yield* Effect.annotateCurrentSpan('context.output', 'no data');
+
+      return result;
+    }).pipe(
+      Effect.withSpan(`HTTP ${request.method} ${request.url}`, {
+        attributes: {
+          'http.method': request.method,
+          'http.url': request.url,
+        },
+      }),
+    );

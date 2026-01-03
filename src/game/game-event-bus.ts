@@ -35,15 +35,11 @@ export const InMemoryGameEventBus = Layer.effect(
 
     return {
       publish: (event) =>
-        PubSub.publish(pubsub, event).pipe(
-          Effect.asVoid,
-          Effect.withSpan('GameEventBus.publish', {
-            attributes: {
-              'event.type': event._tag,
-              'game.id': event.gameId,
-            },
-          }),
-        ),
+        Effect.gen(function* () {
+          yield* Effect.annotateCurrentSpan('context.input', JSON.stringify(event));
+          yield* PubSub.publish(pubsub, event);
+          yield* Effect.annotateCurrentSpan('context.output', 'no data');
+        }).pipe(Effect.withSpan('GameEventBus.publish')),
 
       subscribe: (gameId) =>
         Stream.fromPubSub(pubsub).pipe(

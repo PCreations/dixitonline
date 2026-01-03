@@ -17,12 +17,17 @@ export class JoinGameUseCase extends Effect.Service<JoinGameUseCase>()(
       return {
         joinGame: (props: JoinGameCommand) => {
           const joinGameLogic = Effect.gen(function* () {
+            yield* Effect.annotateCurrentSpan('context.input', JSON.stringify(props));
+
             const game = yield* gameRepository.findNotStartedGameById(
               props.gameId,
             );
 
             return yield* Option.match(game, {
-              onNone: () => Effect.fail(new Error("Game not found")),
+              onNone: () => {
+                Effect.runSync(Effect.annotateCurrentSpan('context.output', JSON.stringify({ error: 'Game not found' })));
+                return Effect.fail(new Error("Game not found"));
+              },
               onSome: (gameEntity) =>
                 Effect.gen(function* () {
                   const { entity: updatedGame, events } =
@@ -30,17 +35,17 @@ export class JoinGameUseCase extends Effect.Service<JoinGameUseCase>()(
 
                   // Save game and events atomically (outbox pattern)
                   yield* gameRepository.saveWithEvents(updatedGame, events);
+
+                  yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({
+                    snapshot: updatedGame.toSnapshot(),
+                    events,
+                  }));
                 }),
             });
           });
 
           return withOptimisticRetry(joinGameLogic).pipe(
-            Effect.withSpan('JoinGameUseCase.joinGame', {
-              attributes: {
-                'game.id': props.gameId,
-                'player.id': props.playerId,
-              },
-            }),
+            Effect.withSpan('JoinGameUseCase.joinGame'),
           );
         },
       };
