@@ -130,8 +130,11 @@ pnpm install
 # Start development server
 pnpm dev
 
-# Run tests
+# Run tests (watch mode by default)
 pnpm test
+
+# Run tests once without watch mode
+pnpm test --run
 
 # Run integration tests (requires Docker)
 pnpm test:int
