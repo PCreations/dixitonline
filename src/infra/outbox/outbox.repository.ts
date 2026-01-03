@@ -96,25 +96,14 @@ export const DrizzleOutboxRepository = Layer.effect(
         }).pipe(Effect.withSpan('OutboxRepository.insertWithinTransaction')),
 
       findUnprocessed: (limit) =>
-        Effect.gen(function* () {
-          yield* Effect.annotateCurrentSpan('context.input', JSON.stringify({ limit }));
-
-          const result = yield* Effect.tryPromise(async () => {
-            return await db
-              .select()
-              .from(outboxEventsTable)
-              .where(isNull(outboxEventsTable.processedAt))
-              .orderBy(outboxEventsTable.createdAt)
-              .limit(limit);
-          });
-
-          yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({
-            count: result.length,
-            eventIds: result.map((e) => e.id),
-          }));
-
-          return result;
-        }).pipe(Effect.withSpan('OutboxRepository.findUnprocessed')),
+        Effect.tryPromise(async () => {
+          return await db
+            .select()
+            .from(outboxEventsTable)
+            .where(isNull(outboxEventsTable.processedAt))
+            .orderBy(outboxEventsTable.createdAt)
+            .limit(limit);
+        }),
 
       markAsProcessed: (eventId) =>
         Effect.gen(function* () {
