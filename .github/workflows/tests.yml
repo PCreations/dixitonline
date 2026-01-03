@@ -6,8 +6,8 @@ on:
       - v2
 
 jobs:
-  unit-tests:
-    name: Unit Tests
+  acceptance-in-memory:
+    name: Acceptance Tests (In-Memory)
     runs-on: ubuntu-latest
 
     steps:
@@ -26,13 +26,13 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Run unit tests
-        run: pnpm test
+      - name: Run acceptance tests (in-memory)
+        run: pnpm test:acceptance:in-memory
         env:
           CI: true
 
-  integration-tests:
-    name: Integration Tests
+  acceptance-drizzle:
+    name: Acceptance Tests (Drizzle/PostgreSQL)
     runs-on: ubuntu-latest
 
     steps:
@@ -51,7 +51,32 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Run integration tests
-        run: pnpm test:int
+      - name: Run acceptance tests (drizzle)
+        run: pnpm test:acceptance:drizzle
+        env:
+          CI: true
+
+  acceptance-e2e:
+    name: Acceptance Tests (E2E)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run acceptance tests (e2e)
+        run: pnpm test:acceptance:e2e
         env:
           CI: true
