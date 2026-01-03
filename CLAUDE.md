@@ -596,17 +596,27 @@ Le système utilise **optimistic locking** avec numéro de version :
 ### Messages de commit
 - Utiliser le format **Conventional Commits** : `type(scope): description`
 - Types courants : `feat`, `fix`, `refactor`, `test`, `docs`, `chore`
-- **Ne jamais mentionner Claude Code** dans les messages de commit (pas de footer "Generated with Claude Code")
 - Garder les messages concis et descriptifs
+
+### Règles strictes sur l'attribution
+- **Ne JAMAIS mentionner Claude** dans les commits (messages, footers, trailers)
+- **Ne JAMAIS ajouter Claude comme co-author** (pas de `Co-authored-by: Claude`)
+- **Ne JAMAIS utiliser de footer** comme "Generated with Claude Code", "AI-assisted", etc.
+- Les commits doivent apparaître comme écrits par le développeur uniquement
 
 ```bash
 # ✅ BON
 git commit -m "feat(lobby): add real-time updates with SSE"
 
-# ❌ MAUVAIS
+# ❌ MAUVAIS - footer Claude
 git commit -m "feat: add SSE
 
 🤖 Generated with Claude Code"
+
+# ❌ MAUVAIS - co-author
+git commit -m "feat: add SSE
+
+Co-authored-by: Claude <claude@anthropic.com>"
 ```
 
 ## Pièges à éviter
