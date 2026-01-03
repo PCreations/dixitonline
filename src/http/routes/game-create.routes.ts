@@ -23,7 +23,9 @@ const gameCreateRoutes: FastifyPluginAsync = async (fastify) => {
 
       const component = h(CreateGame, {});
       const body = renderToString(component);
-      const html = renderHtmlPage('Créer une partie - Tixid Online', body);
+      const html = renderHtmlPage('Créer une partie - Tixid Online', body, {
+        isAuthenticated: true,
+      });
 
       return reply.type('text/html').send(html);
     },

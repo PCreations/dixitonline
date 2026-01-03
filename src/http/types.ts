@@ -1,6 +1,8 @@
 import type { ManagedRuntime } from 'effect';
 import type { VNode } from 'preact';
 
+import type { RenderHtmlPageOptions } from '../view/render.js';
+
 // Re-export types for use in route plugins
 export interface CreateGameFormBody {
   endConditionType?: string;
@@ -21,7 +23,7 @@ export type AppRuntime = ManagedRuntime.ManagedRuntime<any, never>;
 declare module 'fastify' {
   interface FastifyInstance {
     appRuntime: AppRuntime;
-    renderHtmlPage: (title: string, body: string) => string;
+    renderHtmlPage: (title: string, body: string, options?: RenderHtmlPageOptions) => string;
     // biome-ignore lint/suspicious/noExplicitAny: VNode props vary by component
     renderToString: (component: VNode<any>) => string;
   }

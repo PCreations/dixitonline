@@ -13,7 +13,7 @@ const authStoreScript = `
 // Helper to manage auth cookie for SSR
 function setAuthCookie(token) {
   if (token) {
-    document.cookie = 'sb-access-token=' + token + '; path=/; max-age=3600; SameSite=Lax';
+    document.cookie = 'sb-access-token=' + token + '; path=/; max-age=604800; SameSite=Lax';
   } else {
     document.cookie = 'sb-access-token=; path=/; max-age=0';
   }
@@ -33,15 +33,29 @@ document.addEventListener('alpine:init', () => {
     async init() {
       try {
         const { data: { session } } = await window.supabase.auth.getSession();
+        const serverSawAuth = document.body.dataset.serverAuth === 'true';
+
         if (session) {
-          this.user = session.user;
-          this.username = session.user.user_metadata?.username || '';
           // Sync cookie with current session
           setAuthCookie(session.access_token);
+
+          // If server didn't see us as authenticated but we have valid session,
+          // the token was refreshed - reload once to sync SSR state
+          if (!serverSawAuth && !sessionStorage.getItem('auth-synced')) {
+            sessionStorage.setItem('auth-synced', 'true');
+            window.location.reload();
+            return;
+          }
+
+          this.user = session.user;
+          this.username = session.user.user_metadata?.username || '';
         } else {
           this.showUsernameModal = true;
           setAuthCookie(null);
         }
+
+        // Clear the sync flag on successful init
+        sessionStorage.removeItem('auth-synced');
       } catch (e) {
         console.error('Auth init error:', e);
         this.error = e.message;
@@ -111,6 +125,7 @@ document.addEventListener('alpine:init', () => {
     },
 
     async signOut() {
+      sessionStorage.removeItem('auth-synced');
       setAuthCookie(null);
       await window.supabase.auth.signOut();
       // Refresh the page to get server-rendered content without auth
@@ -212,7 +227,12 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 `;
 
-export function renderHtmlPage(title: string, body: string): string {
+export interface RenderHtmlPageOptions {
+  readonly isAuthenticated?: boolean;
+}
+
+export function renderHtmlPage(title: string, body: string, options?: RenderHtmlPageOptions): string {
+  const serverAuth = options?.isAuthenticated ? 'true' : 'false';
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -229,7 +249,7 @@ export function renderHtmlPage(title: string, body: string): string {
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script>${authStoreScript}</script>
 </head>
-<body>
+<body data-server-auth="${serverAuth}">
     ${body}
 </body>
 </html>`;

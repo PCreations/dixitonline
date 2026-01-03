@@ -33,7 +33,8 @@
       "Bash(/Applications/Tailscale.app/Contents/MacOS/Tailscale ip:*)",
       "Bash(sudo systemsetup:*)",
       "Bash(nc:*)",
-      "mcp__context7__query-docs"
+      "mcp__context7__query-docs",
+      "Bash(timeout 5 pnpm dev:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

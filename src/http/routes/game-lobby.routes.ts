@@ -45,7 +45,9 @@ const gameLobbyRoutes: FastifyPluginAsync = async (fastify) => {
 
         const component = h(Lobby, viewModel);
         const body = renderToString(component);
-        const html = renderHtmlPage('Lobby - Tixid Online', body);
+        const html = renderHtmlPage('Lobby - Tixid Online', body, {
+          isAuthenticated: true,
+        });
 
         return reply.type('text/html').send(html);
       });
