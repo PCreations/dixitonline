@@ -22,10 +22,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       </div>
 
       {/* Username modal for new anonymous users */}
-      <div x-show="showUsernameModal && !loading" x-cloak class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
-          <h2 class="text-2xl font-bold mb-4 text-gray-800">Bienvenue sur Tixid !</h2>
-          <p class="text-gray-600 mb-4">
+      <div x-show="showUsernameModal && !loading" x-cloak class="auth-modal-overlay">
+        <div class="auth-modal">
+          <h2 class="auth-modal-title">Bienvenue sur Tixid !</h2>
+          <p class="auth-modal-subtitle">
             Choisissez un pseudo pour commencer à jouer.
           </p>
           <form {...alpine.onSubmitPrevent('createAnonymousUser()')}>
@@ -36,13 +36,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
               required
               minLength={2}
               maxLength={20}
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg mb-4 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              class="auth-modal-input"
             />
-            <div x-show="error" class="text-red-500 text-sm mb-4" x-text="error"></div>
+            <div x-show="error" class="auth-modal-error" x-text="error"></div>
             <button
               type="submit"
               {...alpine.bindDisabled('loading || !username')}
-              class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              class="auth-modal-button"
             >
               Commencer à jouer
             </button>

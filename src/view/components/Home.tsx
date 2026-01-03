@@ -24,17 +24,19 @@ export function Home({ user }: HomeProps) {
         <div className="moon-container">
           <Moon />
         </div>
-        <Logo />
-        <p className="journey-subtitle">
-          {user ? `Enjoy your journey, ${user.username}` : 'Enjoy your journey'}
-        </p>
-        <div className="button-container">
-          {user ? [
-            <Button key="create" href="/game/new">Créer une partie</Button>,
-            <Button key="join" href="/game/join">Rejoindre une partie</Button>
-          ] : (
-            <Button x-on:click="showUsernameModal = true">Commencer l'aventure</Button>
-          )}
+        <div className="home-content">
+          <Logo />
+          <p className="journey-subtitle">
+            {user ? `Enjoy your journey, ${user.username}` : 'Enjoy your journey'}
+          </p>
+          <div className="button-container">
+            {user ? [
+              <Button key="create" href="/game/new">Créer une partie</Button>,
+              <Button key="join" href="/game/join">Rejoindre une partie</Button>
+            ] : (
+              <Button x-on:click="showUsernameModal = true">Commencer l'aventure</Button>
+            )}
+          </div>
         </div>
         <div className="dune-wrapper">
           <div className="dune-container">
