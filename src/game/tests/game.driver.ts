@@ -1,5 +1,7 @@
 import { expect } from "@effect/vitest";
 import { Context, Effect, Layer, Option, ParseResult } from "effect";
+import { Database } from "../../infra/db/database.service.js";
+import { getTestDb } from "../../shared/tests/setup/test-db.js";
 import { CreateGameUseCase } from "../create-game.usecase.js";
 import {
   Card,
@@ -33,6 +35,7 @@ import {
   TurnBoardCardsShuffler,
 } from "../game-view-projector.js";
 import { GameLayerWithoutDependencies } from "../index.js";
+import { DrizzleGameRepository } from "../infra/drizzle/drizzle-game.repository.js";
 import { JoinGameUseCase } from "../join-game.usecase.js";
 import { LeaveGameUseCase } from "../leave-game.usecase.js";
 import { NotifyReadyForNextTurnUseCase } from "../notify-ready-for-next-turn.usecase.js";
@@ -1059,5 +1062,48 @@ export const makeGameDriverAcceptanceLayer = () => {
     ),
   })
 }
+
+/**
+ * Creates a GameDriver layer that uses real Drizzle repositories with PostgreSQL.
+ *
+ * This layer is intended for integration tests that require a real database.
+ * It uses:
+ * - DrizzleGameRepository (real PostgreSQL via Testcontainers)
+ * - InMemoryDeckRepository (in-memory, no table needed)
+ * - InMemoryGameView (in-memory projection)
+ *
+ * Prerequisites:
+ * - The test must be run with the integration test setup (vitest.config.int.ts)
+ * - The database must be initialized via acceptance-test.setup.ts
+ * - Use getTestDb() to get the initialized Drizzle instance
+ */
+export const makeGameDriverDrizzleLayer = (props?: {
+  randomizeStrategy?: PlayersRandomizeStrategyType;
+}) => {
+  // Get the test database instance (initialized by acceptance test setup)
+  const db = getTestDb();
+
+  // Create a Database layer from the test database
+  const databaseLayer = Layer.succeed(Database, { db });
+
+  // Mix: GameRepository uses Drizzle, rest stays in-memory
+  const drizzleDependencies = Layer.mergeAll(
+    DrizzleGameRepository.pipe(Layer.provide(databaseLayer)),
+    InMemoryDeckRepository,
+    InMemoryGameView,
+    TurnBoardCardsShuffler.Default,
+    GameViewProjector.Default,
+    ShufflerService.Default,
+    NoopGameEventBus,
+    props?.randomizeStrategy
+      ? Layer.succeed(PlayersRandomizeStrategy, props.randomizeStrategy)
+      : NoopRandomizeStrategy,
+  );
+
+  return makeGameDriverTestLayer({
+    ...(props?.randomizeStrategy && { randomizeStrategy: props.randomizeStrategy }),
+    dependencies: drizzleDependencies,
+  });
+};
 
 export type GameDriverLayer = ReturnType<typeof makeGameDriverTestLayer>;
