@@ -4,11 +4,35 @@
  */
 
 /**
- * Pads a number to create a valid UUID segment
+ * Simple hash function to convert a string to a hex string
+ */
+function hashString(str: string): string {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  // Use absolute value and convert to hex, pad to 12 chars
+  return Math.abs(hash).toString(16).padStart(12, '0').slice(-12);
+}
+
+/**
+ * Pads a number or string to create a valid UUID segment
  */
 function padUuid(prefix: string, id: string | number): string {
-  const idStr = String(id).padStart(12, '0');
-  return `${prefix}-0000-0000-0000-${idStr}`;
+  if (typeof id === 'number') {
+    const idStr = String(id).padStart(12, '0');
+    return `${prefix}-0000-0000-0000-${idStr}`;
+  }
+  // For strings, check if it's purely numeric
+  if (/^\d+$/.test(id)) {
+    const idStr = id.padStart(12, '0');
+    return `${prefix}-0000-0000-0000-${idStr}`;
+  }
+  // For non-numeric strings, hash them to get valid hex
+  const hexId = hashString(id);
+  return `${prefix}-0000-0000-0000-${hexId}`;
 }
 
 /**

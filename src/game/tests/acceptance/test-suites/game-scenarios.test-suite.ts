@@ -1,12 +1,12 @@
 import { describe, it } from '@effect/vitest';
 import { Effect } from 'effect';
-import { GameViewProjector } from '../../game-view-projector.js';
+import { GameViewProjector } from '../../../game-view-projector.js';
 import {
   getCardInHandByIndex,
   getCurrentStorytellerId,
   getSelectedCardsByPlayer,
-} from '../game.builder.js';
-import { GameDriver, type GameDriverLayer } from '../game.driver.js';
+} from '../../game.builder.js';
+import { GameDriver, type GameDriverLayer } from '../../game.driver.js';
 import { defaultIdFactory, type IdFactory } from './create-game.test-suite.js';
 
 export const gameScenariosTestSuite = (
@@ -335,8 +335,9 @@ export const gameScenariosTestSuite = (
           gameId: game.id,
           playerId: dave,
         });
-        game = yield* gameDriver.getStartedGameSnapshot(gameIdValue);
-        gameViews = yield* gameViewProjector.project(game);
+
+        // After all players are ready for next turn, the game ends
+        // (because it reached the limit of points: 7)
         yield* gameDriver.assert.gameToBeEnded({
           gameId: gameIdValue,
         });

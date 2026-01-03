@@ -4,9 +4,13 @@ import {
   EndedGameEntity,
   GameEntity,
   isNotStartedGame,
+  isStartedGame,
   NotStartedGameEntity,
   StartedGameEntity,
 } from "./game.entity.js";
+
+const isEndedGame = (game: GameEntity): game is EndedGameEntity =>
+  !isNotStartedGame(game) && !isStartedGame(game);
 
 export class OptimisticConcurrencyError extends Data.TaggedError(
   "OptimisticConcurrencyError",
@@ -39,7 +43,7 @@ export class GameRepository extends Effect.Tag("game/GameRepository")<
     ) => Effect.Effect<void, OptimisticConcurrencyError | DatabaseError | ParseResult.ParseError>;
     findById: (
       id: string,
-    ) => Effect.Effect<Option.Option<NotStartedGameEntity | StartedGameEntity>, ParseResult.ParseError | DatabaseError>;
+    ) => Effect.Effect<Option.Option<NotStartedGameEntity | StartedGameEntity | EndedGameEntity>, ParseResult.ParseError | DatabaseError>;
     findNotStartedGameById: (
       id: string,
     ) => Effect.Effect<Option.Option<NotStartedGameEntity>, ParseResult.ParseError | DatabaseError>;
@@ -85,15 +89,21 @@ const makeInMemoryGameRepository = (
   const save = (gameToBeSaved: GameEntity) => {
     const actualGame = Option.fromNullable(
       startedGames.get(gameToBeSaved.id) ??
-        notStartedGames.get(gameToBeSaved.id),
+        notStartedGames.get(gameToBeSaved.id) ??
+        endedGames.get(gameToBeSaved.id),
     );
     if (shouldThrowOptimisticConcurrencyError(gameToBeSaved, actualGame)) {
       return Effect.fail(new OptimisticConcurrencyError());
     }
     if (isNotStartedGame(gameToBeSaved)) {
       notStartedGames.set(gameToBeSaved.id, gameToBeSaved);
-    } else {
-      startedGames.set(gameToBeSaved.id, gameToBeSaved as StartedGameEntity);
+    } else if (isStartedGame(gameToBeSaved)) {
+      startedGames.set(gameToBeSaved.id, gameToBeSaved);
+    } else if (isEndedGame(gameToBeSaved)) {
+      // Clean up from other maps when game ends
+      startedGames.delete(gameToBeSaved.id);
+      notStartedGames.delete(gameToBeSaved.id);
+      endedGames.set(gameToBeSaved.id, gameToBeSaved);
     }
     return Effect.succeed(void 0);
   };
@@ -113,10 +123,11 @@ const makeInMemoryGameRepository = (
         staleReads.get(id) as
           | NotStartedGameEntity
           | StartedGameEntity
+          | EndedGameEntity
           | undefined,
       );
       const actualGame = Option.fromNullable(
-        startedGames.get(id) ?? notStartedGames.get(id),
+        startedGames.get(id) ?? notStartedGames.get(id) ?? endedGames.get(id),
       );
       return Option.match(staleGame, {
         onNone: () => {
@@ -175,7 +186,7 @@ const makeInMemoryGameRepository = (
     },
     isPlayerInGame: (gameId: string, playerId: string) => {
       const maybeGame = Option.fromNullable(
-        notStartedGames.get(gameId) ?? startedGames.get(gameId),
+        notStartedGames.get(gameId) ?? startedGames.get(gameId) ?? endedGames.get(gameId),
       );
       if (Option.isNone(maybeGame)) {
         return Effect.succeed(false);

@@ -1,0 +1,26 @@
+import { beforeEach, describe } from 'vitest';
+import { gamesTable } from '../../../../../infra/db/schema.js';
+import { getTestDb } from '../../../../../shared/tests/setup/test-db.js';
+import {
+  deckId,
+  gameId,
+  playerId,
+} from '../../../../../shared/tests/uuid-test-helper.js';
+import { makeGameDriverDrizzleLayer } from '../../../game.driver.js';
+import type { IdFactory } from '../../test-suites/create-game.test-suite.js';
+import { readyForNextTurnTestSuite } from '../../test-suites/ready-for-next-turn.test-suite.js';
+
+const uuidIdFactory: IdFactory = {
+  gameId,
+  playerId,
+  deckId,
+};
+
+describe('Acceptance (Drizzle): ReadyForNextTurnTestSuite', () => {
+  beforeEach(async () => {
+    const db = getTestDb();
+    await db.delete(gamesTable);
+  });
+
+  readyForNextTurnTestSuite(makeGameDriverDrizzleLayer, uuidIdFactory);
+});

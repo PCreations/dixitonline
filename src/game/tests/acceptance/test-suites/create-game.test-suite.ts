@@ -1,6 +1,6 @@
 import { describe, it } from "@effect/vitest";
 import { Effect } from "effect";
-import { GameDriver, GameDriverLayer } from "../game.driver.js";
+import { GameDriver, GameDriverLayer } from "../../game.driver.js";
 
 /**
  * ID Factory for generating test IDs.

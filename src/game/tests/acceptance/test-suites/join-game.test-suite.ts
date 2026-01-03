@@ -1,7 +1,7 @@
 import { describe, it } from '@effect/vitest';
 import { Effect } from 'effect';
-import { GameBuilder } from '../game.builder.js';
-import { GameDriver, type GameDriverLayer } from '../game.driver.js';
+import { GameBuilder } from '../../game.builder.js';
+import { GameDriver, type GameDriverLayer } from '../../game.driver.js';
 import { defaultIdFactory, type IdFactory } from './create-game.test-suite.js';
 
 export const joinGameTestSuite = (

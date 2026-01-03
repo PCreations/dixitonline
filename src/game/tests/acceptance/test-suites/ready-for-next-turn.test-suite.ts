@@ -4,8 +4,8 @@ import {
   GameBuilder,
   getCardsInDrawPile,
   getPlayerHand,
-} from '../game.builder.js';
-import { GameDriver, type GameDriverLayer } from '../game.driver.js';
+} from '../../game.builder.js';
+import { GameDriver, type GameDriverLayer } from '../../game.driver.js';
 import { defaultIdFactory, type IdFactory } from './create-game.test-suite.js';
 
 export const readyForNextTurnTestSuite = (

@@ -4,16 +4,16 @@ import {
   isEndedGameSnapshot,
   isNotStartedGameSnapshot,
   type StartedGameSnapshot,
-} from '../../game.entity.js';
+} from '../../../game.entity.js';
 import {
   APlayerVotedOnYourCard,
   AtLeastOnePlayerFoundTheStorytellerCard,
   YouFoundTheStorytellerCard,
-} from '../../game-rules.js';
-import { GameViewProjector } from '../../game-view-projector.js';
-import { PlayerId } from '../../player.entity.js';
-import { GameBuilder } from '../game.builder.js';
-import { GameDriver, type GameDriverLayer } from '../game.driver.js';
+} from '../../../game-rules.js';
+import { GameViewProjector } from '../../../game-view-projector.js';
+import { PlayerId } from '../../../player.entity.js';
+import { GameBuilder } from '../../game.builder.js';
+import { GameDriver, type GameDriverLayer } from '../../game.driver.js';
 import { defaultIdFactory, type IdFactory } from './create-game.test-suite.js';
 
 export const gameViewProjectorTestSuite = (

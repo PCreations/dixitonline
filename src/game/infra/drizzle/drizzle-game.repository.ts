@@ -251,6 +251,17 @@ export const makeDrizzleGameRepository = ({
           );
         }
 
+        if (row.status === 'EndedGame') {
+          const snapshot = yield* Schema.decodeUnknown(EndedGameSnapshotSchema)(
+            row.data,
+          );
+          yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({
+            found: true,
+            snapshot,
+          }));
+          return Option.some(EndedGameEntity.fromSnapshot(snapshot));
+        }
+
         yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({ found: false }));
         return Option.none();
       }).pipe(Effect.withSpan('GameRepository.findById'));
