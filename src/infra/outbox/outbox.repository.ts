@@ -155,16 +155,79 @@ export const DrizzleOutboxRepository = Layer.effect(
 
 /**
  * In-memory implementation for testing.
+ * Stores events in memory and allows inspection for test assertions.
  */
-export const InMemoryOutboxRepository = Layer.succeed(OutboxRepository, {
-  insertWithinTransaction: () =>
-    Effect.void as Effect.Effect<void, UnknownException>,
-  findUnprocessed: () =>
-    Effect.succeed([]) as Effect.Effect<
-      ReadonlyArray<SelectOutboxEventDto>,
-      UnknownException
-    >,
-  markAsProcessed: () => Effect.void as Effect.Effect<void, UnknownException>,
-  deleteOlderThan: () =>
-    Effect.succeed(0) as Effect.Effect<number, UnknownException>,
+export type InMemoryOutboxRepositoryState = {
+  readonly getStoredEvents: () => ReadonlyArray<SelectOutboxEventDto>;
+  readonly clear: () => void;
+};
+
+export const makeInMemoryOutboxRepository = (): {
+  repository: Context.Tag.Service<OutboxRepository>;
+  state: InMemoryOutboxRepositoryState;
+} => {
+  const events = new Map<string, SelectOutboxEventDto>();
+
+  const repository: Context.Tag.Service<OutboxRepository> = {
+    insertWithinTransaction: (_tx, input) =>
+      Effect.sync(() => {
+        const id = crypto.randomUUID();
+        const now = new Date();
+        const event: SelectOutboxEventDto = {
+          id,
+          aggregateType: input.aggregateType,
+          aggregateId: input.aggregateId,
+          aggregateVersion: input.aggregateVersion,
+          eventType: input.event._tag,
+          payload: input.event,
+          createdAt: now,
+          processedAt: null,
+        };
+        events.set(id, event);
+      }),
+
+    findUnprocessed: (limit) =>
+      Effect.sync(() => {
+        const unprocessed = Array.from(events.values())
+          .filter((e) => e.processedAt === null)
+          .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+          .slice(0, limit);
+        return unprocessed;
+      }),
+
+    markAsProcessed: (eventId) =>
+      Effect.sync(() => {
+        const event = events.get(eventId);
+        if (event) {
+          events.set(eventId, { ...event, processedAt: new Date() });
+        }
+      }),
+
+    deleteOlderThan: (date) =>
+      Effect.sync(() => {
+        let count = 0;
+        for (const [id, event] of events) {
+          if (event.processedAt && event.processedAt < date) {
+            events.delete(id);
+            count++;
+          }
+        }
+        return count;
+      }),
+  };
+
+  const state: InMemoryOutboxRepositoryState = {
+    getStoredEvents: () => Array.from(events.values()),
+    clear: () => events.clear(),
+  };
+
+  return { repository, state };
+};
+
+/**
+ * Simple in-memory layer for tests that don't need to inspect events.
+ */
+export const InMemoryOutboxRepository = Layer.sync(OutboxRepository, () => {
+  const { repository } = makeInMemoryOutboxRepository();
+  return repository;
 });
