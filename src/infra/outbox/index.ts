@@ -8,7 +8,6 @@ export {
   OutboxPollingDaemon,
   OutboxPollingDaemonLive,
   OutboxPollingDaemonTest,
-  type OutboxPollingDaemonConfig,
 } from './outbox-polling-daemon.js';
 export {
   DrizzleOutboxRepository,

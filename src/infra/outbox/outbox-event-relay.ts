@@ -1,6 +1,9 @@
-import type { RealtimeChannel, RealtimePostgresInsertPayload } from '@supabase/supabase-js';
+import type {
+  RealtimeChannel,
+  RealtimePostgresInsertPayload,
+} from '@supabase/supabase-js';
 import { Context, Effect, Layer, Runtime, Scope } from 'effect';
-import { GameEventBus, type GameEvent } from '../../game/game-event-bus.js';
+import { type GameEvent, GameEventBus } from '../../game/game-event-bus.js';
 import { SupabaseClient } from '../supabase/supabase-client.service.js';
 import { OutboxRepository } from './outbox.repository.js';
 
@@ -32,17 +35,17 @@ export class OutboxEventRelay extends Context.Tag('OutboxEventRelay')<
 
 /**
  * Type for the outbox_events row as received from Supabase Realtime.
- * Note: Supabase returns snake_case columns.
+ * Supabase returns columns exactly as defined in the database (camelCase).
  */
 type OutboxEventRow = {
   id: string;
-  aggregate_type: string;
-  aggregate_id: string;
-  aggregate_version: number;
-  event_type: string;
+  aggregateType: string;
+  aggregateId: string;
+  aggregateVersion: number;
+  eventType: string;
   payload: GameEvent;
-  created_at: string;
-  processed_at: string | null;
+  createdAt: string;
+  processedAt: string | null;
 };
 
 /**
@@ -63,9 +66,15 @@ export const OutboxEventRelayLive = Layer.scoped(
       payload: RealtimePostgresInsertPayload<OutboxEventRow>,
     ) => {
       const row = payload.new;
+      console.log('[OutboxEventRelay] Received INSERT event:', {
+        id: row.id,
+        eventType: row.eventType,
+        aggregateId: row.aggregateId,
+      });
 
       // Only relay game events (could support other aggregate types later)
-      if (row.aggregate_type !== 'game') {
+      if (row.aggregateType !== 'game') {
+        console.log('[OutboxEventRelay] Skipping non-game event');
         return;
       }
 
@@ -74,12 +83,15 @@ export const OutboxEventRelayLive = Layer.scoped(
 
       // Publish to local PubSub and mark as processed
       const program = Effect.gen(function* () {
-        yield* Effect.annotateCurrentSpan('context.input', JSON.stringify({
-          eventId: row.id,
-          eventType: row.event_type,
-          aggregateId: row.aggregate_id,
-          aggregateVersion: row.aggregate_version,
-        }));
+        yield* Effect.annotateCurrentSpan(
+          'context.input',
+          JSON.stringify({
+            eventId: row.id,
+            eventType: row.eventType,
+            aggregateId: row.aggregateId,
+            aggregateVersion: row.aggregateVersion,
+          }),
+        );
 
         yield* gameEventBus.publish(event);
         yield* outboxRepository.markAsProcessed(row.id);
@@ -97,14 +109,33 @@ export const OutboxEventRelayLive = Layer.scoped(
     return {
       start: () =>
         Effect.gen(function* () {
+          yield* Effect.annotateCurrentSpan(
+            'context.input',
+            JSON.stringify({
+              table: 'outbox_events',
+            }),
+          );
+
           if (channel) {
+            console.log('[OutboxEventRelay] Already started, skipping');
+            yield* Effect.annotateCurrentSpan(
+              'context.output',
+              JSON.stringify({
+                skipped: true,
+                reason: 'already started',
+              }),
+            );
             return; // Already started
           }
 
+          console.log(
+            '[OutboxEventRelay] Subscribing to outbox_events table...',
+          );
           channel = yield* supabaseClient.subscribeToInserts<OutboxEventRow>(
             'outbox_events',
             handleOutboxInsert,
           );
+          console.log('[OutboxEventRelay] Subscription established');
 
           // Register cleanup on scope finalization
           yield* Scope.addFinalizer(
@@ -116,15 +147,38 @@ export const OutboxEventRelayLive = Layer.scoped(
               }
             }),
           );
-        }),
+
+          yield* Effect.annotateCurrentSpan(
+            'context.output',
+            JSON.stringify({
+              subscribed: true,
+            }),
+          );
+        }).pipe(Effect.withSpan('OutboxEventRelay.start')),
 
       stop: () =>
         Effect.gen(function* () {
+          yield* Effect.annotateCurrentSpan('context.input', 'no data');
+
           if (channel) {
             yield* supabaseClient.unsubscribe(channel);
             channel = null;
+            yield* Effect.annotateCurrentSpan(
+              'context.output',
+              JSON.stringify({
+                unsubscribed: true,
+              }),
+            );
+          } else {
+            yield* Effect.annotateCurrentSpan(
+              'context.output',
+              JSON.stringify({
+                skipped: true,
+                reason: 'not started',
+              }),
+            );
           }
-        }),
+        }).pipe(Effect.withSpan('OutboxEventRelay.stop')),
     };
   }),
 );

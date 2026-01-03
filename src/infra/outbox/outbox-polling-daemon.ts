@@ -72,21 +72,10 @@ export const makeOutboxPollingDaemonLive = (
 
       const processSingleEvent = (row: SelectOutboxEventDto) =>
         Effect.gen(function* () {
-          yield* Effect.annotateCurrentSpan('context.input', JSON.stringify({
-            eventId: row.id,
-            eventType: row.eventType,
-            aggregateId: row.aggregateId,
-            aggregateVersion: row.aggregateVersion,
-          }));
-
           // Only process game events (could support other types later)
           if (row.aggregateType !== 'game') {
             // Mark as processed even if we don't handle it
             yield* outboxRepository.markAsProcessed(row.id);
-            yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({
-              skipped: true,
-              reason: 'unsupported aggregate type',
-            }));
             return;
           }
 
@@ -99,38 +88,24 @@ export const makeOutboxPollingDaemonLive = (
           // Mark as processed
           yield* outboxRepository.markAsProcessed(row.id);
 
-          yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({
-            processed: true,
-          }));
-        }).pipe(Effect.withSpan('OutboxPollingDaemon.processEvent'));
+          console.log(`[OutboxPollingDaemon] Processed event ${row.id} (${row.eventType})`);
+        });
 
       const processUnprocessedEvents = Effect.gen(function* () {
-        yield* Effect.annotateCurrentSpan('context.input', JSON.stringify({
-          batchSize,
-        }));
-
         // Find unprocessed events
         const events = yield* outboxRepository.findUnprocessed(batchSize);
 
         if (events.length === 0) {
-          yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({
-            eventsFound: 0,
-            eventsProcessed: 0,
-          }));
           return;
         }
+
+        console.log(`[OutboxPollingDaemon] Found ${events.length} unprocessed event(s)`);
 
         // Process each event
         for (const row of events) {
           yield* processSingleEvent(row);
         }
-
-        yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({
-          eventsFound: events.length,
-          eventsProcessed: events.length,
-        }));
       }).pipe(
-        Effect.withSpan('OutboxPollingDaemon.pollCycle'),
         Effect.catchAll((error) => {
           // Log error but don't fail the daemon
           console.error('[OutboxPollingDaemon] Error processing events:', error);

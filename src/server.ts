@@ -29,15 +29,22 @@ import {
 } from './auth/index.js';
 import { CreateGameUseCase } from './game/create-game.usecase.js';
 import { matchGameEvent } from './game/game-events.js';
-import { GameEventBus, GameLayerLiveWithDependencies } from './game/index.js';
+import {
+  GameEventBus,
+  GameLayerLiveWithoutEventBus,
+  InMemoryGameEventBus,
+} from './game/index.js';
 import { JoinGameUseCase } from './game/join-game.usecase.js';
 import { LobbyQueryService } from './game/lobby.query-service.js';
 import { Database } from './infra/db/database.service.js';
 import { TracingLive, withHttpSpan, withSentryErrorCapture } from './infra/observability/index.js';
 import {
   DrizzleOutboxRepository,
+  makeOutboxPollingDaemonLive,
   OutboxEventRelay,
   OutboxEventRelayLive,
+  OutboxEventRelayTest,
+  OutboxPollingDaemon,
 } from './infra/outbox/index.js';
 import { makeSupabaseClientLive } from './infra/supabase/index.js';
 import { EnsurePlayerExistsUseCase, PlayerId, PlayerLayerLive } from './player/index.js';
@@ -67,38 +74,61 @@ const jwtVerifier = createJwtVerifier({ url: supabaseUrl });
 // Create the complete application layer with database
 const DatabaseLayer = Database.Live({ connectionString: databaseUrl });
 
-// Base application layer with tracing
-const AppLayer = Layer.mergeAll(
-  GameLayerLiveWithDependencies,
-  PlayerLayerLive,
-).pipe(
-  Layer.provide(DatabaseLayer),
-  Layer.provide(TracingLive),
-);
+// Use shorter poll interval for development
+const pollIntervalMs = isDev ? 2000 : 5000;
+
+// Build the complete application layer
+// All services share the same GameEventBus instance via InMemoryGameEventBus provided at the top level
+const AppLayer = (() => {
+  // Shared services that will be provided to all other layers
+  const SharedServicesLayer = Layer.mergeAll(
+    InMemoryGameEventBus, // shared GameEventBus
+    DrizzleOutboxRepository, // shared OutboxRepository (requires Database)
+  );
+
+  // Relay layer - use live or test implementation based on Supabase config
+  const RelayLayer = supabasePublishableKey
+    ? OutboxEventRelayLive.pipe(
+        Layer.provide(
+          makeSupabaseClientLive({
+            url: supabaseUrl,
+            publishableKey: supabasePublishableKey,
+          }),
+        ),
+      )
+    : OutboxEventRelayTest; // No-op implementation when Supabase not configured
+
+  // Build layer by providing SharedServicesLayer to all layers that need GameEventBus/OutboxRepository
+  // Layer.provideMerge(provider)(consumer) - provider's outputs satisfy consumer's requirements
+  return Layer.mergeAll(
+    // Game services need GameEventBus
+    GameLayerLiveWithoutEventBus.pipe(Layer.provide(SharedServicesLayer)),
+    PlayerLayerLive,
+    // Daemon needs GameEventBus + OutboxRepository
+    makeOutboxPollingDaemonLive({ pollIntervalMs }).pipe(
+      Layer.provide(SharedServicesLayer),
+    ),
+    // Relay needs GameEventBus + OutboxRepository
+    RelayLayer.pipe(Layer.provide(SharedServicesLayer)),
+    // Include shared services in output so they're available at runtime
+    SharedServicesLayer,
+  ).pipe(
+    // Provide infrastructure dependencies
+    Layer.provide(DatabaseLayer),
+    Layer.provide(TracingLive),
+  );
+})();
 
 // Create a long-lived ManagedRuntime with the AppLayer
 // This runtime will be used for all requests and maintains the database connection
+// All services (relay, daemon, SSE handlers) share the same GameEventBus instance
 const appRuntime = ManagedRuntime.make(AppLayer);
 
 // Start the outbox event relay if Supabase credentials are available
-// The relay runs as a separate service that listens to Supabase Realtime
 if (supabasePublishableKey) {
   console.log('Starting OutboxEventRelay for cross-instance event delivery...');
 
-  // Create all relay dependencies in a single merged layer, then provide Database
-  const RelayDependencies = Layer.mergeAll(
-    makeSupabaseClientLive({ url: supabaseUrl, publishableKey: supabasePublishableKey }),
-    DrizzleOutboxRepository,
-    GameLayerLiveWithDependencies,
-  ).pipe(Layer.provide(DatabaseLayer));
-
-  // Create the relay layer with all dependencies satisfied
-  const RelayLayer = OutboxEventRelayLive.pipe(Layer.provide(RelayDependencies));
-
-  // Run the relay startup in a separate runtime
-  const relayRuntime = ManagedRuntime.make(RelayLayer);
-
-  relayRuntime
+  appRuntime
     .runPromise(
       Effect.gen(function* () {
         const relay = yield* OutboxEventRelay;
@@ -109,17 +139,27 @@ if (supabasePublishableKey) {
     .catch((error) => {
       console.error('Failed to start OutboxEventRelay:', error);
     });
-
-  // Add cleanup for relay runtime on server shutdown
-  process.on('SIGTERM', async () => {
-    console.log('Stopping OutboxEventRelay...');
-    await relayRuntime.dispose();
-  });
 } else {
   console.log(
     'SUPABASE_PUBLISHABLE_KEY not set, OutboxEventRelay disabled (events will only be delivered locally)',
   );
 }
+
+// Start the OutboxPollingDaemon as a fallback mechanism
+// This ensures events are processed even if Realtime misses them
+console.log('Starting OutboxPollingDaemon for fallback event processing...');
+
+appRuntime
+  .runPromise(
+    Effect.gen(function* () {
+      const daemon = yield* OutboxPollingDaemon;
+      yield* daemon.start();
+      console.log(`OutboxPollingDaemon started (polling every ${pollIntervalMs}ms)`);
+    }),
+  )
+  .catch((error) => {
+    console.error('Failed to start OutboxPollingDaemon:', error);
+  });
 
 const fastify: FastifyInstance = Fastify({
   logger: isDev
@@ -495,10 +535,10 @@ fastify.route({
             GameStarted: () =>
               Effect.sync(() => {
                 const data = `<script>window.location.href='/game/${gameId}/play'</script>`;
-                reply.raw.write(`event: GameStarted\ndata: ${data}\n\n`);
+                reply.raw.write(`event: gameStarted\ndata: ${data}\n\n`);
               }),
-            PlayerJoined: () => sendLobbyUpdate('PlayerJoined'),
-            PlayerLeft: () => sendLobbyUpdate('PlayerLeft'),
+            PlayerJoined: () => sendLobbyUpdate('playerJoined'),
+            PlayerLeft: () => sendLobbyUpdate('playerLeft'),
             ClueSubmitted: () => Effect.void,
             CardSelected: () => Effect.void,
             VoteSubmitted: () => Effect.void,

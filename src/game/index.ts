@@ -67,7 +67,7 @@ const QueryServicesWithoutDependencies = Layer.mergeAll(
  *
  * Using Layer.provideMerge ensures dependencies are properly wired.
  */
-export const GameLayerLiveWithDependencies = Layer.mergeAll(
+export const GameLayerLiveWithoutEventBus = Layer.mergeAll(
   GameLayerWithoutDependencies,
   QueryServicesWithoutDependencies,
 ).pipe(
@@ -79,8 +79,18 @@ export const GameLayerLiveWithDependencies = Layer.mergeAll(
   Layer.provideMerge(TurnBoardCardsShuffler.Default),
   Layer.provideMerge(ShufflerService.Default),
   Layer.provideMerge(NoopRandomizeStrategy),
-  // Event bus for SSE notifications
-  Layer.provideMerge(InMemoryGameEventBus),
   // Then add GameViewProjector which uses the deck repository
   Layer.provideMerge(GameViewProjector.Default),
 );
+
+/**
+ * Complete game layer including InMemoryGameEventBus.
+ * Use GameLayerLiveWithoutEventBus if you need to provide a shared GameEventBus.
+ */
+export const GameLayerLiveWithDependencies = GameLayerLiveWithoutEventBus.pipe(
+  // Event bus for SSE notifications
+  Layer.provideMerge(InMemoryGameEventBus),
+);
+
+// Re-export for use when sharing GameEventBus across multiple services
+export { InMemoryGameEventBus } from './game-event-bus.js';
