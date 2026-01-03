@@ -12,6 +12,8 @@ export {
 export {
   DrizzleOutboxRepository,
   InMemoryOutboxRepository,
+  type InMemoryOutboxRepositoryState,
+  makeInMemoryOutboxRepository,
   type OutboxEventInput,
   OutboxRepository,
 } from './outbox.repository.js';
