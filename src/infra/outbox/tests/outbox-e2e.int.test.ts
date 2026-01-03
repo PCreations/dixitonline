@@ -1,9 +1,12 @@
 import { Effect, Layer } from 'effect';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { outboxEventsTable } from '../../db/schema.js';
 import { getTestDb } from '../../../shared/tests/setup/test-db.js';
-import { DrizzleOutboxRepository, OutboxRepository } from '../outbox.repository.js';
 import { Database } from '../../db/database.service.js';
+import { outboxEventsTable } from '../../db/schema.js';
+import {
+  DrizzleOutboxRepository,
+  OutboxRepository,
+} from '../outbox.repository.js';
 
 /**
  * Integration tests for the Outbox pattern.
@@ -29,7 +32,11 @@ describe('Outbox E2E Integration', () => {
       const db = getTestDb();
 
       // Track published events
-      const publishedEvents: Array<{ _tag: string; gameId: string; playerId: string }> = [];
+      const publishedEvents: Array<{
+        _tag: string;
+        gameId: string;
+        playerId: string;
+      }> = [];
 
       // Insert an event directly into the outbox table (simulating what saveWithEvents does)
       const eventId = crypto.randomUUID();
@@ -62,7 +69,9 @@ describe('Outbox E2E Integration', () => {
         {
           publish: (event) =>
             Effect.sync(() => {
-              publishedEvents.push(event as { _tag: string; gameId: string; playerId: string });
+              publishedEvents.push(
+                event as { _tag: string; gameId: string; playerId: string },
+              );
             }),
           subscribe: () => {
             const { Stream } = require('effect');
@@ -79,8 +88,8 @@ describe('Outbox E2E Integration', () => {
       // Create a single-poll daemon (poll once and exit)
       const program = Effect.gen(function* () {
         const outboxRepository = yield* OutboxRepository;
-        const { GameEventBus } = yield* Effect.promise(() =>
-          import('../../../game/game-event-bus.js'),
+        const { GameEventBus } = yield* Effect.promise(
+          () => import('../../../game/game-event-bus.js'),
         );
         const gameEventBus = yield* GameEventBus;
 
@@ -89,7 +98,11 @@ describe('Outbox E2E Integration', () => {
 
         for (const row of unprocessed) {
           if (row.aggregateType === 'game') {
-            const event = row.payload as { _tag: string; gameId: string; playerId: string };
+            const event = row.payload as {
+              _tag: string;
+              gameId: string;
+              playerId: string;
+            };
             yield* gameEventBus.publish(event as never);
           }
           yield* outboxRepository.markAsProcessed(row.id);
@@ -122,7 +135,11 @@ describe('Outbox E2E Integration', () => {
 
     it('should process multiple events in order', async () => {
       const db = getTestDb();
-      const publishedEvents: Array<{ _tag: string; gameId: string; playerId: string }> = [];
+      const publishedEvents: Array<{
+        _tag: string;
+        gameId: string;
+        playerId: string;
+      }> = [];
 
       const gameId = crypto.randomUUID();
       const player1Id = crypto.randomUUID();
@@ -164,7 +181,9 @@ describe('Outbox E2E Integration', () => {
         {
           publish: (event) =>
             Effect.sync(() => {
-              publishedEvents.push(event as { _tag: string; gameId: string; playerId: string });
+              publishedEvents.push(
+                event as { _tag: string; gameId: string; playerId: string },
+              );
             }),
           subscribe: () => {
             const { Stream } = require('effect');
@@ -180,8 +199,8 @@ describe('Outbox E2E Integration', () => {
       // Process events
       const program = Effect.gen(function* () {
         const outboxRepository = yield* OutboxRepository;
-        const { GameEventBus } = yield* Effect.promise(() =>
-          import('../../../game/game-event-bus.js'),
+        const { GameEventBus } = yield* Effect.promise(
+          () => import('../../../game/game-event-bus.js'),
         );
         const gameEventBus = yield* GameEventBus;
 
@@ -189,7 +208,11 @@ describe('Outbox E2E Integration', () => {
 
         for (const row of unprocessed) {
           if (row.aggregateType === 'game') {
-            const event = row.payload as { _tag: string; gameId: string; playerId: string };
+            const event = row.payload as {
+              _tag: string;
+              gameId: string;
+              playerId: string;
+            };
             yield* gameEventBus.publish(event as never);
           }
           yield* outboxRepository.markAsProcessed(row.id);
@@ -214,7 +237,11 @@ describe('Outbox E2E Integration', () => {
 
     it('should not reprocess already processed events', async () => {
       const db = getTestDb();
-      const publishedEvents: Array<{ _tag: string; gameId: string; playerId: string }> = [];
+      const publishedEvents: Array<{
+        _tag: string;
+        gameId: string;
+        playerId: string;
+      }> = [];
 
       const gameId = crypto.randomUUID();
       const playerId = crypto.randomUUID();
@@ -242,7 +269,9 @@ describe('Outbox E2E Integration', () => {
         {
           publish: (event) =>
             Effect.sync(() => {
-              publishedEvents.push(event as { _tag: string; gameId: string; playerId: string });
+              publishedEvents.push(
+                event as { _tag: string; gameId: string; playerId: string },
+              );
             }),
           subscribe: () => {
             const { Stream } = require('effect');
