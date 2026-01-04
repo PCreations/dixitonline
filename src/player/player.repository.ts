@@ -7,6 +7,12 @@ export class OptimisticConcurrencyError extends Data.TaggedError(
   readonly playerId: PlayerId;
 }> {}
 
+export class UsernameAlreadyTakenError extends Data.TaggedError(
+  'UsernameAlreadyTakenError',
+)<{
+  readonly username: string;
+}> {}
+
 /**
  * Database error that preserves the original error in the cause chain.
  * Uses native ES2022 Error cause so Sentry can display the full error chain.
@@ -55,8 +61,18 @@ export class PlayerRepository extends Effect.Tag('player/PlayerRepository')<
       player: PlayerEntity,
     ) => Effect.Effect<
       void,
-      OptimisticConcurrencyError | DatabaseError | ParseResult.ParseError
+      | OptimisticConcurrencyError
+      | UsernameAlreadyTakenError
+      | DatabaseError
+      | ParseResult.ParseError
     >;
+
+    /**
+     * Check if a username is already taken.
+     */
+    readonly existsByUsername: (
+      username: string,
+    ) => Effect.Effect<boolean, DatabaseError>;
   }
 >() {}
 
@@ -92,8 +108,27 @@ const makeInMemoryPlayerRepository =
           );
         }
 
+        // Check username uniqueness (simulate DB constraint)
+        const snapshot = player.toSnapshot();
+        for (const [id, p] of players) {
+          if (id !== player.id && p.toSnapshot().username === snapshot.username) {
+            return Effect.fail(
+              new UsernameAlreadyTakenError({ username: snapshot.username }),
+            );
+          }
+        }
+
         players.set(player.id, player);
         return Effect.succeed(void 0);
+      },
+
+      existsByUsername: (username: string) => {
+        for (const player of players.values()) {
+          if (player.toSnapshot().username === username) {
+            return Effect.succeed(true);
+          }
+        }
+        return Effect.succeed(false);
       },
     };
   };

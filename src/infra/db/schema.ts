@@ -39,7 +39,7 @@ export type InsertDrizzleGameDto = typeof gamesTable.$inferInsert;
 
 export const playersTable = pgTable('players', {
   id: uuid().primaryKey(), // = auth.users.id (Supabase UUID)
-  username: text().notNull(),
+  username: text().notNull().unique(),
   email: text(), // nullable - set when user links email
   isAnonymous: boolean().notNull().default(true),
   version: integer().notNull().default(1),

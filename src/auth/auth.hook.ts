@@ -15,13 +15,18 @@ declare module 'fastify' {
 	}
 }
 
+export type AuthSyncResult =
+	| { readonly success: true }
+	| { readonly success: false; readonly error: 'username_taken' };
+
 export interface AuthHookConfig {
 	readonly jwtVerifier: JwtVerifier;
 	/**
 	 * Optional callback to sync player to database when authenticated.
 	 * Called with the authenticated user to ensure player exists in DB.
+	 * Returns an AuthSyncResult indicating success or specific error type.
 	 */
-	readonly onAuthenticated?: (user: AuthUser) => Promise<void>;
+	readonly onAuthenticated?: (user: AuthUser) => Promise<AuthSyncResult>;
 }
 
 // Extract token from cookie header
@@ -39,7 +44,7 @@ const extractTokenFromCookie = (
 export const createAuthHook = (config: AuthHookConfig) => {
 	const { jwtVerifier, onAuthenticated } = config;
 
-	return async (request: FastifyRequest, _reply: FastifyReply) => {
+	return async (request: FastifyRequest, reply: FastifyReply) => {
 		// Try Authorization header first, then fallback to cookie
 		const authorizationHeader = request.headers.authorization;
 		const cookieToken = extractTokenFromCookie(request.headers.cookie);
@@ -71,7 +76,14 @@ export const createAuthHook = (config: AuthHookConfig) => {
 		// Sync player to database if authenticated
 		if (Option.isSome(result) && onAuthenticated) {
 			try {
-				await onAuthenticated(result.value);
+				const syncResult = await onAuthenticated(result.value);
+				if (!syncResult.success && syncResult.error === 'username_taken') {
+					// Set cookie to notify frontend about the error
+					reply.header(
+						'Set-Cookie',
+						'auth_error=username_taken; Path=/; Max-Age=60; SameSite=Lax',
+					);
+				}
 			} catch (error) {
 				// Log but don't fail the request - player sync is non-critical
 				// @ts-ignore - pino type issue with FastifyBaseLogger

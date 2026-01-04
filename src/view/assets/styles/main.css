@@ -194,6 +194,12 @@ body {
   transform: translateY(0);
 }
 
+.adventure-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
 .button-container {
   @apply flex flex-col items-center;
   gap: 16px;

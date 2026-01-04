@@ -9,6 +9,7 @@ import {
   DatabaseError,
   OptimisticConcurrencyError,
   PlayerRepository,
+  UsernameAlreadyTakenError,
 } from '../../player.repository.js';
 import { PlayerSnapshotSchema } from '../../player-snapshot.schema.js';
 
@@ -152,7 +153,19 @@ export const makeDrizzlePlayerRepository = ({
                 where: eq(playersTable.version, player.version - 1),
               });
           },
-          catch: toDatabaseError,
+          catch: (error) => {
+            // PostgreSQL unique violation error code: 23505
+            if (
+              error instanceof Error &&
+              'code' in error &&
+              error.code === '23505' &&
+              'constraint' in error &&
+              String(error.constraint).includes('username')
+            ) {
+              return new UsernameAlreadyTakenError({ username: snapshot.username });
+            }
+            return toDatabaseError(error);
+          },
         });
 
         // Check if update was successful (affected rows)
@@ -171,6 +184,27 @@ export const makeDrizzlePlayerRepository = ({
         yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({ saved: true }));
         return yield* Effect.void;
       }).pipe(Effect.withSpan('PlayerRepository.save'));
+    },
+
+    existsByUsername: (username: string) => {
+      return Effect.gen(function* () {
+        yield* Effect.annotateCurrentSpan('context.input', JSON.stringify({ username }));
+
+        const result = yield* Effect.tryPromise({
+          try: async () => {
+            return await db
+              .select({ id: playersTable.id })
+              .from(playersTable)
+              .where(eq(playersTable.username, username))
+              .limit(1);
+          },
+          catch: toDatabaseError,
+        });
+
+        const exists = result.length > 0;
+        yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({ exists }));
+        return exists;
+      }).pipe(Effect.withSpan('PlayerRepository.existsByUsername'));
     },
   };
 };

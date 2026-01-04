@@ -12,4 +12,4 @@ export type { JwtVerifier } from './jwt.middleware.js';
 
 // Fastify hook
 export { createAuthHook, registerAuthHook } from './auth.hook.js';
-export type { AuthHookConfig } from './auth.hook.js';
+export type { AuthHookConfig, AuthSyncResult } from './auth.hook.js';

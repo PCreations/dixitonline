@@ -665,6 +665,11 @@ body {
 .adventure-button:active {
   transform: translateY(0);
 }
+.adventure-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
 .button-container {
   display: flex;
   flex-direction: column;

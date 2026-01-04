@@ -1,12 +1,14 @@
 import { Layer } from "effect";
+import { CheckUsernameAvailabilityUseCase } from "./check-username-availability.usecase.js";
 import { EnsurePlayerExistsUseCase } from "./ensure-player-exists.usecase.js";
 import { DrizzlePlayerRepository } from "./infra/drizzle/drizzle-player.repository.js";
 import { InMemoryPlayerRepository } from "./player.repository.js";
 
 // Re-export public API
 export { PlayerId, PlayerEntity, EmailAlreadyLinkedError } from "./player.entity.js";
-export { PlayerRepository, OptimisticConcurrencyError } from "./player.repository.js";
+export { PlayerRepository, OptimisticConcurrencyError, UsernameAlreadyTakenError } from "./player.repository.js";
 export { EnsurePlayerExistsUseCase, type EnsurePlayerExistsCommand } from "./ensure-player-exists.usecase.js";
+export { CheckUsernameAvailabilityUseCase } from "./check-username-availability.usecase.js";
 
 /**
  * Player layer without repository implementation
@@ -14,6 +16,7 @@ export { EnsurePlayerExistsUseCase, type EnsurePlayerExistsCommand } from "./ens
  */
 export const PlayerLayerWithoutDependencies = Layer.mergeAll(
   EnsurePlayerExistsUseCase.Default,
+  CheckUsernameAvailabilityUseCase.Default,
 );
 
 /**

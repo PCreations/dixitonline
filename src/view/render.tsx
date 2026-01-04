@@ -32,6 +32,17 @@ document.addEventListener('alpine:init', () => {
 
     async init() {
       try {
+        // Check for auth error cookie (set by server on race condition)
+        const authErrorMatch = document.cookie.match(/auth_error=([^;]+)/);
+        if (authErrorMatch?.[1] === 'username_taken') {
+          this.error = 'Ce pseudo est déjà pris. Veuillez en choisir un autre.';
+          this.showUsernameModal = true;
+          // Clear the error cookie
+          document.cookie = 'auth_error=; path=/; max-age=0';
+          this.loading = false;
+          return;
+        }
+
         const { data: { session } } = await window.supabase.auth.getSession();
         const serverSawAuth = document.body.dataset.serverAuth === 'true';
 
@@ -79,7 +90,17 @@ document.addEventListener('alpine:init', () => {
       this.loading = true;
       this.error = null;
       try {
-        // Pass username directly to signInAnonymously for immediate metadata
+        // 1. Check username availability before creating Supabase account
+        const checkResponse = await fetch(
+          '/api/auth/check-username?username=' + encodeURIComponent(this.username)
+        );
+        const { available } = await checkResponse.json();
+
+        if (!available) {
+          throw new Error('Ce pseudo est déjà pris');
+        }
+
+        // 2. Create the Supabase account
         const { data, error } = await window.supabase.auth.signInAnonymously({
           options: {
             data: { username: this.username }
@@ -142,6 +163,16 @@ document.addEventListener('alpine:init', () => {
     submitted: false,
     emailError: null,
 
+    init() {
+      // Check for auth error cookie (set by server on race condition)
+      const authErrorMatch = document.cookie.match(/auth_error=([^;]+)/);
+      if (authErrorMatch?.[1] === 'username_taken') {
+        this.error = 'Ce pseudo est déjà pris. Veuillez en choisir un autre.';
+        // Clear the error cookie
+        document.cookie = 'auth_error=; path=/; max-age=0';
+      }
+    },
+
     validateEmail() {
       if (!this.email) {
         this.emailError = null;
@@ -180,6 +211,16 @@ document.addEventListener('alpine:init', () => {
       this.error = null;
 
       try {
+        // Check username availability before signup
+        const checkResponse = await fetch(
+          '/api/auth/check-username?username=' + encodeURIComponent(this.username.trim())
+        );
+        const { available } = await checkResponse.json();
+
+        if (!available) {
+          throw new Error('Ce pseudo est déjà pris');
+        }
+
         if (this.email) {
           // Magic link flow
           const { error } = await window.supabase.auth.signInWithOtp({
