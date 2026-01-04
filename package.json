@@ -26,7 +26,7 @@
     "lint": "biome check src/",
     "lint-fix": "biome check --write src/",
     "test": "vitest",
-    "test:acceptance:in-memory": "vitest --testPathPattern=acceptance/channels/in-memory",
+    "test:acceptance:in-memory": "vitest acceptance/channels/in-memory",
     "test:acceptance:drizzle": "vitest --config vitest.config.int.ts",
     "test:acceptance:e2e": "cypress run",
     "cypress:open": "cypress open",
