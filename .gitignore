@@ -17,3 +17,8 @@ scratchpad/*
 .env.test.local
 .env.production.local
 supabase/
+
+# Cypress
+cypress/screenshots/
+cypress/videos/
+cypress/downloads/
