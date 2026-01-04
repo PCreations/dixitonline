@@ -11,6 +11,14 @@ import {
 import { PlayerId } from "./player.entity.js";
 import { TurnId } from "./turn.entity.js";
 
+export interface LobbyAction {
+  readonly type: "start-game" | "copy-invite";
+  readonly url: string;
+  readonly method: "POST" | "GET";
+  readonly label: string;
+  readonly disabled: boolean;
+}
+
 export type LobbyPlayerView = {
   readonly gameId: string;
   readonly id: string;
@@ -20,28 +28,53 @@ export type LobbyPlayerView = {
   readonly players: ReadonlyArray<string>;
   readonly isHost: boolean;
   readonly canStart: boolean;
+  readonly actions: ReadonlyArray<LobbyAction>;
 };
 
 export type LobbyViewValueObject = Record<string, LobbyPlayerView>;
 
 class LobbyViewProjectorImpl {
   static project(game: NotStartedGameSnapshot): LobbyViewValueObject {
-    const canStart = game.players.length >= MIN_PLAYERS;
+    const hasEnoughPlayers = game.players.length >= MIN_PLAYERS;
 
     return Object.fromEntries(
-      game.players.map((playerId) => [
-        playerId,
-        {
-          gameId: game.id,
-          id: playerId,
-          name: playerId,
-          phase: "lobby" as const,
-          hostId: game.createdBy,
-          players: game.players,
-          isHost: playerId === game.createdBy,
-          canStart,
-        },
-      ]),
+      game.players.map((playerId) => {
+        const isHost = playerId === game.createdBy;
+        const canStart = isHost && hasEnoughPlayers;
+
+        const actions: Array<LobbyAction> = [];
+        if (isHost) {
+          actions.push({
+            type: "start-game",
+            url: `/game/${game.id}/start`,
+            method: "POST",
+            label: "Lancer la partie",
+            disabled: !canStart,
+          });
+        }
+        actions.push({
+          type: "copy-invite",
+          url: `/game/${game.id}/join`,
+          method: "GET",
+          label: "Copier le lien",
+          disabled: false,
+        });
+
+        return [
+          playerId,
+          {
+            gameId: game.id,
+            id: playerId,
+            name: playerId,
+            phase: "lobby" as const,
+            hostId: game.createdBy,
+            players: game.players,
+            isHost,
+            canStart,
+            actions,
+          },
+        ];
+      }),
     );
   }
 }

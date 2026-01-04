@@ -1,9 +1,7 @@
 /** @jsx h */
 import { h } from "preact";
-import type {
-  LobbyAction,
-  LobbyViewModel,
-} from "../view-models/lobby.view-model.js";
+import type { LobbyAction } from "../../game/game-view-projector.js";
+import type { LobbyViewModel } from "../view-models/lobby.view-model.js";
 import { Button } from "./Button.js";
 
 /**

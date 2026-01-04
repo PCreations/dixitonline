@@ -832,6 +832,22 @@ export const gameViewProjectorTestSuite = (
           players: [playerId(1), playerId(2)],
           isHost: true,
           canStart: false,
+          actions: [
+            {
+              type: 'start-game',
+              url: `/game/${gameId(1)}/start`,
+              method: 'POST',
+              label: 'Lancer la partie',
+              disabled: true,
+            },
+            {
+              type: 'copy-invite',
+              url: `/game/${gameId(1)}/join`,
+              method: 'GET',
+              label: 'Copier le lien',
+              disabled: false,
+            },
+          ],
         });
 
         expect(player2view).toEqual({
@@ -843,6 +859,15 @@ export const gameViewProjectorTestSuite = (
           players: [playerId(1), playerId(2)],
           isHost: false,
           canStart: false,
+          actions: [
+            {
+              type: 'copy-invite',
+              url: `/game/${gameId(1)}/join`,
+              method: 'GET',
+              label: 'Copier le lien',
+              disabled: false,
+            },
+          ],
         });
       }).pipe(Effect.provide(makeGameDriverTestLayer()));
     });
@@ -876,6 +901,22 @@ export const gameViewProjectorTestSuite = (
           players: [playerId(1), playerId(2), playerId(3)],
           isHost: true,
           canStart: true,
+          actions: [
+            {
+              type: 'start-game',
+              url: `/game/${gameId(1)}/start`,
+              method: 'POST',
+              label: 'Lancer la partie',
+              disabled: false,
+            },
+            {
+              type: 'copy-invite',
+              url: `/game/${gameId(1)}/join`,
+              method: 'GET',
+              label: 'Copier le lien',
+              disabled: false,
+            },
+          ],
         });
 
         expect(player2view).toEqual({
@@ -886,7 +927,16 @@ export const gameViewProjectorTestSuite = (
           hostId: playerId(1),
           players: [playerId(1), playerId(2), playerId(3)],
           isHost: false,
-          canStart: true,
+          canStart: false,
+          actions: [
+            {
+              type: 'copy-invite',
+              url: `/game/${gameId(1)}/join`,
+              method: 'GET',
+              label: 'Copier le lien',
+              disabled: false,
+            },
+          ],
         });
 
         expect(player3view).toEqual({
@@ -897,7 +947,16 @@ export const gameViewProjectorTestSuite = (
           hostId: playerId(1),
           players: [playerId(1), playerId(2), playerId(3)],
           isHost: false,
-          canStart: true,
+          canStart: false,
+          actions: [
+            {
+              type: 'copy-invite',
+              url: `/game/${gameId(1)}/join`,
+              method: 'GET',
+              label: 'Copier le lien',
+              disabled: false,
+            },
+          ],
         });
       }).pipe(Effect.provide(makeGameDriverTestLayer()));
     });
