@@ -353,6 +353,47 @@ body {
   text-align: center;
 }
 
+/* Login form toggle (Déjà inscrit / Retour) */
+.login-toggle {
+  text-align: center;
+  margin-top: 24px;
+}
+
+.login-toggle a {
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+  text-decoration: underline;
+  transition: color 0.2s;
+}
+
+.login-toggle a:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Login success message (after magic link sent) */
+.login-success {
+  text-align: center;
+  padding: 24px 0;
+}
+
+.login-success p:first-child {
+  font-family: "Poppins", sans-serif;
+  font-weight: 500;
+  font-size: 18px;
+  @apply text-white;
+  margin: 0 0 12px 0;
+}
+
+.login-success-hint {
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+}
+
 /* Lobby page styles */
 .lobby-container {
   @apply fixed inset-0;
@@ -889,6 +930,10 @@ body {
   border-bottom-color: rgba(255, 255, 255, 0.6);
 }
 
+.auth-modal-input-error {
+  border-bottom-color: #ef4444 !important;
+}
+
 .auth-modal-error {
   font-family: "Poppins", sans-serif;
   font-size: 14px;
@@ -987,4 +1032,204 @@ body {
 
 .card-modal-button:active {
   transform: translateY(0);
+}
+
+/* Login form sections */
+.login-form--modal {
+  width: 100%;
+}
+
+.login-section {
+  @apply flex flex-col;
+  gap: 16px;
+}
+
+.login-section-title {
+  font-family: "Poppins", sans-serif;
+  font-weight: 500;
+  font-size: 16px;
+  @apply text-white;
+  opacity: 0.9;
+  margin: 0;
+}
+
+.login-divider {
+  @apply flex items-center;
+  gap: 16px;
+  margin: 8px 0;
+}
+
+.login-divider::before,
+.login-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.login-divider span {
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  @apply text-white;
+  opacity: 0.5;
+}
+
+.login-success {
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  color: #22c55e;
+  margin: 8px 0 0 0;
+  text-align: center;
+}
+
+/* Auth callback page */
+.auth-callback-container {
+  @apply fixed inset-0 flex items-center justify-center;
+  background: linear-gradient(
+    to bottom,
+    rgba(15, 12, 30, 1) 0%,
+    rgba(27, 26, 59, 1) 30%,
+    rgba(48, 38, 67, 1) 60%,
+    rgba(69, 50, 75, 1) 100%
+  );
+}
+
+.auth-callback-loading {
+  @apply flex flex-col items-center;
+  gap: 24px;
+}
+
+.auth-callback-loading p {
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-size: 18px;
+  @apply text-white;
+  opacity: 0.8;
+  margin: 0;
+}
+
+.auth-callback-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  border-top-color: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.auth-callback-form {
+  @apply flex flex-col items-center;
+  background: rgba(30, 26, 53, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 40px;
+  max-width: 400px;
+  width: calc(100% - 32px);
+}
+
+.auth-callback-title {
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+  font-size: 24px;
+  @apply text-white;
+  margin: 0 0 8px 0;
+}
+
+.auth-callback-subtitle {
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  @apply text-white;
+  opacity: 0.7;
+  margin: 0 0 32px 0;
+  text-align: center;
+}
+
+.auth-callback-field {
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+.auth-callback-input {
+  @apply w-full bg-transparent text-white border-none outline-none;
+  font-family: "Poppins", sans-serif;
+  font-size: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.auth-callback-input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.auth-callback-input:focus {
+  border-bottom-color: rgba(255, 255, 255, 0.6);
+}
+
+.auth-callback-field-error {
+  font-family: "Poppins", sans-serif;
+  font-size: 14px;
+  color: #ef4444;
+  margin: 8px 0 0 0;
+}
+
+.auth-callback-button {
+  @apply flex items-center justify-center w-full cursor-pointer border-none;
+  background: rgba(69, 50, 75, 0.9);
+  border-radius: 4px;
+  padding: 14px 24px;
+  font-family: "Poppins", sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  @apply text-white;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.auth-callback-button:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+}
+
+.auth-callback-button:active {
+  transform: translateY(0);
+}
+
+.auth-callback-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.auth-callback-error-container {
+  @apply flex flex-col items-center;
+  gap: 16px;
+}
+
+.auth-callback-error {
+  font-family: "Poppins", sans-serif;
+  font-size: 16px;
+  color: #ef4444;
+  margin: 0;
+  text-align: center;
+}
+
+.auth-callback-link {
+  font-family: "Poppins", sans-serif;
+  font-size: 14px;
+  @apply text-white;
+  opacity: 0.7;
+  text-decoration: underline;
+  transition: opacity 0.2s;
+}
+
+.auth-callback-link:hover {
+  opacity: 1;
 }

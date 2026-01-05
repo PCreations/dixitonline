@@ -1,6 +1,7 @@
 import { Option } from 'effect';
 import type { FastifyPluginAsync } from 'fastify';
 import { h } from 'preact';
+import { AuthCallback } from '../../view/components/AuthCallback.js';
 import { Home } from '../../view/components/Home.js';
 import { Login } from '../../view/components/Login.js';
 import '../types.js';
@@ -36,6 +37,21 @@ const homeRoutes: FastifyPluginAsync = async (fastify) => {
       const body = renderToString(component);
       const html = renderHtmlPage('Login - Tixid Online', body, {
         isAuthenticated: Option.isSome(request.authUser),
+      });
+
+      return reply.type('text/html').send(html);
+    },
+  });
+
+  // GET /auth/callback - Magic link callback page
+  fastify.route({
+    method: 'GET',
+    url: '/auth/callback',
+    handler: async (request, reply) => {
+      const component = h(AuthCallback, {});
+      const body = renderToString(component);
+      const html = renderHtmlPage('Connexion - Tixid Online', body, {
+        isAuthenticated: false,
       });
 
       return reply.type('text/html').send(html);

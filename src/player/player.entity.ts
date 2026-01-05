@@ -71,6 +71,23 @@ export class PlayerEntity {
   }
 
   /**
+   * Marque le joueur comme authentifié (non-anonyme)
+   * Utilisé quand un joueur anonyme confirme son email via magic link
+   */
+  markAsAuthenticated(): PlayerEntity {
+    if (!this.props.isAnonymous) {
+      return this; // Already authenticated
+    }
+
+    return new PlayerEntity({
+      ...this.props,
+      isAnonymous: false,
+      version: this.props.version + 1,
+      updatedAt: new Date(),
+    });
+  }
+
+  /**
    * Lie un email au joueur → le rend non-anonyme
    */
   linkEmail(

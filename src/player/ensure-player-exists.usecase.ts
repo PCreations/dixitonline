@@ -41,19 +41,29 @@ export class EnsurePlayerExistsUseCase extends Effect.Service<EnsurePlayerExists
                 }),
               onSome: (existingPlayer) =>
                 Effect.gen(function* () {
-                  // Check if username needs updating
                   const snapshot = existingPlayer.toSnapshot();
+                  let updated = existingPlayer;
+
+                  // Check if username needs updating
                   if (
                     command.username &&
                     snapshot.username !== command.username
                   ) {
-                    const updated = existingPlayer.updateUsername(
-                      command.username,
-                    );
-                    yield* playerRepository.save(updated);
-                    return updated;
+                    updated = updated.updateUsername(command.username);
                   }
-                  return existingPlayer;
+
+                  // Check if player was upgraded from anonymous to authenticated
+                  // (happens when user confirms email via magic link)
+                  if (snapshot.isAnonymous && !command.isAnonymous) {
+                    updated = updated.markAsAuthenticated();
+                  }
+
+                  // Save if any changes were made
+                  if (updated !== existingPlayer) {
+                    yield* playerRepository.save(updated);
+                  }
+
+                  return updated;
                 }),
             });
           }),

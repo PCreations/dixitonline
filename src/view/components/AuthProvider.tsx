@@ -1,6 +1,7 @@
 /** @jsx h */
 import type { ComponentChildren } from 'preact';
 import { h } from 'preact';
+import { LoginForm } from './LoginForm.js';
 
 interface AuthProviderProps {
   children: ComponentChildren;
@@ -21,32 +22,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
         <div class="text-white text-xl">Chargement...</div>
       </div>
 
-      {/* Username modal for new anonymous users */}
-      <div x-show="showUsernameModal && !loading" x-cloak class="auth-modal-overlay">
+      {/* Login modal for new users */}
+      <div x-show="showLoginModal && !loading" x-cloak class="auth-modal-overlay">
         <div class="auth-modal">
           <h2 class="auth-modal-title">Bienvenue sur Tixid !</h2>
-          <p class="auth-modal-subtitle">
-            Choisissez un pseudo pour commencer à jouer.
-          </p>
-          <form {...alpine.onSubmitPrevent('createAnonymousUser()')}>
-            <input
-              type="text"
-              x-model="username"
-              placeholder="Votre pseudo"
-              required
-              minLength={2}
-              maxLength={20}
-              class="auth-modal-input"
-            />
-            <div x-show="error" class="auth-modal-error" x-text="error"></div>
-            <button
-              type="submit"
-              {...alpine.bindDisabled('loading || !username')}
-              class="auth-modal-button"
-            >
-              Commencer à jouer
-            </button>
-          </form>
+          <LoginForm variant="modal" />
         </div>
       </div>
 
