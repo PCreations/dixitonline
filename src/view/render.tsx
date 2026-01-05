@@ -188,9 +188,18 @@ document.addEventListener('alpine:init', () => {
     error: null,
 
     async init() {
-      try {
-        const { data: { session }, error } = await window.supabase.auth.getSession();
-        if (error || !session) throw new Error('Session invalide');
+      // Wait for Supabase to process the magic link tokens from URL hash
+      // The tokens are in the URL fragment (#access_token=...&refresh_token=...)
+      // Supabase client extracts them automatically, but we need to wait for it
+      const { data: { subscription } } = window.supabase.auth.onAuthStateChange(async (event, session) => {
+        // Unsubscribe immediately - we only need the first event
+        subscription.unsubscribe();
+
+        if (!session) {
+          this.error = 'Session invalide ou lien expiré';
+          this.loading = false;
+          return;
+        }
 
         setAuthCookie(session.access_token);
 
@@ -204,10 +213,16 @@ document.addEventListener('alpine:init', () => {
 
         // All good, redirect to home
         window.location.href = '/';
-      } catch (e) {
-        this.error = e.message;
-        this.loading = false;
-      }
+      });
+
+      // Timeout after 10 seconds if no auth event received
+      setTimeout(() => {
+        if (this.loading && !this.needsUsername) {
+          subscription.unsubscribe();
+          this.error = 'Délai d\\'attente dépassé. Veuillez réessayer.';
+          this.loading = false;
+        }
+      }, 10000);
     },
 
     async setUsername() {
@@ -229,6 +244,12 @@ document.addEventListener('alpine:init', () => {
           data: { username: this.username.trim() }
         });
         if (error) throw error;
+
+        // Refresh session to get new JWT with updated metadata
+        const { data: { session } } = await window.supabase.auth.refreshSession();
+        if (session) {
+          setAuthCookie(session.access_token);
+        }
 
         window.location.href = '/';
       } catch (e) {
