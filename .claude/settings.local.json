@@ -34,7 +34,18 @@
       "Bash(sudo systemsetup:*)",
       "Bash(nc:*)",
       "mcp__context7__query-docs",
-      "Bash(timeout 5 pnpm dev:*)"
+      "Bash(timeout 5 pnpm dev:*)",
+      "Bash(pnpm test:acceptance:in-memory:*)",
+      "Bash(git checkout:*)",
+      "Bash(git rebase:*)",
+      "Bash(git stash:*)",
+      "Bash(git stash pop:*)",
+      "Bash(pnpm install:*)",
+      "Bash(./node_modules/.bin/cypress install:*)",
+      "Bash(./node_modules/.bin/cypress run:*)",
+      "Bash(ELECTRON_EXTRA_LAUNCH_ARGS=\"\" ./node_modules/.bin/cypress run:*)",
+      "Bash(xargs:*)",
+      "Bash(pnpm lint-fix:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

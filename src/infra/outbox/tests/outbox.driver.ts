@@ -192,7 +192,7 @@ export const makeOutboxDriverTestLayer = () => {
     makeInMemoryOutboxRepository();
 
   // Single source of truth for published events
-  const publishedEvents: GameEvent[] = [];
+  const publishedEvents: Array<GameEvent> = [];
   const subscribers: Array<(event: GameEvent) => void> = [];
 
   const eventBusState: GameEventBusTestState = {
@@ -238,7 +238,10 @@ export const makeOutboxDriverTestLayer = () => {
       Stream.fromIterable(publishedEvents.filter((e) => e.gameId === gameId)),
   };
 
-  const outboxRepositoryLayer = Layer.succeed(OutboxRepository, outboxRepository);
+  const outboxRepositoryLayer = Layer.succeed(
+    OutboxRepository,
+    outboxRepository,
+  );
   const eventBusLayer = Layer.succeed(GameEventBus, gameEventBus);
 
   const driverLayer = Layer.succeed(

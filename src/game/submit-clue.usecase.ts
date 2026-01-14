@@ -1,11 +1,15 @@
-import { Effect, Option } from "effect";
-import { CardId } from "./deck.entity.js";
-import { InMemoryDeckRepository } from "./deck.repository.js";
-import { GameRepository, InMemoryGameRepository } from "./game.repository.js";
-import { GameView, InMemoryGameView } from "./game-view.js";
-import { GameViewProjector, ShufflerService, TurnBoardCardsShuffler } from "./game-view-projector.js";
-import { withOptimisticRetry } from "./optimistic-retry.js";
-import { PlayerId } from "./player.entity.js";
+import { Effect, Option } from 'effect';
+import { CardId } from './deck.entity.js';
+import { InMemoryDeckRepository } from './deck.repository.js';
+import { GameRepository, InMemoryGameRepository } from './game.repository.js';
+import { GameView, InMemoryGameView } from './game-view.js';
+import {
+  GameViewProjector,
+  ShufflerService,
+  TurnBoardCardsShuffler,
+} from './game-view-projector.js';
+import { withOptimisticRetry } from './optimistic-retry.js';
+import { PlayerId } from './player.entity.js';
 
 export type SubmitClueCommand = {
   gameId: string;
@@ -15,7 +19,7 @@ export type SubmitClueCommand = {
 };
 
 export class SubmitClueUseCase extends Effect.Service<SubmitClueUseCase>()(
-  "game/SubmitClueUseCase",
+  'game/SubmitClueUseCase',
   {
     effect: Effect.gen(function* () {
       const gameRepository = yield* GameRepository;
@@ -25,7 +29,10 @@ export class SubmitClueUseCase extends Effect.Service<SubmitClueUseCase>()(
       return {
         submitClue: (props: SubmitClueCommand) => {
           const submitClueLogic = Effect.gen(function* () {
-            yield* Effect.annotateCurrentSpan('context.input', JSON.stringify(props));
+            yield* Effect.annotateCurrentSpan(
+              'context.input',
+              JSON.stringify(props),
+            );
 
             const game = yield* gameRepository.findStartedGameById(
               props.gameId,
@@ -33,8 +40,13 @@ export class SubmitClueUseCase extends Effect.Service<SubmitClueUseCase>()(
 
             return yield* Option.match(game, {
               onNone: () => {
-                Effect.runSync(Effect.annotateCurrentSpan('context.output', JSON.stringify({ error: 'Game not found' })));
-                return Effect.fail(new Error("Game not found"));
+                Effect.runSync(
+                  Effect.annotateCurrentSpan(
+                    'context.output',
+                    JSON.stringify({ error: 'Game not found' }),
+                  ),
+                );
+                return Effect.fail(new Error('Game not found'));
               },
               onSome: (gameEntity) =>
                 Effect.gen(function* () {
@@ -51,10 +63,13 @@ export class SubmitClueUseCase extends Effect.Service<SubmitClueUseCase>()(
                     yield* gameViewProjector.project(updatedGame.toSnapshot()),
                   );
 
-                  yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({
-                    snapshot: updatedGame.toSnapshot(),
-                    events,
-                  }));
+                  yield* Effect.annotateCurrentSpan(
+                    'context.output',
+                    JSON.stringify({
+                      snapshot: updatedGame.toSnapshot(),
+                      events,
+                    }),
+                  );
                 }),
             });
           });

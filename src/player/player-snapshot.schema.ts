@@ -1,4 +1,4 @@
-import { Schema } from "effect";
+import { Schema } from 'effect';
 
 /**
  * Schema for PlayerEntity snapshot serialization/deserialization.

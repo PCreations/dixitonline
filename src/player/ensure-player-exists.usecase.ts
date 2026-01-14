@@ -1,6 +1,6 @@
-import { Effect, Option } from "effect";
-import { PlayerId, PlayerEntity } from "./player.entity.js";
-import { PlayerRepository } from "./player.repository.js";
+import { Effect, Option } from 'effect';
+import { PlayerEntity, PlayerId } from './player.entity.js';
+import { PlayerRepository } from './player.repository.js';
 
 // Command type
 export interface EnsurePlayerExistsCommand {
@@ -11,7 +11,7 @@ export interface EnsurePlayerExistsCommand {
 
 // Use Case
 export class EnsurePlayerExistsUseCase extends Effect.Service<EnsurePlayerExistsUseCase>()(
-  "player/EnsurePlayerExistsUseCase",
+  'player/EnsurePlayerExistsUseCase',
   {
     effect: Effect.gen(function* () {
       const playerRepository = yield* PlayerRepository;
@@ -33,7 +33,7 @@ export class EnsurePlayerExistsUseCase extends Effect.Service<EnsurePlayerExists
                   // Create new player from auth data
                   const player = PlayerEntity.createFromAuth({
                     id: command.playerId,
-                    username: command.username ?? "Anonyme",
+                    username: command.username ?? 'Anonyme',
                     isAnonymous: command.isAnonymous,
                   });
                   yield* playerRepository.save(player);
@@ -41,19 +41,29 @@ export class EnsurePlayerExistsUseCase extends Effect.Service<EnsurePlayerExists
                 }),
               onSome: (existingPlayer) =>
                 Effect.gen(function* () {
-                  // Check if username needs updating
                   const snapshot = existingPlayer.toSnapshot();
+                  let updated = existingPlayer;
+
+                  // Check if username needs updating
                   if (
                     command.username &&
                     snapshot.username !== command.username
                   ) {
-                    const updated = existingPlayer.updateUsername(
-                      command.username,
-                    );
-                    yield* playerRepository.save(updated);
-                    return updated;
+                    updated = updated.updateUsername(command.username);
                   }
-                  return existingPlayer;
+
+                  // Check if player was upgraded from anonymous to authenticated
+                  // (happens when user confirms email via magic link)
+                  if (snapshot.isAnonymous && !command.isAnonymous) {
+                    updated = updated.markAsAuthenticated();
+                  }
+
+                  // Save if any changes were made
+                  if (updated !== existingPlayer) {
+                    yield* playerRepository.save(updated);
+                  }
+
+                  return updated;
                 }),
             });
           }),

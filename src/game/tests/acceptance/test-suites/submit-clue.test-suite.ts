@@ -11,7 +11,7 @@ import { defaultIdFactory, type IdFactory } from './create-game.test-suite.js';
 
 export const submitClueTestSuite = (
   makeGameDriverTestLayer: () => GameDriverLayer,
-  idFactory: IdFactory = defaultIdFactory
+  idFactory: IdFactory = defaultIdFactory,
 ) => {
   const { gameId, playerId, deckId } = idFactory;
 

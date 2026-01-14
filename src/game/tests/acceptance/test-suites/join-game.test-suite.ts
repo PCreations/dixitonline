@@ -6,7 +6,7 @@ import { defaultIdFactory, type IdFactory } from './create-game.test-suite.js';
 
 export const joinGameTestSuite = (
   makeGameDriverTestLayer: () => GameDriverLayer,
-  idFactory: IdFactory = defaultIdFactory
+  idFactory: IdFactory = defaultIdFactory,
 ) => {
   const { gameId, playerId } = idFactory;
 
@@ -53,39 +53,45 @@ export const joinGameTestSuite = (
       }).pipe(Effect.provide(makeGameDriverTestLayer()));
     });
 
-    it.effect('Example: A player cannot join a game that does not exist', () => {
-      return Effect.gen(function* () {
-        const gameDriver = yield* GameDriver;
+    it.effect(
+      'Example: A player cannot join a game that does not exist',
+      () => {
+        return Effect.gen(function* () {
+          const gameDriver = yield* GameDriver;
 
-        yield* gameDriver.when.joiningGame({
-          gameId: gameId('does-not-exist'),
-          playerId: playerId(2),
-        });
+          yield* gameDriver.when.joiningGame({
+            gameId: gameId('does-not-exist'),
+            playerId: playerId(2),
+          });
 
-        yield* gameDriver.assert.playerToNotHaveBeenAbleToJoinGame({
-          error: 'Game not found',
-        });
-      }).pipe(Effect.provide(makeGameDriverTestLayer()));
-    });
+          yield* gameDriver.assert.playerToNotHaveBeenAbleToJoinGame({
+            error: 'Game not found',
+          });
+        }).pipe(Effect.provide(makeGameDriverTestLayer()));
+      },
+    );
 
-    it.effect('Example: A player cannot join a game that is already full', () => {
-      return Effect.gen(function* () {
-        const gameDriver = yield* GameDriver;
+    it.effect(
+      'Example: A player cannot join a game that is already full',
+      () => {
+        return Effect.gen(function* () {
+          const gameDriver = yield* GameDriver;
 
-        yield* gameDriver.given.existingFullGame({
-          gameId: gameId(1),
-        });
+          yield* gameDriver.given.existingFullGame({
+            gameId: gameId(1),
+          });
 
-        yield* gameDriver.when.joiningGame({
-          gameId: gameId(1),
-          playerId: playerId('not-in-game'),
-        });
+          yield* gameDriver.when.joiningGame({
+            gameId: gameId(1),
+            playerId: playerId('not-in-game'),
+          });
 
-        yield* gameDriver.assert.playerToNotHaveBeenAbleToJoinGame({
-          error: 'Game is full',
-        });
-      }).pipe(Effect.provide(makeGameDriverTestLayer()));
-    });
+          yield* gameDriver.assert.playerToNotHaveBeenAbleToJoinGame({
+            error: 'Game is full',
+          });
+        }).pipe(Effect.provide(makeGameDriverTestLayer()));
+      },
+    );
 
     it.effect(
       'Example: Optimistic concurrency: A player cannot join a game that was not full at the time of joining if some player just joined in between',

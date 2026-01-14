@@ -1,13 +1,13 @@
-import { Context, Effect, Layer, PubSub, Stream } from "effect";
-import { type GameEvent } from "./game-events.js";
+import { Context, Effect, Layer, PubSub, Stream } from 'effect';
+import { type GameEvent } from './game-events.js';
 
-export { type GameEvent } from "./game-events.js";
+export { type GameEvent } from './game-events.js';
 
 /**
  * Event bus for publishing and subscribing to game events.
  * Used to notify clients of game state changes via SSE.
  */
-export class GameEventBus extends Context.Tag("game/GameEventBus")<
+export class GameEventBus extends Context.Tag('game/GameEventBus')<
   GameEventBus,
   {
     /**
@@ -36,7 +36,10 @@ export const InMemoryGameEventBus = Layer.effect(
     return {
       publish: (event) =>
         Effect.gen(function* () {
-          yield* Effect.annotateCurrentSpan('context.input', JSON.stringify(event));
+          yield* Effect.annotateCurrentSpan(
+            'context.input',
+            JSON.stringify(event),
+          );
           yield* PubSub.publish(pubsub, event);
           yield* Effect.annotateCurrentSpan('context.output', 'no data');
         }).pipe(Effect.withSpan('GameEventBus.publish')),

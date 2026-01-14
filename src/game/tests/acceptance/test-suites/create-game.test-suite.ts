@@ -1,6 +1,6 @@
-import { describe, it } from "@effect/vitest";
-import { Effect } from "effect";
-import { GameDriver, GameDriverLayer } from "../../game.driver.js";
+import { describe, it } from '@effect/vitest';
+import { Effect } from 'effect';
+import { GameDriver, GameDriverLayer } from '../../game.driver.js';
 
 /**
  * ID Factory for generating test IDs.
@@ -25,13 +25,13 @@ export const defaultIdFactory: IdFactory = {
 
 export const createGameTestSuite = (
   makeGameDriverTestLayer: () => GameDriverLayer,
-  idFactory: IdFactory = defaultIdFactory
+  idFactory: IdFactory = defaultIdFactory,
 ) => {
   const { gameId, playerId, deckId } = idFactory;
 
-  describe("Feature: Creating a new game", () => {
+  describe('Feature: Creating a new game', () => {
     it.effect(
-      "Example: Creating a new game with the default deck and settings",
+      'Example: Creating a new game with the default deck and settings',
       () => {
         return Effect.gen(function* () {
           const gameDriver = yield* GameDriver;
@@ -51,10 +51,10 @@ export const createGameTestSuite = (
             players: [playerId(1)],
           });
         }).pipe(Effect.provide(makeGameDriverTestLayer()));
-      }
+      },
     );
 
-    it.effect("Example: Creating a new game with a custom deck", () => {
+    it.effect('Example: Creating a new game with a custom deck', () => {
       return Effect.gen(function* () {
         const gameDriver = yield* GameDriver;
         yield* gameDriver.given.existingDeck({
@@ -90,7 +90,7 @@ export const createGameTestSuite = (
             gameId: gameId(1),
             hostId: playerId(1),
             endCondition: {
-              type: "NumberOfTimesBeingStoryteller",
+              type: 'NumberOfTimesBeingStoryteller',
               numberOfTimes: 2,
             },
           });
@@ -100,13 +100,13 @@ export const createGameTestSuite = (
             createdBy: playerId(1),
             deckId: deckId(1),
             endCondition: {
-              type: "NumberOfTimesBeingStoryteller",
+              type: 'NumberOfTimesBeingStoryteller',
               numberOfTimes: 2,
             },
             players: [playerId(1)],
           });
         }).pipe(Effect.provide(makeGameDriverTestLayer()));
-      }
+      },
     );
 
     it.effect(
@@ -123,7 +123,7 @@ export const createGameTestSuite = (
             gameId: gameId(1),
             hostId: playerId(1),
             endCondition: {
-              type: "LimitOfPoints",
+              type: 'LimitOfPoints',
               limit: 10,
             },
           });
@@ -133,13 +133,13 @@ export const createGameTestSuite = (
             createdBy: playerId(1),
             deckId: deckId(1),
             endCondition: {
-              type: "LimitOfPoints",
+              type: 'LimitOfPoints',
               limit: 10,
             },
             players: [playerId(1)],
           });
         }).pipe(Effect.provide(makeGameDriverTestLayer()));
-      }
+      },
     );
   });
 };

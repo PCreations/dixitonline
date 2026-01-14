@@ -52,7 +52,7 @@ export const startSupabase = async () => {
   // Create and configure Docker Compose environment
   const dockerComposeEnv = new DockerComposeEnvironment(
     COMPOSE_DIR,
-    COMPOSE_FILE
+    COMPOSE_FILE,
   ).withProjectName(instanceId);
 
   // Pass all environment variables from .env file
@@ -68,11 +68,11 @@ export const startSupabase = async () => {
     .withWaitStrategy('db-1', Wait.forHealthCheck().withStartupTimeout(120000)) // 2 minutes
     .withWaitStrategy(
       'auth-1',
-      Wait.forHealthCheck().withStartupTimeout(120000)
+      Wait.forHealthCheck().withStartupTimeout(120000),
     ) // 2 minutes
     .withWaitStrategy(
       'realtime-1',
-      Wait.forHealthCheck().withStartupTimeout(120000)
+      Wait.forHealthCheck().withStartupTimeout(120000),
     ) // 2 minutes
     .withStartupTimeout(180000) // 3 minutes global timeout
     .up();
@@ -95,7 +95,7 @@ export const startSupabase = async () => {
 
   // eslint-disable-next-line no-console
   console.log(
-    `[${instanceId}] Containers started - DB:${dbPort}, Auth:${authPort}, Kong:${kongPort}, Realtime:${realtimePort}`
+    `[${instanceId}] Containers started - DB:${dbPort}, Auth:${authPort}, Kong:${kongPort}, Realtime:${realtimePort}`,
   );
 
   // Build connection strings
@@ -105,7 +105,7 @@ export const startSupabase = async () => {
   return {
     instanceId, // Return the instance ID for cleanup
     db: {
-      host: '0.0.0.0',
+      host: '127.0.0.1',
       port: dbPort,
       user: 'postgres',
       password: supabaseEnv.POSTGRES_PASSWORD,
@@ -113,7 +113,7 @@ export const startSupabase = async () => {
     },
     databaseUrl,
     databaseDirectUrl,
-    supabaseUrl: `http://0.0.0.0:${kongPort}`,
+    supabaseUrl: `http://127.0.0.1:${kongPort}`,
     supabaseKey: supabaseEnv.SERVICE_ROLE_KEY,
     anonKey: supabaseEnv.ANON_KEY,
     authUrl: `http://0.0.0.0:${authPort}`,
@@ -149,7 +149,7 @@ export const stopSupabase = async (instanceId?: string) => {
   if (!env) {
     // eslint-disable-next-line no-console
     console.warn(
-      `[${instanceId}] Environment not found, may already be cleaned up`
+      `[${instanceId}] Environment not found, may already be cleaned up`,
     );
     return;
   }
@@ -160,7 +160,7 @@ export const stopSupabase = async (instanceId?: string) => {
 
 async function cleanupEnvironment(
   instanceId: string,
-  env: { started: StartedDockerComposeEnvironment }
+  env: { started: StartedDockerComposeEnvironment },
 ) {
   try {
     // eslint-disable-next-line no-console

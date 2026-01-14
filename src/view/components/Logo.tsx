@@ -7,9 +7,11 @@ interface LogoProps {
 
 export function Logo({ variant = 'home' }: LogoProps) {
   const className =
-    variant === 'home' ? 'logo-container' :
-    variant === 'login' ? 'login-logo-container' :
-    'lobby-logo-container';
+    variant === 'home'
+      ? 'logo-container'
+      : variant === 'login'
+        ? 'login-logo-container'
+        : 'lobby-logo-container';
 
   return (
     <div className={className}>

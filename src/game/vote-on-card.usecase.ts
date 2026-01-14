@@ -1,11 +1,15 @@
-import { Effect, Option } from "effect";
-import { CardId } from "./deck.entity.js";
-import { InMemoryDeckRepository } from "./deck.repository.js";
-import { GameRepository, InMemoryGameRepository } from "./game.repository.js";
-import { GameView, InMemoryGameView } from "./game-view.js";
-import { GameViewProjector, ShufflerService, TurnBoardCardsShuffler } from "./game-view-projector.js";
-import { withOptimisticRetry } from "./optimistic-retry.js";
-import { PlayerId } from "./player.entity.js";
+import { Effect, Option } from 'effect';
+import { CardId } from './deck.entity.js';
+import { InMemoryDeckRepository } from './deck.repository.js';
+import { GameRepository, InMemoryGameRepository } from './game.repository.js';
+import { GameView, InMemoryGameView } from './game-view.js';
+import {
+  GameViewProjector,
+  ShufflerService,
+  TurnBoardCardsShuffler,
+} from './game-view-projector.js';
+import { withOptimisticRetry } from './optimistic-retry.js';
+import { PlayerId } from './player.entity.js';
 
 export type VoteOnCardCommand = {
   gameId: string;
@@ -14,7 +18,7 @@ export type VoteOnCardCommand = {
 };
 
 export class VoteOnCardUseCase extends Effect.Service<VoteOnCardUseCase>()(
-  "game/VoteUseCase",
+  'game/VoteUseCase',
   {
     effect: Effect.gen(function* () {
       const gameRepository = yield* GameRepository;
@@ -24,7 +28,10 @@ export class VoteOnCardUseCase extends Effect.Service<VoteOnCardUseCase>()(
       return {
         voteOnCard: (props: VoteOnCardCommand) => {
           const voteOnCardLogic = Effect.gen(function* () {
-            yield* Effect.annotateCurrentSpan('context.input', JSON.stringify(props));
+            yield* Effect.annotateCurrentSpan(
+              'context.input',
+              JSON.stringify(props),
+            );
 
             const game = yield* gameRepository.findStartedGameById(
               props.gameId,
@@ -32,8 +39,13 @@ export class VoteOnCardUseCase extends Effect.Service<VoteOnCardUseCase>()(
 
             return yield* Option.match(game, {
               onNone: () => {
-                Effect.runSync(Effect.annotateCurrentSpan('context.output', JSON.stringify({ error: 'Game not found' })));
-                return Effect.fail(new Error("Game not found"));
+                Effect.runSync(
+                  Effect.annotateCurrentSpan(
+                    'context.output',
+                    JSON.stringify({ error: 'Game not found' }),
+                  ),
+                );
+                return Effect.fail(new Error('Game not found'));
               },
               onSome: (gameEntity) =>
                 Effect.gen(function* () {
@@ -49,10 +61,13 @@ export class VoteOnCardUseCase extends Effect.Service<VoteOnCardUseCase>()(
                     yield* gameViewProjector.project(updatedGame.toSnapshot()),
                   );
 
-                  yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({
-                    snapshot: updatedGame.toSnapshot(),
-                    events,
-                  }));
+                  yield* Effect.annotateCurrentSpan(
+                    'context.output',
+                    JSON.stringify({
+                      snapshot: updatedGame.toSnapshot(),
+                      events,
+                    }),
+                  );
                 }),
             });
           });

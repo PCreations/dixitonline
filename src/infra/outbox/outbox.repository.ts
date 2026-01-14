@@ -73,12 +73,15 @@ export const DrizzleOutboxRepository = Layer.effect(
     return {
       insertWithinTransaction: (tx, input) =>
         Effect.gen(function* () {
-          yield* Effect.annotateCurrentSpan('context.input', JSON.stringify({
-            aggregateType: input.aggregateType,
-            aggregateId: input.aggregateId,
-            aggregateVersion: input.aggregateVersion,
-            eventType: input.event._tag,
-          }));
+          yield* Effect.annotateCurrentSpan(
+            'context.input',
+            JSON.stringify({
+              aggregateType: input.aggregateType,
+              aggregateId: input.aggregateId,
+              aggregateVersion: input.aggregateVersion,
+              eventType: input.event._tag,
+            }),
+          );
 
           const dto: InsertOutboxEventDto = {
             aggregateType: input.aggregateType,
@@ -107,7 +110,10 @@ export const DrizzleOutboxRepository = Layer.effect(
 
       markAsProcessed: (eventId) =>
         Effect.gen(function* () {
-          yield* Effect.annotateCurrentSpan('context.input', JSON.stringify({ eventId }));
+          yield* Effect.annotateCurrentSpan(
+            'context.input',
+            JSON.stringify({ eventId }),
+          );
 
           yield* Effect.tryPromise(async () => {
             await db
@@ -121,9 +127,12 @@ export const DrizzleOutboxRepository = Layer.effect(
 
       deleteOlderThan: (date) =>
         Effect.gen(function* () {
-          yield* Effect.annotateCurrentSpan('context.input', JSON.stringify({
-            olderThan: date.toISOString(),
-          }));
+          yield* Effect.annotateCurrentSpan(
+            'context.input',
+            JSON.stringify({
+              olderThan: date.toISOString(),
+            }),
+          );
 
           const result = yield* Effect.tryPromise(async () => {
             const res = await db
@@ -132,9 +141,12 @@ export const DrizzleOutboxRepository = Layer.effect(
             return res.rowCount ?? 0;
           });
 
-          yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({
-            deletedCount: result,
-          }));
+          yield* Effect.annotateCurrentSpan(
+            'context.output',
+            JSON.stringify({
+              deletedCount: result,
+            }),
+          );
 
           return result;
         }).pipe(Effect.withSpan('OutboxRepository.deleteOlderThan')),

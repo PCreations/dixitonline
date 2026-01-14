@@ -1,10 +1,8 @@
 /** @jsx h */
-import { h } from "preact";
-import type {
-  LobbyAction,
-  LobbyViewModel,
-} from "../view-models/lobby.view-model.js";
-import { Button } from "./Button.js";
+import { h } from 'preact';
+import type { LobbyAction } from '../../game/game-view-projector.js';
+import type { LobbyViewModel } from '../view-models/lobby.view-model.js';
+import { Button } from './Button.js';
 
 /**
  * LobbyContent - The dynamic part of the lobby that gets updated via SSE.
@@ -30,7 +28,7 @@ export function LobbyContent(vm: LobbyViewModel) {
               <PlayerIcon />
               <span className="lobby-player-name">
                 {player.name}
-                {player.isHost && " (Hôte)"}
+                {player.isHost && ' (Hôte)'}
               </span>
             </div>
           ))}
@@ -52,7 +50,7 @@ export function LobbyContent(vm: LobbyViewModel) {
 }
 
 function LobbyActionButton({ action }: { action: LobbyAction }) {
-  if (action.type === "start-game") {
+  if (action.type === 'start-game') {
     return (
       <form action={action.url} method="POST">
         <Button type="submit" disabled={action.disabled}>

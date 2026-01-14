@@ -1,47 +1,80 @@
-import { Effect, Option } from "effect";
-import { CardId, DeckId, DeckSnapshot } from "./deck.entity.js";
-import { DeckRepository, InMemoryDeckRepository } from "./deck.repository.js";
+import { Effect, Option } from 'effect';
+import { CardId, DeckId, DeckSnapshot } from './deck.entity.js';
+import { DeckRepository, InMemoryDeckRepository } from './deck.repository.js';
 import {
   EndedGameSnapshot,
   isStartedGameSnapshot,
   MIN_PLAYERS,
   NotStartedGameSnapshot,
   StartedGameSnapshot,
-} from "./game.entity.js";
-import { PlayerId } from "./player.entity.js";
-import { TurnId } from "./turn.entity.js";
+} from './game.entity.js';
+import { PlayerId } from './player.entity.js';
+import { TurnId } from './turn.entity.js';
+
+export interface LobbyAction {
+  readonly type: 'start-game' | 'copy-invite';
+  readonly url: string;
+  readonly method: 'POST' | 'GET';
+  readonly label: string;
+  readonly disabled: boolean;
+}
 
 export type LobbyPlayerView = {
   readonly gameId: string;
   readonly id: string;
   readonly name: string;
-  readonly phase: "lobby";
+  readonly phase: 'lobby';
   readonly hostId: string;
   readonly players: ReadonlyArray<string>;
   readonly isHost: boolean;
   readonly canStart: boolean;
+  readonly actions: ReadonlyArray<LobbyAction>;
 };
 
 export type LobbyViewValueObject = Record<string, LobbyPlayerView>;
 
 class LobbyViewProjectorImpl {
   static project(game: NotStartedGameSnapshot): LobbyViewValueObject {
-    const canStart = game.players.length >= MIN_PLAYERS;
+    const hasEnoughPlayers = game.players.length >= MIN_PLAYERS;
 
     return Object.fromEntries(
-      game.players.map((playerId) => [
-        playerId,
-        {
-          gameId: game.id,
-          id: playerId,
-          name: playerId,
-          phase: "lobby" as const,
-          hostId: game.createdBy,
-          players: game.players,
-          isHost: playerId === game.createdBy,
-          canStart,
-        },
-      ]),
+      game.players.map((playerId) => {
+        const isHost = playerId === game.createdBy;
+        const canStart = isHost && hasEnoughPlayers;
+
+        const actions: Array<LobbyAction> = [];
+        if (isHost) {
+          actions.push({
+            type: 'start-game',
+            url: `/game/${game.id}/start`,
+            method: 'POST',
+            label: 'Lancer la partie',
+            disabled: !canStart,
+          });
+        }
+        actions.push({
+          type: 'copy-invite',
+          url: `/game/${game.id}/join`,
+          method: 'GET',
+          label: 'Copier le lien',
+          disabled: false,
+        });
+
+        return [
+          playerId,
+          {
+            gameId: game.id,
+            id: playerId,
+            name: playerId,
+            phase: 'lobby' as const,
+            hostId: game.createdBy,
+            players: game.players,
+            isHost,
+            canStart,
+            actions,
+          },
+        ];
+      }),
     );
   }
 }
@@ -52,42 +85,41 @@ export interface Shuffler {
   ): ReadonlyArray<{ id: CardId; url: string }>;
 }
 
-export class ShufflerService extends Effect.Service<Shuffler>()("Shuffler", {
+export class ShufflerService extends Effect.Service<Shuffler>()('Shuffler', {
   effect: Effect.succeed({
     shuffle: (cards: ReadonlyArray<{ id: CardId; url: string }>) => cards,
   }),
 }) {}
 
-export class TurnBoardCardsShuffler
-  extends Effect.Service<TurnBoardCardsShuffler>()(
-    "TurnBoardCardsShuffler",
-    {
-      effect: Effect.gen(function* () {
-        const boardCardsForTurn = new Map<
-          TurnId,
-          ReadonlyArray<{ id: CardId; url: string }>
-        >();
+export class TurnBoardCardsShuffler extends Effect.Service<TurnBoardCardsShuffler>()(
+  'TurnBoardCardsShuffler',
+  {
+    effect: Effect.gen(function* () {
+      const boardCardsForTurn = new Map<
+        TurnId,
+        ReadonlyArray<{ id: CardId; url: string }>
+      >();
 
-        return {
-          shuffleForTurn: (
-            turnId: TurnId,
-            cards: ReadonlyArray<{ id: CardId; url: string }>,
-            shuffler: Shuffler,
-          ): ReadonlyArray<{ id: CardId; url: string }> => {
-            if (boardCardsForTurn.has(turnId)) {
-              return boardCardsForTurn.get(turnId) ?? [];
-            }
+      return {
+        shuffleForTurn: (
+          turnId: TurnId,
+          cards: ReadonlyArray<{ id: CardId; url: string }>,
+          shuffler: Shuffler,
+        ): ReadonlyArray<{ id: CardId; url: string }> => {
+          if (boardCardsForTurn.has(turnId)) {
+            return boardCardsForTurn.get(turnId) ?? [];
+          }
 
-            boardCardsForTurn.set(turnId, shuffler.shuffle(cards));
-            return boardCardsForTurn.get(turnId)!;
-          },
-        };
-      }),
-    },
-  ) {}
+          boardCardsForTurn.set(turnId, shuffler.shuffle(cards));
+          return boardCardsForTurn.get(turnId)!;
+        },
+      };
+    }),
+  },
+) {}
 
 export class GameViewProjector extends Effect.Service<GameViewProjector>()(
-  "GameViewProjector",
+  'GameViewProjector',
   {
     effect: Effect.gen(function* () {
       const boardCardsShuffler = yield* TurnBoardCardsShuffler;
@@ -125,7 +157,7 @@ export class GameViewProjector extends Effect.Service<GameViewProjector>()(
   },
 ) {}
 
-export type GameViewValueObject = ReturnType<GameViewProjectorImpl["project"]>;
+export type GameViewValueObject = ReturnType<GameViewProjectorImpl['project']>;
 
 class GameViewProjectorImpl {
   constructor(
@@ -146,8 +178,8 @@ class GameViewProjectorImpl {
         game.players.map((playerId) => [
           playerId,
           this.isPlayerReadyForNextPhase({ game, playerId })
-            ? "ready"
-            : "not-ready",
+            ? 'ready'
+            : 'not-ready',
         ]),
       );
       const boardCards = this.getBoardCards({ game });
@@ -159,9 +191,8 @@ class GameViewProjectorImpl {
             gameId: game.id,
             id: playerId,
             name: playerId,
-            score: game.scores.find((score) =>
-              score.playerId === playerId
-            )?.score ??
+            score:
+              game.scores.find((score) => score.playerId === playerId)?.score ??
               0,
             cards: (
               game.currentTurn.playerHands.find(
@@ -191,8 +222,8 @@ class GameViewProjectorImpl {
           name: playerId,
           score:
             game.scores.find((score) => score.playerId === playerId)?.score ??
-              0,
-          phase: "ended",
+            0,
+          phase: 'ended',
         },
       ]),
     );
@@ -204,13 +235,13 @@ class GameViewProjectorImpl {
   }) {
     const isStoryteller =
       opts.game.currentTurn.currentStorytellerId === opts.playerId;
-    if (opts.game.currentTurn.phase === "storytelling") {
+    if (opts.game.currentTurn.phase === 'storytelling') {
       if (isStoryteller) {
         return Option.isSome(opts.game.currentTurn.turnClue);
       }
       return true;
     }
-    if (opts.game.currentTurn.phase === "selecting-cards") {
+    if (opts.game.currentTurn.phase === 'selecting-cards') {
       if (isStoryteller) {
         return true;
       }
@@ -218,7 +249,7 @@ class GameViewProjectorImpl {
         (card) => card.playerId === opts.playerId,
       );
     }
-    if (opts.game.currentTurn.phase === "voting") {
+    if (opts.game.currentTurn.phase === 'voting') {
       if (isStoryteller) {
         return true;
       }
@@ -226,7 +257,7 @@ class GameViewProjectorImpl {
         (card) => card.votedBy === opts.playerId,
       );
     }
-    if (opts.game.currentTurn.phase === "scoring") {
+    if (opts.game.currentTurn.phase === 'scoring') {
       return opts.game.playersReadyForNextTurn.includes(
         PlayerId(opts.playerId),
       );
@@ -236,19 +267,19 @@ class GameViewProjectorImpl {
 
   private getBoardCards(opts: { game: StartedGameSnapshot }) {
     if (
-      ["storytelling", "selecting-cards"].includes(opts.game.currentTurn.phase)
+      ['storytelling', 'selecting-cards'].includes(opts.game.currentTurn.phase)
     ) {
       return {};
     }
     if (
-      opts.game.currentTurn.phase === "voting" ||
-      opts.game.currentTurn.phase === "scoring"
+      opts.game.currentTurn.phase === 'voting' ||
+      opts.game.currentTurn.phase === 'scoring'
     ) {
       const storytellerCard = Option.getOrThrowWith(
         opts.game.currentTurn.turnClue,
         () =>
           new Error(
-            "Error while getting board cards on voting phase when projecting views",
+            'Error while getting board cards on voting phase when projecting views',
           ),
       );
       const allAvailableCards = opts.game.currentTurn.selectedCards
@@ -275,7 +306,7 @@ class GameViewProjectorImpl {
 
   private getVotes(opts: { game: StartedGameSnapshot }) {
     const votes: Record<CardId, Array<PlayerId>> = {};
-    if (opts.game.currentTurn.phase === "scoring") {
+    if (opts.game.currentTurn.phase === 'scoring') {
       for (const vote of opts.game.currentTurn.votedCards) {
         votes[vote.cardId] = (votes[vote.cardId] ?? []).concat(vote.votedBy);
       }
@@ -285,17 +316,17 @@ class GameViewProjectorImpl {
     }
     return Object.keys(votes).length > 0
       ? {
-        votes,
-      }
+          votes,
+        }
       : {};
   }
 
   private getPoints(opts: { game: StartedGameSnapshot; playerId: string }) {
-    if (opts.game.currentTurn.phase === "scoring") {
+    if (opts.game.currentTurn.phase === 'scoring') {
       return {
         points:
           opts.game.currentTurn.pointsByPlayer.get(PlayerId(opts.playerId)) ??
-            [],
+          [],
       };
     }
     return {};

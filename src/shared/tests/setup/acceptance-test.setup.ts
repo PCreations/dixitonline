@@ -6,10 +6,10 @@ interface AcceptanceTestSetupOptions {
   userTimezone?: string;
 }
 
-export function createAcceptanceTestSetup(options: AcceptanceTestSetupOptions = {}) {
-  const {
-    userTimezone = 'UTC',
-  } = options;
+export function createAcceptanceTestSetup(
+  options: AcceptanceTestSetupOptions = {},
+) {
+  const { userTimezone = 'UTC' } = options;
   let supabaseInstanceId: string;
 
   const setup = async (): Promise<void> => {
@@ -31,7 +31,6 @@ export function createAcceptanceTestSetup(options: AcceptanceTestSetupOptions = 
       await stopSupabase(supabaseInstanceId);
     }
   };
-  
 
   return {
     setup,

@@ -29,6 +29,13 @@
       "when": 1767436758868,
       "tag": "0003_enable_realtime_outbox_events",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1767522197878,
+      "tag": "0004_deep_quicksilver",
+      "breakpoints": true
     }
   ]
 }

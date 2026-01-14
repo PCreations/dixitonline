@@ -1,6 +1,6 @@
-import { Data, Effect } from "effect";
-import { CardId } from "./deck.entity.js";
-import { PlayerId } from "./player.entity.js";
+import { Data, Effect } from 'effect';
+import { CardId } from './deck.entity.js';
+import { PlayerId } from './player.entity.js';
 
 const CARDS_PER_PLAYER = 6;
 
@@ -20,9 +20,7 @@ export const {
   AtLeastOnePlayerFoundTheStorytellerCard,
   YouFoundTheStorytellerCard,
   APlayerVotedOnYourCard,
-} = Data.taggedEnum<
-  ScoreReason
->();
+} = Data.taggedEnum<ScoreReason>();
 
 export interface GameRules {
   canPlayerSelectMoreCards(
@@ -62,7 +60,7 @@ export class ThreePlayerRules implements GameRules {
     ).length;
 
     if (playerSelectedCount >= 2) {
-      return Effect.fail(new Error("A player can only select two cards"));
+      return Effect.fail(new Error('A player can only select two cards'));
     }
 
     return Effect.void;
@@ -96,7 +94,7 @@ export class ThreePlayerRules implements GameRules {
     );
 
     if (storytellerCard === undefined) {
-      throw new Error("The storyteller card is not in the board");
+      throw new Error('The storyteller card is not in the board');
     }
 
     return board.votes.map((boardCard) => ({
@@ -126,7 +124,7 @@ export class NormalRules implements GameRules {
     );
 
     if (hasPlayerSelected) {
-      return Effect.fail(new Error("A player can only select one card"));
+      return Effect.fail(new Error('A player can only select one card'));
     }
 
     return Effect.void;
@@ -160,7 +158,7 @@ export class NormalRules implements GameRules {
     );
 
     if (storytellerCard === undefined) {
-      throw new Error("The storyteller card is not in the board");
+      throw new Error('The storyteller card is not in the board');
     }
 
     return board.votes.map((boardCard) => ({
@@ -203,55 +201,66 @@ class ScoreComputer {
       opts.playerId,
     );
 
-    const pointsEarnedWhenFoundTheStorytellerCard = this.numberOfPlayers === 3
-      ? 4
-      : 3;
+    const pointsEarnedWhenFoundTheStorytellerCard =
+      this.numberOfPlayers === 3 ? 4 : 3;
 
     if (isStoryteller) {
       if (noOneFoundTheStorytellerCard) {
-        return [{
-          value: 0,
-          reason: NoOneFoundTheStorytellerCard(),
-        }];
+        return [
+          {
+            value: 0,
+            reason: NoOneFoundTheStorytellerCard(),
+          },
+        ];
       }
 
       if (everyoneFoundTheStorytellerCard) {
-        return [{
-          value: 0,
-          reason: EveryoneFoundTheStorytellerCard(),
-        }];
+        return [
+          {
+            value: 0,
+            reason: EveryoneFoundTheStorytellerCard(),
+          },
+        ];
       }
 
-      return [{
-        value: pointsEarnedWhenFoundTheStorytellerCard,
-        reason: AtLeastOnePlayerFoundTheStorytellerCard(),
-      }];
+      return [
+        {
+          value: pointsEarnedWhenFoundTheStorytellerCard,
+          reason: AtLeastOnePlayerFoundTheStorytellerCard(),
+        },
+      ];
     }
 
     return [
       ...(foundTheStorytellerCard && !everyoneFoundTheStorytellerCard
-        ? [{
-          value: pointsEarnedWhenFoundTheStorytellerCard,
-          reason: YouFoundTheStorytellerCard(),
-        }]
+        ? [
+            {
+              value: pointsEarnedWhenFoundTheStorytellerCard,
+              reason: YouFoundTheStorytellerCard(),
+            },
+          ]
         : []),
       ...(noOneFoundTheStorytellerCard
-        ? [{
-          value: 2,
-          reason: NoOneFoundTheStorytellerCard(),
-        }]
+        ? [
+            {
+              value: 2,
+              reason: NoOneFoundTheStorytellerCard(),
+            },
+          ]
         : []),
       ...(everyoneFoundTheStorytellerCard
-        ? [{
-          value: 2,
-          reason: EveryoneFoundTheStorytellerCard(),
-        }]
+        ? [
+            {
+              value: 2,
+              reason: EveryoneFoundTheStorytellerCard(),
+            },
+          ]
         : opts.votes.map((vote) => ({
-          value: 1,
-          reason: APlayerVotedOnYourCard({
-            playerId: vote,
-          }),
-        }))),
+            value: 1,
+            reason: APlayerVotedOnYourCard({
+              playerId: vote,
+            }),
+          }))),
     ];
   }
 }

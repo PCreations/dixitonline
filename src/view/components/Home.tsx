@@ -10,9 +10,11 @@ import { SandSteps } from './SandSteps.js';
 import { Stars } from './Stars.js';
 
 export interface HomeProps {
-  user?: {
-    username: string;
-  } | undefined;
+  user?:
+    | {
+        username: string;
+      }
+    | undefined;
 }
 
 export function Home({ user }: HomeProps) {
@@ -27,14 +29,24 @@ export function Home({ user }: HomeProps) {
         <div className="home-content">
           <Logo />
           <p className="journey-subtitle">
-            {user ? `Enjoy your journey, ${user.username}` : 'Enjoy your journey'}
+            {user
+              ? `Enjoy your journey, ${user.username}`
+              : 'Enjoy your journey'}
           </p>
           <div className="button-container">
-            {user ? [
-              <Button key="create" href="/game/new">Créer une partie</Button>,
-              <Button key="join" href="/game/join">Rejoindre une partie</Button>
-            ] : (
-              <Button x-on:click="showUsernameModal = true">Commencer l'aventure</Button>
+            {user ? (
+              [
+                <Button key="create" href="/game/new">
+                  Créer une partie
+                </Button>,
+                <Button key="join" href="/game/join">
+                  Rejoindre une partie
+                </Button>,
+              ]
+            ) : (
+              <Button x-on:click="showUsernameModal = true">
+                Commencer l'aventure
+              </Button>
             )}
           </div>
         </div>

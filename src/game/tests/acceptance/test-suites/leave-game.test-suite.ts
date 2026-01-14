@@ -6,7 +6,7 @@ import { defaultIdFactory, type IdFactory } from './create-game.test-suite.js';
 
 export const leaveGameTestSuite = (
   makeGameDriverTestLayer: () => GameDriverLayer,
-  idFactory: IdFactory = defaultIdFactory
+  idFactory: IdFactory = defaultIdFactory,
 ) => {
   const { gameId, playerId } = idFactory;
 
@@ -56,20 +56,23 @@ export const leaveGameTestSuite = (
       }).pipe(Effect.provide(makeGameDriverTestLayer()));
     });
 
-    it.effect('Example: A player cannot leave a game that does not exist', () => {
-      return Effect.gen(function* () {
-        const gameDriver = yield* GameDriver;
+    it.effect(
+      'Example: A player cannot leave a game that does not exist',
+      () => {
+        return Effect.gen(function* () {
+          const gameDriver = yield* GameDriver;
 
-        yield* gameDriver.when.leavingGame({
-          gameId: gameId('does-not-exist'),
-          playerId: playerId(2),
-        });
+          yield* gameDriver.when.leavingGame({
+            gameId: gameId('does-not-exist'),
+            playerId: playerId(2),
+          });
 
-        yield* gameDriver.assert.playerToNotHaveBeenAbleToLeaveGame({
-          error: 'Game not found',
-        });
-      }).pipe(Effect.provide(makeGameDriverTestLayer()));
-    });
+          yield* gameDriver.assert.playerToNotHaveBeenAbleToLeaveGame({
+            error: 'Game not found',
+          });
+        }).pipe(Effect.provide(makeGameDriverTestLayer()));
+      },
+    );
 
     it.effect('Example: The host cannot leave the game', () => {
       return Effect.gen(function* () {

@@ -1,4 +1,4 @@
-import { Effect, Layer } from 'effect';
+import { Effect, Layer, Stream } from 'effect';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { getTestDb } from '../../../shared/tests/setup/test-db.js';
 import { Database } from '../../db/database.service.js';
@@ -74,7 +74,6 @@ describe('Outbox E2E Integration', () => {
               );
             }),
           subscribe: () => {
-            const { Stream } = require('effect');
             return Stream.empty;
           },
         },
@@ -186,7 +185,6 @@ describe('Outbox E2E Integration', () => {
               );
             }),
           subscribe: () => {
-            const { Stream } = require('effect');
             return Stream.empty;
           },
         },
@@ -274,7 +272,6 @@ describe('Outbox E2E Integration', () => {
               );
             }),
           subscribe: () => {
-            const { Stream } = require('effect');
             return Stream.empty;
           },
         },

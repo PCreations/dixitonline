@@ -39,8 +39,10 @@ const gameEventsRoutes: FastifyPluginAsync = async (fastify) => {
       const renderLobbyFragment = async (): Promise<string | null> => {
         const program = Effect.gen(function* () {
           const lobbyQueryService = yield* LobbyQueryService;
-          const maybeLobbyState =
-            yield* lobbyQueryService.getLobbyState(gameId);
+          const maybeLobbyState = yield* lobbyQueryService.getLobbyState(
+            gameId,
+            currentPlayerId,
+          );
 
           if (Option.isNone(maybeLobbyState)) {
             return null;

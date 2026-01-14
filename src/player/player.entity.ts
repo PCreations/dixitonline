@@ -1,12 +1,12 @@
-import { Brand, Data, Effect, Option } from "effect";
+import { Brand, Data, Effect, Option } from 'effect';
 
-export type PlayerId = string & Brand.Brand<"PlayerId">;
+export type PlayerId = string & Brand.Brand<'PlayerId'>;
 
 export const PlayerId = Brand.nominal<PlayerId>();
 
 // Erreurs métier typées
 export class EmailAlreadyLinkedError extends Data.TaggedError(
-  "EmailAlreadyLinkedError",
+  'EmailAlreadyLinkedError',
 )<{
   readonly playerId: PlayerId;
   readonly existingEmail: string;
@@ -65,6 +65,23 @@ export class PlayerEntity {
     return new PlayerEntity({
       ...this.props,
       username: newUsername,
+      version: this.props.version + 1,
+      updatedAt: new Date(),
+    });
+  }
+
+  /**
+   * Marque le joueur comme authentifié (non-anonyme)
+   * Utilisé quand un joueur anonyme confirme son email via magic link
+   */
+  markAsAuthenticated(): PlayerEntity {
+    if (!this.props.isAnonymous) {
+      return this; // Already authenticated
+    }
+
+    return new PlayerEntity({
+      ...this.props,
+      isAnonymous: false,
       version: this.props.version + 1,
       updatedAt: new Date(),
     });

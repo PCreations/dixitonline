@@ -1,5 +1,5 @@
 import { Context, Duration, Effect, Layer, Scope } from 'effect';
-import { GameEventBus, type GameEvent } from '../../game/game-event-bus.js';
+import { type GameEvent, GameEventBus } from '../../game/game-event-bus.js';
 import type { SelectOutboxEventDto } from '../db/schema.js';
 import { OutboxRepository } from './outbox.repository.js';
 
@@ -88,7 +88,9 @@ export const makeOutboxPollingDaemonLive = (
           // Mark as processed
           yield* outboxRepository.markAsProcessed(row.id);
 
-          console.log(`[OutboxPollingDaemon] Processed event ${row.id} (${row.eventType})`);
+          console.log(
+            `[OutboxPollingDaemon] Processed event ${row.id} (${row.eventType})`,
+          );
         });
 
       const processUnprocessedEvents = Effect.gen(function* () {
@@ -99,7 +101,9 @@ export const makeOutboxPollingDaemonLive = (
           return;
         }
 
-        console.log(`[OutboxPollingDaemon] Found ${events.length} unprocessed event(s)`);
+        console.log(
+          `[OutboxPollingDaemon] Found ${events.length} unprocessed event(s)`,
+        );
 
         // Process each event
         for (const row of events) {
@@ -108,7 +112,10 @@ export const makeOutboxPollingDaemonLive = (
       }).pipe(
         Effect.catchAll((error) => {
           // Log error but don't fail the daemon
-          console.error('[OutboxPollingDaemon] Error processing events:', error);
+          console.error(
+            '[OutboxPollingDaemon] Error processing events:',
+            error,
+          );
           return Effect.void;
         }),
       );

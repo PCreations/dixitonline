@@ -21,13 +21,18 @@ import Fastify, { FastifyInstance } from 'fastify';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
-import { createJwtVerifier, registerAuthHook } from './auth/index.js';
+import {
+  type AuthSyncResult,
+  createJwtVerifier,
+  registerAuthHook,
+} from './auth/index.js';
 import {
   GameLayerLiveWithoutEventBus,
   InMemoryGameEventBus,
 } from './game/index.js';
 import { appRuntimePlugin, renderPlugin } from './http/plugins/index.js';
 import {
+  authRoutes,
   gameCreateRoutes,
   gameEventsRoutes,
   gameLobbyRoutes,
@@ -49,6 +54,7 @@ import {
   EnsurePlayerExistsUseCase,
   PlayerId,
   PlayerLayerLive,
+  UsernameAlreadyTakenError,
 } from './player/index.js';
 
 const isDev = process.env.NODE_ENV === 'development';
@@ -61,7 +67,11 @@ const databaseUrl =
   'postgresql://postgres:postgres@localhost:5432/dixitonline';
 const supabaseUrl = process.env.SUPABASE_URL || 'http://127.0.0.1:54321';
 const supabasePublishableKey = process.env.SUPABASE_PUBLISHABLE_KEY;
-const jwtVerifier = createJwtVerifier({ url: supabaseUrl });
+const supabaseJwtIssuer = process.env.SUPABASE_JWT_ISSUER;
+const jwtVerifier = createJwtVerifier({
+  url: supabaseUrl,
+  ...(supabaseJwtIssuer ? { jwtIssuer: supabaseJwtIssuer } : {}),
+});
 const pollIntervalMs = isDev ? 2000 : 5000;
 
 // Build application layer
@@ -172,7 +182,7 @@ await fastify.register(renderPlugin);
 // Register auth hook
 registerAuthHook(fastify, {
   jwtVerifier,
-  onAuthenticated: async (user) => {
+  onAuthenticated: async (user): Promise<AuthSyncResult> => {
     const program = Effect.gen(function* () {
       const ensurePlayerExistsUseCase = yield* EnsurePlayerExistsUseCase;
       yield* ensurePlayerExistsUseCase.execute({
@@ -181,12 +191,23 @@ registerAuthHook(fastify, {
         isAnonymous: user.isAnonymous,
       });
     });
-    await appRuntime.runPromise(program);
+
+    return appRuntime
+      .runPromise(program)
+      .then((): AuthSyncResult => ({ success: true }))
+      .catch((error): AuthSyncResult => {
+        if (error instanceof UsernameAlreadyTakenError) {
+          return { success: false, error: 'username_taken' };
+        }
+        // Re-throw other errors to be logged by the auth hook
+        throw error;
+      });
   },
 });
 
 // Register route plugins
 await fastify.register(homeRoutes);
+await fastify.register(authRoutes, { prefix: '/api/auth' });
 await fastify.register(gameCreateRoutes, { prefix: '/game' });
 await fastify.register(gameLobbyRoutes, { prefix: '/game' });
 await fastify.register(gamePlayRoutes, { prefix: '/game' });

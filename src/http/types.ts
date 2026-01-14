@@ -23,7 +23,11 @@ export type AppRuntime = ManagedRuntime.ManagedRuntime<any, never>;
 declare module 'fastify' {
   interface FastifyInstance {
     appRuntime: AppRuntime;
-    renderHtmlPage: (title: string, body: string, options?: RenderHtmlPageOptions) => string;
+    renderHtmlPage: (
+      title: string,
+      body: string,
+      options?: RenderHtmlPageOptions,
+    ) => string;
     // biome-ignore lint/suspicious/noExplicitAny: VNode props vary by component
     renderToString: (component: VNode<any>) => string;
   }

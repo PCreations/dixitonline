@@ -1,11 +1,11 @@
-import { Array as Arr, Brand, Effect, Option } from "effect";
-import { NonEmptyReadonlyArray } from "effect/Array";
-import { Card, CardId } from "./deck.entity.js";
-import { GameId, PlayerHand } from "./game.entity.js";
-import { GameRules, GameRulesFactory, ScoreReason } from "./game-rules.js";
-import { PlayerId } from "./player.entity.js";
+import { Array as Arr, Brand, Effect, Option } from 'effect';
+import { NonEmptyReadonlyArray } from 'effect/Array';
+import { Card, CardId } from './deck.entity.js';
+import { GameId, PlayerHand } from './game.entity.js';
+import { GameRules, GameRulesFactory, ScoreReason } from './game-rules.js';
+import { PlayerId } from './player.entity.js';
 
-export type TurnId = string & Brand.Brand<"TurnId">;
+export type TurnId = string & Brand.Brand<'TurnId'>;
 
 export const TurnId = Brand.nominal<TurnId>();
 
@@ -23,7 +23,7 @@ export class TurnEntity {
         clue: string;
         cardId: CardId;
       }>;
-      readonly phase: "storytelling" | "selecting-cards" | "voting" | "scoring";
+      readonly phase: 'storytelling' | 'selecting-cards' | 'voting' | 'scoring';
       readonly playerHands: ReadonlyArray<PlayerHand>;
       readonly cardsInDrawPile: ReadonlyArray<Card>;
       readonly selectedCards: ReadonlyArray<{
@@ -63,7 +63,7 @@ export class TurnEntity {
       cardsInDrawPile: props.cardsInDrawPile,
       startedAt: props.startedAt,
       turnClue: Option.none(),
-      phase: "storytelling",
+      phase: 'storytelling',
       turnNumber: 1,
       selectedCards: [],
       votedCards: [],
@@ -87,7 +87,9 @@ export class TurnEntity {
           cards: hand.cards.map((card) => card.toSnapshot()),
         };
       }),
-      cardsInDrawPile: this.props.cardsInDrawPile.map((card) => card.toSnapshot()),
+      cardsInDrawPile: this.props.cardsInDrawPile.map((card) =>
+        card.toSnapshot(),
+      ),
       phase: this.props.phase,
       turnNumber: this.props.turnNumber,
       turnClue: this.props.turnClue,
@@ -98,7 +100,7 @@ export class TurnEntity {
     };
   }
 
-  static fromSnapshot(snapshot: ReturnType<TurnEntity["toSnapshot"]>) {
+  static fromSnapshot(snapshot: ReturnType<TurnEntity['toSnapshot']>) {
     return new TurnEntity({
       id: TurnId(snapshot.id),
       gameId: GameId(snapshot.gameId),
@@ -107,11 +109,13 @@ export class TurnEntity {
         return PlayerHand.create({
           playerId: PlayerId(hand.playerId),
           cards: hand.cards.map((card) =>
-            Card.fromSnapshot(card)
+            Card.fromSnapshot(card),
           ) as unknown as NonEmptyReadonlyArray<Card>,
         });
       }),
-      cardsInDrawPile: snapshot.cardsInDrawPile.map((card) => Card.fromSnapshot(card)),
+      cardsInDrawPile: snapshot.cardsInDrawPile.map((card) =>
+        Card.fromSnapshot(card),
+      ),
       phase: snapshot.phase,
       turnNumber: snapshot.turnNumber,
       turnClue: snapshot.turnClue,
@@ -159,13 +163,13 @@ export class TurnEntity {
           [] as ReadonlyArray<{ points: number; reason: ScoreReason }>,
         ]),
       ),
-      phase: "storytelling",
+      phase: 'storytelling',
       currentStorytellerId: opts.nextStorytellerId,
     });
   }
 
   isInScoringPhase() {
-    return this.props.phase === "scoring";
+    return this.props.phase === 'scoring';
   }
 
   submitClue(opts: {
@@ -174,7 +178,7 @@ export class TurnEntity {
     cardId: CardId;
   }): Effect.Effect<TurnEntity, Error, never> {
     if (this.props.currentStorytellerId !== opts.playerId) {
-      return Effect.fail(new Error("Only the storyteller can submit a clue"));
+      return Effect.fail(new Error('Only the storyteller can submit a clue'));
     }
     if (
       !this.doesPlayerOwnCard({
@@ -197,7 +201,7 @@ export class TurnEntity {
           clue: opts.clue,
           cardId: opts.cardId,
         }),
-        phase: "selecting-cards",
+        phase: 'selecting-cards',
       });
     });
   }
@@ -226,11 +230,11 @@ export class TurnEntity {
         playerHands: updatedTurn.playerHands,
         selectedCards: updatedSelectedCards,
         phase: this.rules.isVotingPhase(
-            updatedSelectedCards.length,
-            this.props.playerHands.length,
-          )
-          ? "voting"
-          : "selecting-cards",
+          updatedSelectedCards.length,
+          this.props.playerHands.length,
+        )
+          ? 'voting'
+          : 'selecting-cards',
       });
     });
   }
@@ -272,7 +276,7 @@ export class TurnEntity {
     cardId: CardId;
   }): Effect.Effect<void, Error, never> {
     if (this.props.currentStorytellerId === opts.playerId) {
-      return Effect.fail(new Error("The storyteller cannot select a card"));
+      return Effect.fail(new Error('The storyteller cannot select a card'));
     }
     return Effect.void;
   }
@@ -305,7 +309,7 @@ export class TurnEntity {
       (hand) => hand.playerId === opts.playerId,
     );
     if (!hand) {
-      return Effect.fail(new Error("Player hand not found"));
+      return Effect.fail(new Error('Player hand not found'));
     }
     const self = this;
     return Effect.map(
@@ -314,7 +318,7 @@ export class TurnEntity {
         new TurnEntity({
           ...self.props,
           playerHands: self.props.playerHands.map((h) =>
-            h.playerId === opts.playerId ? newHand : h
+            h.playerId === opts.playerId ? newHand : h,
           ),
         }),
     );
@@ -343,7 +347,7 @@ export class TurnEntity {
 
     if (card === undefined) {
       return Effect.fail(
-        new Error("The card is not in the cards you can vote on"),
+        new Error('The card is not in the cards you can vote on'),
       );
     }
 
@@ -363,7 +367,7 @@ export class TurnEntity {
 
     if (card === undefined) {
       return Effect.fail(
-        new Error("The card is not in the cards you can vote on"),
+        new Error('The card is not in the cards you can vote on'),
       );
     }
 
@@ -375,7 +379,7 @@ export class TurnEntity {
     card: { cardId: CardId; playerId: PlayerId },
   ): Effect.Effect<void, Error, never> {
     if (card.playerId === opts.playerId) {
-      return Effect.fail(new Error("The player cannot vote on their own card"));
+      return Effect.fail(new Error('The player cannot vote on their own card'));
     }
 
     return Effect.void;
@@ -389,7 +393,7 @@ export class TurnEntity {
     return Effect.gen(this, function* () {
       const storytellerCard = Option.getOrThrowWith(
         this.props.turnClue,
-        () => new Error("The storyteller has not submitted a clue"),
+        () => new Error('The storyteller has not submitted a clue'),
       );
 
       return this.props.selectedCards.concat({
@@ -437,17 +441,17 @@ export class TurnEntity {
       ownedBy: PlayerId;
       votedBy: PlayerId;
     }>,
-  ): "scoring" | "voting" {
+  ): 'scoring' | 'voting' {
     return this.rules.isScoringPhase(
-        votedCards.length,
-        this.props.playerHands.length,
-      )
-      ? "scoring"
-      : "voting";
+      votedCards.length,
+      this.props.playerHands.length,
+    )
+      ? 'scoring'
+      : 'voting';
   }
 
   private computePointsIfNeeded(
-    nextPhase: "scoring" | "voting",
+    nextPhase: 'scoring' | 'voting',
     votedCards: ReadonlyArray<{
       cardId: CardId;
       ownedBy: PlayerId;
@@ -458,7 +462,7 @@ export class TurnEntity {
     Error,
     never
   > {
-    if (nextPhase !== "scoring") {
+    if (nextPhase !== 'scoring') {
       return Effect.succeed(this.props.pointsByPlayer);
     }
 
@@ -486,11 +490,11 @@ export class TurnEntity {
       ...this.props.selectedCards,
       ...(Option.isSome(this.props.turnClue)
         ? [
-          {
-            cardId: this.props.turnClue.value.cardId,
-            playerId: this.props.currentStorytellerId,
-          },
-        ]
+            {
+              cardId: this.props.turnClue.value.cardId,
+              playerId: this.props.currentStorytellerId,
+            },
+          ]
         : []),
     ]);
   }
@@ -544,7 +548,7 @@ export class TurnEntity {
     );
 
     if (hasPlayerVoted) {
-      return Effect.fail(new Error("The player cannot vote more than once"));
+      return Effect.fail(new Error('The player cannot vote more than once'));
     }
 
     return Effect.void;

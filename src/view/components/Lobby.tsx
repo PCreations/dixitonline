@@ -1,10 +1,10 @@
 /** @jsx h */
-import { h } from "preact";
-import type { LobbyViewModel } from "../view-models/lobby.view-model.js";
-import { LobbyContent } from "./LobbyContent.js";
-import { Logo } from "./Logo.js";
-import { Menu } from "./Menu.js";
-import { Stars } from "./Stars.js";
+import { h } from 'preact';
+import type { LobbyViewModel } from '../view-models/lobby.view-model.js';
+import { LobbyContent } from './LobbyContent.js';
+import { Logo } from './Logo.js';
+import { Menu } from './Menu.js';
+import { Stars } from './Stars.js';
 
 /**
  * Lobby page component with SSE support for real-time updates.
@@ -21,10 +21,7 @@ export function Lobby(vm: LobbyViewModel) {
         <Logo variant="lobby" />
 
         {/* SSE container for real-time updates */}
-        <div
-          hx-ext="sse"
-          sse-connect={`/game/${vm.gameId}/events`}
-        >
+        <div hx-ext="sse" sse-connect={`/game/${vm.gameId}/events`}>
           {/* LobbyContent has its own sse-swap attributes for self-replacement */}
           <LobbyContent {...vm} />
 

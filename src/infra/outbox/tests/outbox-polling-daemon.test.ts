@@ -36,104 +36,98 @@ describe('OutboxPollingDaemon', () => {
         }).pipe(Effect.provide(makeOutboxDriverTestLayer())),
     );
 
-    it.effect(
-      'Example: should mark events as processed after publishing',
-      () =>
-        Effect.gen(function* () {
-          const driver = yield* OutboxDriver;
+    it.effect('Example: should mark events as processed after publishing', () =>
+      Effect.gen(function* () {
+        const driver = yield* OutboxDriver;
 
-          // GIVEN
-          yield* driver.given.existingUnprocessedEvent({
-            aggregateType: 'game',
-            aggregateId: 'game-1',
-            aggregateVersion: 1,
-            event: PlayerJoined({
-              gameId: GameId('game-1'),
-              playerId: PlayerId('player-1'),
-            }),
-          });
+        // GIVEN
+        yield* driver.given.existingUnprocessedEvent({
+          aggregateType: 'game',
+          aggregateId: 'game-1',
+          aggregateVersion: 1,
+          event: PlayerJoined({
+            gameId: GameId('game-1'),
+            playerId: PlayerId('player-1'),
+          }),
+        });
 
-          // WHEN
-          yield* driver.when.daemonProcessesEvents();
+        // WHEN
+        yield* driver.when.daemonProcessesEvents();
 
-          // THEN
-          yield* driver.assert.noUnprocessedEventsToRemain();
-        }).pipe(Effect.provide(makeOutboxDriverTestLayer())),
+        // THEN
+        yield* driver.assert.noUnprocessedEventsToRemain();
+      }).pipe(Effect.provide(makeOutboxDriverTestLayer())),
     );
 
-    it.effect(
-      'Example: should process multiple events in order',
-      () =>
-        Effect.gen(function* () {
-          const driver = yield* OutboxDriver;
+    it.effect('Example: should process multiple events in order', () =>
+      Effect.gen(function* () {
+        const driver = yield* OutboxDriver;
 
-          // GIVEN
-          yield* driver.given.existingUnprocessedEvent({
-            aggregateType: 'game',
-            aggregateId: 'game-1',
-            aggregateVersion: 1,
-            event: PlayerJoined({
-              gameId: GameId('game-1'),
-              playerId: PlayerId('player-1'),
-            }),
-          });
-          yield* driver.given.existingUnprocessedEvent({
-            aggregateType: 'game',
-            aggregateId: 'game-1',
-            aggregateVersion: 2,
-            event: PlayerJoined({
-              gameId: GameId('game-1'),
-              playerId: PlayerId('player-2'),
-            }),
-          });
+        // GIVEN
+        yield* driver.given.existingUnprocessedEvent({
+          aggregateType: 'game',
+          aggregateId: 'game-1',
+          aggregateVersion: 1,
+          event: PlayerJoined({
+            gameId: GameId('game-1'),
+            playerId: PlayerId('player-1'),
+          }),
+        });
+        yield* driver.given.existingUnprocessedEvent({
+          aggregateType: 'game',
+          aggregateId: 'game-1',
+          aggregateVersion: 2,
+          event: PlayerJoined({
+            gameId: GameId('game-1'),
+            playerId: PlayerId('player-2'),
+          }),
+        });
 
-          // WHEN
-          yield* driver.when.daemonProcessesEvents();
+        // WHEN
+        yield* driver.when.daemonProcessesEvents();
 
-          // THEN
-          const eventBusState = driver.getEventBusState();
-          const published = eventBusState.getPublishedEvents();
-          expect(published).toHaveLength(2);
-          expect(published[0]).toMatchObject({
-            _tag: 'PlayerJoined',
-            playerId: 'player-1',
-          });
-          expect(published[1]).toMatchObject({
-            _tag: 'PlayerJoined',
-            playerId: 'player-2',
-          });
+        // THEN
+        const eventBusState = driver.getEventBusState();
+        const published = eventBusState.getPublishedEvents();
+        expect(published).toHaveLength(2);
+        expect(published[0]).toMatchObject({
+          _tag: 'PlayerJoined',
+          playerId: 'player-1',
+        });
+        expect(published[1]).toMatchObject({
+          _tag: 'PlayerJoined',
+          playerId: 'player-2',
+        });
 
-          yield* driver.assert.noUnprocessedEventsToRemain();
-        }).pipe(Effect.provide(makeOutboxDriverTestLayer())),
+        yield* driver.assert.noUnprocessedEventsToRemain();
+      }).pipe(Effect.provide(makeOutboxDriverTestLayer())),
     );
 
-    it.effect(
-      'Example: should ignore non-game events',
-      () =>
-        Effect.gen(function* () {
-          const driver = yield* OutboxDriver;
+    it.effect('Example: should ignore non-game events', () =>
+      Effect.gen(function* () {
+        const driver = yield* OutboxDriver;
 
-          // GIVEN - a player aggregate event (not game)
-          yield* driver.given.existingUnprocessedEvent({
-            aggregateType: 'player',
-            aggregateId: 'player-1',
-            aggregateVersion: 1,
-            event: PlayerJoined({
-              gameId: GameId('game-1'),
-              playerId: PlayerId('player-1'),
-            }),
-          });
+        // GIVEN - a player aggregate event (not game)
+        yield* driver.given.existingUnprocessedEvent({
+          aggregateType: 'player',
+          aggregateId: 'player-1',
+          aggregateVersion: 1,
+          event: PlayerJoined({
+            gameId: GameId('game-1'),
+            playerId: PlayerId('player-1'),
+          }),
+        });
 
-          // WHEN
-          yield* driver.when.daemonProcessesEvents();
+        // WHEN
+        yield* driver.when.daemonProcessesEvents();
 
-          // THEN - event should be marked as processed but not published to game bus
-          const eventBusState = driver.getEventBusState();
-          const published = eventBusState.getPublishedEvents();
-          expect(published).toHaveLength(0);
+        // THEN - event should be marked as processed but not published to game bus
+        const eventBusState = driver.getEventBusState();
+        const published = eventBusState.getPublishedEvents();
+        expect(published).toHaveLength(0);
 
-          yield* driver.assert.noUnprocessedEventsToRemain();
-        }).pipe(Effect.provide(makeOutboxDriverTestLayer())),
+        yield* driver.assert.noUnprocessedEventsToRemain();
+      }).pipe(Effect.provide(makeOutboxDriverTestLayer())),
     );
 
     it.effect(

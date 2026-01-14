@@ -1,11 +1,11 @@
-import { expect } from "@effect/vitest";
-import { Context, Effect, Layer, Option } from "effect";
-import { EnsurePlayerExistsUseCase } from "../ensure-player-exists.usecase.js";
-import { PlayerId, PlayerEntity } from "../player.entity.js";
+import { expect } from '@effect/vitest';
+import { Context, Effect, Layer, Option } from 'effect';
+import { EnsurePlayerExistsUseCase } from '../ensure-player-exists.usecase.js';
+import { PlayerEntity, PlayerId } from '../player.entity.js';
 import {
   InMemoryPlayerRepository,
   PlayerRepository,
-} from "../player.repository.js";
+} from '../player.repository.js';
 
 // ============================================================================
 // DSL Interface
@@ -89,7 +89,7 @@ interface PlayerDriverDSL {
 // Driver Tag
 // ============================================================================
 
-export class PlayerDriver extends Context.Tag("PlayerDriver")<
+export class PlayerDriver extends Context.Tag('PlayerDriver')<
   PlayerDriver,
   PlayerDriverDSL
 >() {}
@@ -111,7 +111,7 @@ const makePlayerDriver = ({
     lastPlayer: Option.none<PlayerEntity>(),
   };
 
-  const given: PlayerDriverDSL["given"] = {
+  const given: PlayerDriverDSL['given'] = {
     existingPlayer: (props) =>
       Effect.gen(function* () {
         const player = PlayerEntity.createFromAuth({
@@ -124,7 +124,7 @@ const makePlayerDriver = ({
       }).pipe(Effect.orDie),
   };
 
-  const when: PlayerDriverDSL["when"] = {
+  const when: PlayerDriverDSL['when'] = {
     ensuringPlayerExists: (props) =>
       ensurePlayerExistsUseCase
         .execute({
@@ -142,7 +142,9 @@ const makePlayerDriver = ({
             const errorObj =
               error instanceof Error
                 ? error
-                : typeof error === "object" && error !== null && "message" in error
+                : typeof error === 'object' &&
+                    error !== null &&
+                    'message' in error
                   ? new Error(String(error.message))
                   : new Error(String(error));
             testState.currentError = Option.some(errorObj);
@@ -153,12 +155,12 @@ const makePlayerDriver = ({
 
     linkingEmail: (props) =>
       Effect.gen(function* () {
-        const maybePlayer = yield* playerRepository.findById(
-          PlayerId(props.playerId),
-        ).pipe(Effect.orDie);
+        const maybePlayer = yield* playerRepository
+          .findById(PlayerId(props.playerId))
+          .pipe(Effect.orDie);
 
         if (Option.isNone(maybePlayer)) {
-          testState.currentError = Option.some(new Error("Player not found"));
+          testState.currentError = Option.some(new Error('Player not found'));
           return;
         }
 
@@ -166,10 +168,8 @@ const makePlayerDriver = ({
           .linkEmail(props.email)
           .pipe(Effect.either);
 
-        if (result._tag === "Left") {
-          testState.currentError = Option.some(
-            new Error(result.left._tag),
-          );
+        if (result._tag === 'Left') {
+          testState.currentError = Option.some(new Error(result.left._tag));
           return;
         }
 
@@ -178,13 +178,13 @@ const makePlayerDriver = ({
       }),
   };
 
-  const assert: PlayerDriverDSL["assert"] = {
+  const assert: PlayerDriverDSL['assert'] = {
     playerToExist: (props) =>
       Effect.gen(function* () {
         expect(testState.currentError).toEqual(Option.none());
-        const maybePlayer = yield* playerRepository.findById(
-          PlayerId(props.playerId),
-        ).pipe(Effect.orDie);
+        const maybePlayer = yield* playerRepository
+          .findById(PlayerId(props.playerId))
+          .pipe(Effect.orDie);
         expect(Option.isSome(maybePlayer)).toBe(true);
         if (Option.isSome(maybePlayer)) {
           const snapshot = maybePlayer.value.toSnapshot();
@@ -196,9 +196,9 @@ const makePlayerDriver = ({
     playerToHaveUsername: (props) =>
       Effect.gen(function* () {
         expect(testState.currentError).toEqual(Option.none());
-        const maybePlayer = yield* playerRepository.findById(
-          PlayerId(props.playerId),
-        ).pipe(Effect.orDie);
+        const maybePlayer = yield* playerRepository
+          .findById(PlayerId(props.playerId))
+          .pipe(Effect.orDie);
         expect(Option.isSome(maybePlayer)).toBe(true);
         if (Option.isSome(maybePlayer)) {
           expect(maybePlayer.value.toSnapshot().username).toBe(props.username);
@@ -208,9 +208,9 @@ const makePlayerDriver = ({
     playerToHaveEmail: (props) =>
       Effect.gen(function* () {
         expect(testState.currentError).toEqual(Option.none());
-        const maybePlayer = yield* playerRepository.findById(
-          PlayerId(props.playerId),
-        ).pipe(Effect.orDie);
+        const maybePlayer = yield* playerRepository
+          .findById(PlayerId(props.playerId))
+          .pipe(Effect.orDie);
         expect(Option.isSome(maybePlayer)).toBe(true);
         if (Option.isSome(maybePlayer)) {
           expect(maybePlayer.value.toSnapshot().email).toBe(props.email);
@@ -220,9 +220,9 @@ const makePlayerDriver = ({
     playerToNotBeAnonymous: (props) =>
       Effect.gen(function* () {
         expect(testState.currentError).toEqual(Option.none());
-        const maybePlayer = yield* playerRepository.findById(
-          PlayerId(props.playerId),
-        ).pipe(Effect.orDie);
+        const maybePlayer = yield* playerRepository
+          .findById(PlayerId(props.playerId))
+          .pipe(Effect.orDie);
         expect(Option.isSome(maybePlayer)).toBe(true);
         if (Option.isSome(maybePlayer)) {
           expect(maybePlayer.value.toSnapshot().isAnonymous).toBe(false);

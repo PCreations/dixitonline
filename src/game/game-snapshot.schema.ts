@@ -116,18 +116,20 @@ export const StartedGameSnapshotSchema = Schema.Struct({
     ),
     pointsByPlayer: Schema.Map({
       key: Schema.String.pipe(Schema.fromBrand(PlayerId)),
-      value: Schema.Array(Schema.Struct({
-        points: Schema.Number,
-        reason: Schema.Union(
-          Schema.TaggedStruct('EveryoneFoundTheStorytellerCard', {}),
-          Schema.TaggedStruct('NoOneFoundTheStorytellerCard', {}),
-          Schema.TaggedStruct('AtLeastOnePlayerFoundTheStorytellerCard', {}),
-          Schema.TaggedStruct('YouFoundTheStorytellerCard', {}),
-          Schema.TaggedStruct('APlayerVotedOnYourCard', {
-            playerId: Schema.String.pipe(Schema.fromBrand(PlayerId)),
-          }),
-        ),
-      })),
+      value: Schema.Array(
+        Schema.Struct({
+          points: Schema.Number,
+          reason: Schema.Union(
+            Schema.TaggedStruct('EveryoneFoundTheStorytellerCard', {}),
+            Schema.TaggedStruct('NoOneFoundTheStorytellerCard', {}),
+            Schema.TaggedStruct('AtLeastOnePlayerFoundTheStorytellerCard', {}),
+            Schema.TaggedStruct('YouFoundTheStorytellerCard', {}),
+            Schema.TaggedStruct('APlayerVotedOnYourCard', {
+              playerId: Schema.String.pipe(Schema.fromBrand(PlayerId)),
+            }),
+          ),
+        }),
+      ),
     }),
   }),
 });
@@ -135,8 +137,10 @@ export const StartedGameSnapshotSchema = Schema.Struct({
 export const EndedGameSnapshotSchema = Schema.Struct({
   ...gameSnapshotBaseSchemaStruct,
   status: EndedGameStatusSchema,
-  scores: Schema.Array(Schema.Struct({
-    playerId: Schema.String.pipe(Schema.fromBrand(PlayerId)),
-    score: Schema.Number,
-  })),
+  scores: Schema.Array(
+    Schema.Struct({
+      playerId: Schema.String.pipe(Schema.fromBrand(PlayerId)),
+      score: Schema.Number,
+    }),
+  ),
 });

@@ -1,10 +1,10 @@
 import { Effect, Either, Option } from 'effect';
-import { PlayerEntity, PlayerId } from '../../player.entity.js';
-import { OptimisticConcurrencyError } from '../../player.repository.js';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { playersTable } from '../../../infra/db/schema.js';
 import { getTestDb } from '../../../shared/tests/setup/test-db.js';
 import { playerId } from '../../../shared/tests/uuid-test-helper.js';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { PlayerEntity, PlayerId } from '../../player.entity.js';
+import { OptimisticConcurrencyError } from '../../player.repository.js';
 import { makeDrizzlePlayerRepository } from './drizzle-player.repository.js';
 
 describe('DrizzlePlayerRepository', () => {
@@ -67,7 +67,9 @@ describe('DrizzlePlayerRepository', () => {
     const updatedPlayer = initialPlayer.updateUsername('Bob Updated');
 
     // Save updated player
-    const result = await Effect.runPromise(playerRepository.save(updatedPlayer));
+    const result = await Effect.runPromise(
+      playerRepository.save(updatedPlayer),
+    );
 
     // Verify the update was successful
     expect(result).toBeUndefined();
