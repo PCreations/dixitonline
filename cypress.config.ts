@@ -88,7 +88,7 @@ export default defineConfig({
 
         // Start server
         console.log('[Cypress] Starting Fastify server...');
-        serverProcess = spawn('tsx', ['src/server.ts'], {
+        serverProcess = spawn('npx', ['tsx', 'src/server.ts'], {
           env: { ...process.env, ...testEnvVars },
           stdio: 'inherit',
           shell: true,
