@@ -16,7 +16,7 @@ scratchpad/*
 .env.development.local
 .env.test.local
 .env.production.local
-supabase/
+/supabase/
 
 # Cypress
 cypress/screenshots/
