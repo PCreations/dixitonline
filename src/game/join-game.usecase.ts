@@ -1,7 +1,7 @@
-import { Effect, Option } from "effect";
-import { GameRepository } from "./game.repository.js";
-import { withOptimisticRetry } from "./optimistic-retry.js";
-import { PlayerId } from "./player.entity.js";
+import { Effect, Option } from 'effect';
+import { GameRepository } from './game.repository.js';
+import { withOptimisticRetry } from './optimistic-retry.js';
+import { PlayerId } from './player.entity.js';
 
 export type JoinGameCommand = {
   gameId: string;
@@ -9,7 +9,7 @@ export type JoinGameCommand = {
 };
 
 export class JoinGameUseCase extends Effect.Service<JoinGameUseCase>()(
-  "game/JoinGameUseCase",
+  'game/JoinGameUseCase',
   {
     effect: Effect.gen(function* () {
       const gameRepository = yield* GameRepository;
@@ -17,7 +17,10 @@ export class JoinGameUseCase extends Effect.Service<JoinGameUseCase>()(
       return {
         joinGame: (props: JoinGameCommand) => {
           const joinGameLogic = Effect.gen(function* () {
-            yield* Effect.annotateCurrentSpan('context.input', JSON.stringify(props));
+            yield* Effect.annotateCurrentSpan(
+              'context.input',
+              JSON.stringify(props),
+            );
 
             const game = yield* gameRepository.findNotStartedGameById(
               props.gameId,
@@ -25,8 +28,13 @@ export class JoinGameUseCase extends Effect.Service<JoinGameUseCase>()(
 
             return yield* Option.match(game, {
               onNone: () => {
-                Effect.runSync(Effect.annotateCurrentSpan('context.output', JSON.stringify({ error: 'Game not found' })));
-                return Effect.fail(new Error("Game not found"));
+                Effect.runSync(
+                  Effect.annotateCurrentSpan(
+                    'context.output',
+                    JSON.stringify({ error: 'Game not found' }),
+                  ),
+                );
+                return Effect.fail(new Error('Game not found'));
               },
               onSome: (gameEntity) =>
                 Effect.gen(function* () {
@@ -36,10 +44,13 @@ export class JoinGameUseCase extends Effect.Service<JoinGameUseCase>()(
                   // Save game and events atomically (outbox pattern)
                   yield* gameRepository.saveWithEvents(updatedGame, events);
 
-                  yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({
-                    snapshot: updatedGame.toSnapshot(),
-                    events,
-                  }));
+                  yield* Effect.annotateCurrentSpan(
+                    'context.output',
+                    JSON.stringify({
+                      snapshot: updatedGame.toSnapshot(),
+                      events,
+                    }),
+                  );
                 }),
             });
           });

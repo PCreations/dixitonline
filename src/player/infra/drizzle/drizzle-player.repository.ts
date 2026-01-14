@@ -28,7 +28,10 @@ export const makeDrizzlePlayerRepository = ({
   return {
     findById: (id: PlayerId) => {
       return Effect.gen(function* () {
-        yield* Effect.annotateCurrentSpan('context.input', JSON.stringify({ playerId: id }));
+        yield* Effect.annotateCurrentSpan(
+          'context.input',
+          JSON.stringify({ playerId: id }),
+        );
 
         const result = yield* Effect.tryPromise({
           try: async () => {
@@ -42,7 +45,10 @@ export const makeDrizzlePlayerRepository = ({
         });
 
         if (result.length === 0) {
-          yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({ found: false }));
+          yield* Effect.annotateCurrentSpan(
+            'context.output',
+            JSON.stringify({ found: false }),
+          );
           return Option.none();
         }
 
@@ -59,10 +65,13 @@ export const makeDrizzlePlayerRepository = ({
           updatedAt: row.updatedAt,
         });
 
-        yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({
-          found: true,
-          snapshot,
-        }));
+        yield* Effect.annotateCurrentSpan(
+          'context.output',
+          JSON.stringify({
+            found: true,
+            snapshot,
+          }),
+        );
 
         return Option.some(PlayerEntity.fromSnapshot(snapshot));
       }).pipe(Effect.withSpan('PlayerRepository.findById'));
@@ -70,13 +79,19 @@ export const makeDrizzlePlayerRepository = ({
 
     findByIds: (ids: ReadonlyArray<PlayerId>) => {
       return Effect.gen(function* () {
-        yield* Effect.annotateCurrentSpan('context.input', JSON.stringify({
-          playerIds: ids,
-          count: ids.length,
-        }));
+        yield* Effect.annotateCurrentSpan(
+          'context.input',
+          JSON.stringify({
+            playerIds: ids,
+            count: ids.length,
+          }),
+        );
 
         if (ids.length === 0) {
-          yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({ foundCount: 0 }));
+          yield* Effect.annotateCurrentSpan(
+            'context.output',
+            JSON.stringify({ foundCount: 0 }),
+          );
           return new Map() as ReadonlyMap<PlayerId, PlayerEntity>;
         }
 
@@ -109,10 +124,13 @@ export const makeDrizzlePlayerRepository = ({
           playerMap.set(PlayerId(row.id), player);
         }
 
-        yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({
-          foundCount: playerMap.size,
-          snapshots,
-        }));
+        yield* Effect.annotateCurrentSpan(
+          'context.output',
+          JSON.stringify({
+            foundCount: playerMap.size,
+            snapshots,
+          }),
+        );
 
         return playerMap as ReadonlyMap<PlayerId, PlayerEntity>;
       }).pipe(Effect.withSpan('PlayerRepository.findByIds'));
@@ -123,7 +141,10 @@ export const makeDrizzlePlayerRepository = ({
       return Effect.gen(function* () {
         const snapshot = player.toSnapshot();
 
-        yield* Effect.annotateCurrentSpan('context.input', JSON.stringify(snapshot));
+        yield* Effect.annotateCurrentSpan(
+          'context.input',
+          JSON.stringify(snapshot),
+        );
 
         // Insert/update with optimistic concurrency control
         // For version 1 (new player): INSERT succeeds
@@ -162,7 +183,9 @@ export const makeDrizzlePlayerRepository = ({
               'constraint' in error &&
               String(error.constraint).includes('username')
             ) {
-              return new UsernameAlreadyTakenError({ username: snapshot.username });
+              return new UsernameAlreadyTakenError({
+                username: snapshot.username,
+              });
             }
             return toDatabaseError(error);
           },
@@ -172,23 +195,32 @@ export const makeDrizzlePlayerRepository = ({
         // When onConflictDoUpdate WHERE clause doesn't match any rows (version mismatch),
         // rowCount will be 0, indicating an optimistic concurrency conflict
         if (result.rowCount === 0) {
-          yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({
-            saved: false,
-            error: 'OptimisticConcurrencyError',
-          }));
+          yield* Effect.annotateCurrentSpan(
+            'context.output',
+            JSON.stringify({
+              saved: false,
+              error: 'OptimisticConcurrencyError',
+            }),
+          );
           return yield* Effect.fail(
             new OptimisticConcurrencyError({ playerId: player.id }),
           );
         }
 
-        yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({ saved: true }));
+        yield* Effect.annotateCurrentSpan(
+          'context.output',
+          JSON.stringify({ saved: true }),
+        );
         return yield* Effect.void;
       }).pipe(Effect.withSpan('PlayerRepository.save'));
     },
 
     existsByUsername: (username: string) => {
       return Effect.gen(function* () {
-        yield* Effect.annotateCurrentSpan('context.input', JSON.stringify({ username }));
+        yield* Effect.annotateCurrentSpan(
+          'context.input',
+          JSON.stringify({ username }),
+        );
 
         const result = yield* Effect.tryPromise({
           try: async () => {
@@ -202,7 +234,10 @@ export const makeDrizzlePlayerRepository = ({
         });
 
         const exists = result.length > 0;
-        yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({ exists }));
+        yield* Effect.annotateCurrentSpan(
+          'context.output',
+          JSON.stringify({ exists }),
+        );
         return exists;
       }).pipe(Effect.withSpan('PlayerRepository.existsByUsername'));
     },

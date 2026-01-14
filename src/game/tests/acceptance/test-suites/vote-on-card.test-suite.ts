@@ -10,7 +10,7 @@ import { defaultIdFactory, type IdFactory } from './create-game.test-suite.js';
 
 export const voteOnCardTestSuite = (
   makeGameDriverTestLayer: () => GameDriverLayer,
-  idFactory: IdFactory = defaultIdFactory
+  idFactory: IdFactory = defaultIdFactory,
 ) => {
   const { gameId, playerId, deckId } = idFactory;
 
@@ -117,40 +117,43 @@ export const voteOnCardTestSuite = (
       },
     );
 
-    it.effect("Example: A player can vote for for the storyteller's card", () => {
-      return Effect.gen(function* () {
-        const gameDriver = yield* GameDriver;
+    it.effect(
+      "Example: A player can vote for for the storyteller's card",
+      () => {
+        return Effect.gen(function* () {
+          const gameDriver = yield* GameDriver;
 
-        const { game } = yield* gameDriver.given.existingGame(
-          gameDriver,
-          new GameBuilder(gameId(1))
-            .hostedBy(playerId(1))
-            .withPlayers(playerId(1), playerId(2), playerId(3), playerId(4))
-            .withDeck(deckId(1))
-            .started()
-            .withSubmittedClueOnCardIndex('A clue', 0)
-            .withSelectedCards([
-              { playerId: playerId(2), cardIndex: 0 },
-              { playerId: playerId(3), cardIndex: 0 },
-              { playerId: playerId(4), cardIndex: 0 },
-            ]),
-        );
-        const storytellerCardId = getStorytellerCardId(game);
+          const { game } = yield* gameDriver.given.existingGame(
+            gameDriver,
+            new GameBuilder(gameId(1))
+              .hostedBy(playerId(1))
+              .withPlayers(playerId(1), playerId(2), playerId(3), playerId(4))
+              .withDeck(deckId(1))
+              .started()
+              .withSubmittedClueOnCardIndex('A clue', 0)
+              .withSelectedCards([
+                { playerId: playerId(2), cardIndex: 0 },
+                { playerId: playerId(3), cardIndex: 0 },
+                { playerId: playerId(4), cardIndex: 0 },
+              ]),
+          );
+          const storytellerCardId = getStorytellerCardId(game);
 
-        yield* gameDriver.when.votingOnCard({
-          gameId: gameId(1),
-          playerId: playerId(3),
-          cardId: storytellerCardId,
-        });
+          yield* gameDriver.when.votingOnCard({
+            gameId: gameId(1),
+            playerId: playerId(3),
+            cardId: storytellerCardId,
+          });
 
-        yield* gameDriver.assert.playerToHaveVotedOnCard({
-          gameId: gameId(1),
-          votedBy: playerId(3),
-          ownedBy: playerId(1),
-          cardId: storytellerCardId,
-        });
-      }).pipe(Effect.provide(makeGameDriverTestLayer()));
-    });
+          yield* gameDriver.assert.playerToHaveVotedOnCard({
+            gameId: gameId(1),
+            votedBy: playerId(3),
+            ownedBy: playerId(1),
+            cardId: storytellerCardId,
+          });
+        }).pipe(Effect.provide(makeGameDriverTestLayer()));
+      },
+    );
 
     it.effect('Example: A player cannot vote for their own card', () => {
       return Effect.gen(function* () {

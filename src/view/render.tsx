@@ -1,13 +1,13 @@
-import { VNode } from "preact";
-import { render } from "preact-render-to-string";
+import { VNode } from 'preact';
+import { render } from 'preact-render-to-string';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// biome-ignore lint/suspicious/noExplicitAny: VNode requires any for generic component props
 export function renderToString(vnode: VNode<any>): string {
   return render(vnode);
 }
 
-const supabaseUrl = process.env.SUPABASE_URL || "http://127.0.0.1:54321";
-const supabasePublishableKey = process.env.SUPABASE_PUBLISHABLE_KEY || "";
+const supabaseUrl = process.env.SUPABASE_URL || 'http://127.0.0.1:54321';
+const supabasePublishableKey = process.env.SUPABASE_PUBLISHABLE_KEY || '';
 
 const authStoreScript = `
 // Helper to manage auth cookie for SSR
@@ -282,7 +282,11 @@ export interface RenderHtmlPageOptions {
   readonly isAuthenticated?: boolean;
 }
 
-export function renderHtmlPage(title: string, body: string, options?: RenderHtmlPageOptions): string {
+export function renderHtmlPage(
+  title: string,
+  body: string,
+  options?: RenderHtmlPageOptions,
+): string {
   const serverAuth = options?.isAuthenticated ? 'true' : 'false';
   return `<!DOCTYPE html>
 <html lang="en">

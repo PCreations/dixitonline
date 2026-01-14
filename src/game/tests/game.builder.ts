@@ -1,22 +1,22 @@
-import { Context, Effect, Option, ParseResult } from "effect";
+import { Context, Effect, Option, ParseResult } from 'effect';
 import {
   GameEntitySnapshot,
   isStartedGameSnapshot,
   StartedGameEntity,
-} from "../game.entity.js";
-import { DatabaseError } from "../game.repository.js";
-import { PlayerId } from "../player.entity.js";
-import { GameDriver } from "./game.driver.js";
+} from '../game.entity.js';
+import { DatabaseError } from '../game.repository.js';
+import { PlayerId } from '../player.entity.js';
+import { GameDriver } from './game.driver.js';
 
 type EndConditionDto =
   | {
-    type: "NumberOfTimesBeingStoryteller";
-    numberOfTimes: number;
-  }
+      type: 'NumberOfTimesBeingStoryteller';
+      numberOfTimes: number;
+    }
   | {
-    type: "LimitOfPoints";
-    limit: number;
-  };
+      type: 'LimitOfPoints';
+      limit: number;
+    };
 
 interface GameConfig {
   gameId: string;
@@ -36,10 +36,7 @@ interface GameConfig {
   playersReadyForNextTurn: Array<string>;
   inScoringPhase?: boolean;
   scoringPhaseStartedAt?: Date;
-  playersHavingBeenStorytellerXNumberOfTimes: Map<
-    string,
-    number
-  >;
+  playersHavingBeenStorytellerXNumberOfTimes: Map<string, number>;
 }
 
 export class GameBuilder {
@@ -170,25 +167,27 @@ export class GameBuilder {
   }
 
   get deckId(): string {
-    return this.config.deckId ?? "default-deck-id";
+    return this.config.deckId ?? 'default-deck-id';
   }
 
-  build(driver: Context.Tag.Service<GameDriver>): Effect.Effect<GameEntitySnapshot, ParseResult.ParseError | DatabaseError> {
+  build(
+    driver: Context.Tag.Service<GameDriver>,
+  ): Effect.Effect<GameEntitySnapshot, ParseResult.ParseError | DatabaseError> {
     const self = this;
 
     return Effect.gen(function* () {
       const config = self.config;
 
-      const deckId = config.deckId ?? "default-deck-id";
+      const deckId = config.deckId ?? 'default-deck-id';
 
       const deckCards = config.deckCards
         ? config.deckCards
         : config.deckCardsNumber
-        ? Array.from(
-          { length: config.deckCardsNumber },
-          (_, i) => `card-${i + 1}`,
-        )
-        : Array.from({ length: 84 }, (_, i) => `card-${i + 1}`);
+          ? Array.from(
+              { length: config.deckCardsNumber },
+              (_, i) => `card-${i + 1}`,
+            )
+          : Array.from({ length: 84 }, (_, i) => `card-${i + 1}`);
 
       yield* driver.given.existingDeck({
         id: deckId,
@@ -201,7 +200,7 @@ export class GameBuilder {
         deckId,
         players: config.players,
         endCondition: config.endCondition ?? {
-          type: "NumberOfTimesBeingStoryteller",
+          type: 'NumberOfTimesBeingStoryteller',
           numberOfTimes: 3,
         },
       });
@@ -210,7 +209,7 @@ export class GameBuilder {
         return Effect.gen(function* () {
           if (config.started || config.inScoringPhase) {
             if (config.inScoringPhase) {
-              config.clue = { clue: "some clue", cardIndex: 0 };
+              config.clue = { clue: 'some clue', cardIndex: 0 };
             }
 
             yield* driver.when.startingGame({
@@ -263,12 +262,12 @@ export class GameBuilder {
               });
               game = yield* driver.getGameSnapshot(config.gameId);
               if (config.inScoringPhase) {
-                config.selectedCards = config.players.slice(1).map((
-                  playerId,
-                ) => ({
-                  playerId,
-                  cardIndex: 0,
-                }));
+                config.selectedCards = config.players
+                  .slice(1)
+                  .map((playerId) => ({
+                    playerId,
+                    cardIndex: 0,
+                  }));
               }
               for (const selection of config.selectedCards) {
                 yield* driver.when.selectingCard({
@@ -296,13 +295,11 @@ export class GameBuilder {
                 if (selectedCards.length === 0) {
                   return yield* Effect.die(
                     new Error(
-                      `[Game Builder] No selected cards found for player ${vote.cardSelectedByPlayer}. Available cards: ${
-                        JSON.stringify(
-                          getSelectedCardsByPlayer(game, {
-                            playerId: vote.cardSelectedByPlayer,
-                          }),
-                        )
-                      }`,
+                      `[Game Builder] No selected cards found for player ${vote.cardSelectedByPlayer}. Available cards: ${JSON.stringify(
+                        getSelectedCardsByPlayer(game, {
+                          playerId: vote.cardSelectedByPlayer,
+                        }),
+                      )}`,
                     ),
                   );
                 }
@@ -341,24 +338,24 @@ export const getCardsInDrawPile = (gameSnapshot: GameEntitySnapshot) => {
   if (isStartedGameSnapshot(gameSnapshot)) {
     return gameSnapshot.currentTurn.cardsInDrawPile;
   }
-  throw new Error("Game is not started");
+  throw new Error('Game is not started');
 };
 
 export const getCurrentStorytellerId = (gameSnapshot: GameEntitySnapshot) => {
   if (isStartedGameSnapshot(gameSnapshot)) {
     return gameSnapshot.currentTurn.currentStorytellerId;
   }
-  throw new Error("Game is not started");
+  throw new Error('Game is not started');
 };
 
 export const getStorytellerCardId = (gameSnapshot: GameEntitySnapshot) => {
   if (isStartedGameSnapshot(gameSnapshot)) {
     return Option.getOrThrowWith(
       gameSnapshot.currentTurn.turnClue,
-      () => new Error("[Game Builder] Storyteller card not found"),
+      () => new Error('[Game Builder] Storyteller card not found'),
     ).cardId;
   }
-  throw new Error("Game is not started");
+  throw new Error('Game is not started');
 };
 
 export const getCardInHandByIndex = (
@@ -370,11 +367,11 @@ export const getCardInHandByIndex = (
       (hand) => hand.playerId === playerId,
     )?.cards[cardIndex];
     if (!card) {
-      throw new Error("Card not found");
+      throw new Error('Card not found');
     }
     return card.id;
   }
-  throw new Error("Game is not started");
+  throw new Error('Game is not started');
 };
 
 export const getSelectedCardsByPlayer = (
@@ -391,7 +388,7 @@ export const getSelectedCardsByPlayer = (
     }
     return selectedCards.filter((card) => card.playerId === playerId);
   }
-  throw new Error("Game is not started");
+  throw new Error('Game is not started');
 };
 
 export const getPlayerHand = (
@@ -403,9 +400,9 @@ export const getPlayerHand = (
       (hand) => hand.playerId === playerId,
     );
     if (!hand) {
-      throw new Error("Hand not found");
+      throw new Error('Hand not found');
     }
     return hand.cards;
   }
-  throw new Error("Game is not started");
+  throw new Error('Game is not started');
 };

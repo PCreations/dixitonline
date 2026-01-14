@@ -1,18 +1,18 @@
-import { Effect, Option } from "effect";
-import { DeckRepository, InMemoryDeckRepository } from "./deck.repository.js";
+import { Effect, Option } from 'effect';
+import { DeckRepository, InMemoryDeckRepository } from './deck.repository.js';
 import {
   NoopRandomizeStrategy,
   PlayersRandomizeStrategy,
-} from "./game.entity.js";
-import { GameRepository, InMemoryGameRepository } from "./game.repository.js";
-import { GameView, InMemoryGameView } from "./game-view.js";
+} from './game.entity.js';
+import { GameRepository, InMemoryGameRepository } from './game.repository.js';
+import { GameView, InMemoryGameView } from './game-view.js';
 import {
   GameViewProjector,
   ShufflerService,
   TurnBoardCardsShuffler,
-} from "./game-view-projector.js";
-import { withOptimisticRetry } from "./optimistic-retry.js";
-import { PlayerId } from "./player.entity.js";
+} from './game-view-projector.js';
+import { withOptimisticRetry } from './optimistic-retry.js';
+import { PlayerId } from './player.entity.js';
 
 export type StartGameCommand = {
   gameId: string;
@@ -20,7 +20,7 @@ export type StartGameCommand = {
 };
 
 export class StartGameUseCase extends Effect.Service<StartGameUseCase>()(
-  "game/StartGameUseCase",
+  'game/StartGameUseCase',
   {
     effect: Effect.gen(function* () {
       const gameRepository = yield* GameRepository;
@@ -32,15 +32,23 @@ export class StartGameUseCase extends Effect.Service<StartGameUseCase>()(
       return {
         startGame: (props: StartGameCommand) => {
           const startGameLogic = Effect.gen(function* () {
-            yield* Effect.annotateCurrentSpan('context.input', JSON.stringify(props));
+            yield* Effect.annotateCurrentSpan(
+              'context.input',
+              JSON.stringify(props),
+            );
 
             const game = yield* gameRepository.findNotStartedGameById(
               props.gameId,
             );
             const gameEntity = yield* Option.match(game, {
               onNone: () => {
-                Effect.runSync(Effect.annotateCurrentSpan('context.output', JSON.stringify({ error: 'Game not found' })));
-                return Effect.fail(new Error("Game not found"));
+                Effect.runSync(
+                  Effect.annotateCurrentSpan(
+                    'context.output',
+                    JSON.stringify({ error: 'Game not found' }),
+                  ),
+                );
+                return Effect.fail(new Error('Game not found'));
               },
               onSome: Effect.succeed,
             });
@@ -48,8 +56,13 @@ export class StartGameUseCase extends Effect.Service<StartGameUseCase>()(
             const deck = yield* deckRepository.findById(gameEntity.deckId);
             const deckEntity = yield* Option.match(deck, {
               onNone: () => {
-                Effect.runSync(Effect.annotateCurrentSpan('context.output', JSON.stringify({ error: 'Deck not found' })));
-                return Effect.fail(new Error("Deck not found"));
+                Effect.runSync(
+                  Effect.annotateCurrentSpan(
+                    'context.output',
+                    JSON.stringify({ error: 'Deck not found' }),
+                  ),
+                );
+                return Effect.fail(new Error('Deck not found'));
               },
               onSome: Effect.succeed,
             });
@@ -68,10 +81,13 @@ export class StartGameUseCase extends Effect.Service<StartGameUseCase>()(
               yield* gameViewProjector.project(updatedGame.toSnapshot()),
             );
 
-            yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({
-              snapshot: updatedGame.toSnapshot(),
-              events,
-            }));
+            yield* Effect.annotateCurrentSpan(
+              'context.output',
+              JSON.stringify({
+                snapshot: updatedGame.toSnapshot(),
+                events,
+              }),
+            );
           });
 
           return withOptimisticRetry(startGameLogic).pipe(

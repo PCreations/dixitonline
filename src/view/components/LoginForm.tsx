@@ -14,14 +14,20 @@ export interface LoginFormProps {
  */
 export function LoginForm({ variant }: LoginFormProps) {
   const isModal = variant === 'modal';
-  const formClass = isModal ? 'login-form login-form--modal' : 'login-form login-form--page';
+  const formClass = isModal
+    ? 'login-form login-form--modal'
+    : 'login-form login-form--page';
   const buttonClass = isModal ? 'auth-modal-button' : 'login-button';
   const inputClass = isModal ? 'auth-modal-input' : 'login-input';
 
   return (
     <div x-data="loginForm()" className={formClass}>
       {/* Section 1: Jouer en tant qu'invité */}
-      <form id="guest-form" className="login-section" {...{ '@submit.prevent': 'playAsGuest()' }}>
+      <form
+        id="guest-form"
+        className="login-section"
+        {...{ '@submit.prevent': 'playAsGuest()' }}
+      >
         <h3 className="login-section-title">Jouer en tant qu'invité</h3>
         <div className="login-field">
           <input
@@ -53,7 +59,11 @@ export function LoginForm({ variant }: LoginFormProps) {
       </div>
 
       {/* Section 2: S'inscrire / Se connecter */}
-      <form id="auth-form" className="login-section" {...{ '@submit.prevent': 'sendMagicLink()' }}>
+      <form
+        id="auth-form"
+        className="login-section"
+        {...{ '@submit.prevent': 'sendMagicLink()' }}
+      >
         <h3 className="login-section-title">S'inscrire / Se connecter</h3>
         <div className="login-field">
           <input

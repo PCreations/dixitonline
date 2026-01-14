@@ -1,12 +1,12 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from 'vitest';
 
-import { CardId } from "../deck.entity.js";
+import { CardId } from '../deck.entity.js';
 import {
   DeterministicShuffler,
   RandomShuffler,
-} from "../deterministic-shuffler.js";
+} from '../deterministic-shuffler.js';
 
-describe("DeterministicShuffler", () => {
+describe('DeterministicShuffler', () => {
   const createCards = (count: number) => {
     return Array.from({ length: count }, (_, i) => ({
       id: CardId(`card-${i}`),
@@ -14,7 +14,7 @@ describe("DeterministicShuffler", () => {
     }));
   };
 
-  it("should return the same shuffle for the same input", () => {
+  it('should return the same shuffle for the same input', () => {
     const shuffler = new DeterministicShuffler();
     const cards = createCards(10);
 
@@ -26,7 +26,7 @@ describe("DeterministicShuffler", () => {
     expect(result2).toEqual(result3);
   });
 
-  it("should return different shuffle for different input order", () => {
+  it('should return different shuffle for different input order', () => {
     const shuffler = new DeterministicShuffler();
     const cards = createCards(5);
 
@@ -38,13 +38,13 @@ describe("DeterministicShuffler", () => {
 
     // Results should be different since order matters
     expect(result1).not.toEqual(result2);
-    
+
     // But shuffling the same reordered list should give the same result
     const result3 = shuffler.shuffle(reorderedCards);
     expect(result2).toEqual(result3);
   });
 
-  it("should return different shuffles for different card sets", () => {
+  it('should return different shuffles for different card sets', () => {
     const shuffler = new DeterministicShuffler();
     const cards1 = createCards(5);
     const cards2 = createCards(5).map((c, i) => ({
@@ -58,7 +58,7 @@ describe("DeterministicShuffler", () => {
     expect(result1).not.toEqual(result2);
   });
 
-  it("should actually shuffle the cards", () => {
+  it('should actually shuffle the cards', () => {
     const shuffler = new DeterministicShuffler();
     const cards = createCards(10);
 
@@ -69,13 +69,13 @@ describe("DeterministicShuffler", () => {
     expect(new Set(result)).toEqual(new Set(cards));
 
     // Should not be in the same order (with high probability for 10 cards)
-    const isShuffled = result.some((card, index) =>
-      card.id !== cards[index].id
+    const isShuffled = result.some(
+      (card, index) => card.id !== cards[index].id,
     );
     expect(isShuffled).toBe(true);
   });
 
-  it("RandomShuffler should give different results each time", () => {
+  it('RandomShuffler should give different results each time', () => {
     const shuffler = new RandomShuffler();
     const cards = createCards(10);
 

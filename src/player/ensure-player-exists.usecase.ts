@@ -1,6 +1,6 @@
-import { Effect, Option } from "effect";
-import { PlayerId, PlayerEntity } from "./player.entity.js";
-import { PlayerRepository } from "./player.repository.js";
+import { Effect, Option } from 'effect';
+import { PlayerEntity, PlayerId } from './player.entity.js';
+import { PlayerRepository } from './player.repository.js';
 
 // Command type
 export interface EnsurePlayerExistsCommand {
@@ -11,7 +11,7 @@ export interface EnsurePlayerExistsCommand {
 
 // Use Case
 export class EnsurePlayerExistsUseCase extends Effect.Service<EnsurePlayerExistsUseCase>()(
-  "player/EnsurePlayerExistsUseCase",
+  'player/EnsurePlayerExistsUseCase',
   {
     effect: Effect.gen(function* () {
       const playerRepository = yield* PlayerRepository;
@@ -33,7 +33,7 @@ export class EnsurePlayerExistsUseCase extends Effect.Service<EnsurePlayerExists
                   // Create new player from auth data
                   const player = PlayerEntity.createFromAuth({
                     id: command.playerId,
-                    username: command.username ?? "Anonyme",
+                    username: command.username ?? 'Anonyme',
                     isAnonymous: command.isAnonymous,
                   });
                   yield* playerRepository.save(player);

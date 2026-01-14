@@ -18,7 +18,7 @@ import { defaultIdFactory, type IdFactory } from './create-game.test-suite.js';
 
 export const gameViewProjectorTestSuite = (
   makeGameDriverTestLayer: () => GameDriverLayer,
-  idFactory: IdFactory = defaultIdFactory
+  idFactory: IdFactory = defaultIdFactory,
 ) => {
   const { gameId, playerId } = idFactory;
 
@@ -171,155 +171,158 @@ export const gameViewProjectorTestSuite = (
       }).pipe(Effect.provide(makeGameDriverTestLayer()));
     });
 
-    it.effect('Example: selecting cards phase, more than 3 players-game', () => {
-      return Effect.gen(function* () {
-        const gameDriver = yield* GameDriver;
-        const { game } = yield* gameDriver.given.existingGame(
-          gameDriver,
-          new GameBuilder(gameId(1))
-            .hostedBy(playerId(1))
-            .withDeckCards({
-              deckId: 'id-deck-1',
-              cards: [
-                'card-1',
-                'card-2',
-                'card-3',
-                'card-4',
-                'card-5',
-                'card-6',
-                'card-7',
-                'card-8',
-                'card-9',
-                'card-10',
-                'card-11',
-                'card-12',
-                'card-13',
-                'card-14',
-                'card-15',
-                'card-16',
-                'card-17',
-                'card-18',
-                'card-19',
-                'card-20',
-                'card-21',
-                'card-22',
-                'card-23',
-                'card-24',
-                'card-25',
-                'card-26',
-                'card-27',
-                'card-28',
-                'card-29',
-                'card-30',
-                'card-31',
-                'card-32',
-              ],
-            })
-            .withPlayers(playerId(1), playerId(2), playerId(3), playerId(4))
-            .started()
-            .withSubmittedClueOnCardIndex('A clue', 0)
-            .withSelectedCards([
-              { playerId: playerId(2), cardIndex: 0 },
-              { playerId: playerId(3), cardIndex: 0 },
-            ]),
-        );
-        const gameViewProjector = yield* GameViewProjector;
+    it.effect(
+      'Example: selecting cards phase, more than 3 players-game',
+      () => {
+        return Effect.gen(function* () {
+          const gameDriver = yield* GameDriver;
+          const { game } = yield* gameDriver.given.existingGame(
+            gameDriver,
+            new GameBuilder(gameId(1))
+              .hostedBy(playerId(1))
+              .withDeckCards({
+                deckId: 'id-deck-1',
+                cards: [
+                  'card-1',
+                  'card-2',
+                  'card-3',
+                  'card-4',
+                  'card-5',
+                  'card-6',
+                  'card-7',
+                  'card-8',
+                  'card-9',
+                  'card-10',
+                  'card-11',
+                  'card-12',
+                  'card-13',
+                  'card-14',
+                  'card-15',
+                  'card-16',
+                  'card-17',
+                  'card-18',
+                  'card-19',
+                  'card-20',
+                  'card-21',
+                  'card-22',
+                  'card-23',
+                  'card-24',
+                  'card-25',
+                  'card-26',
+                  'card-27',
+                  'card-28',
+                  'card-29',
+                  'card-30',
+                  'card-31',
+                  'card-32',
+                ],
+              })
+              .withPlayers(playerId(1), playerId(2), playerId(3), playerId(4))
+              .started()
+              .withSubmittedClueOnCardIndex('A clue', 0)
+              .withSelectedCards([
+                { playerId: playerId(2), cardIndex: 0 },
+                { playerId: playerId(3), cardIndex: 0 },
+              ]),
+          );
+          const gameViewProjector = yield* GameViewProjector;
 
-        const views = yield* gameViewProjector.project(
-          game as StartedGameSnapshot,
-        );
-        const player1view = views[playerId(1)];
-        const player2view = views[playerId(2)];
-        const player3view = views[playerId(3)];
-        const player4view = views[playerId(4)];
+          const views = yield* gameViewProjector.project(
+            game as StartedGameSnapshot,
+          );
+          const player1view = views[playerId(1)];
+          const player2view = views[playerId(2)];
+          const player3view = views[playerId(3)];
+          const player4view = views[playerId(4)];
 
-        expect(player1view).toEqual({
-          gameId: gameId(1),
-          id: playerId(1),
-          name: playerId(1),
-          storyteller: playerId(1),
-          phase: 'selecting-cards',
-          playerStatus: {
-            [playerId(1)]: 'ready',
-            [playerId(2)]: 'ready',
-            [playerId(3)]: 'ready',
-            [playerId(4)]: 'not-ready',
-          },
-          score: 0,
-          cards: [
-            { id: 'card-2', url: 'https://example.com/card-2' },
-            { id: 'card-3', url: 'https://example.com/card-3' },
-            { id: 'card-4', url: 'https://example.com/card-4' },
-            { id: 'card-5', url: 'https://example.com/card-5' },
-            { id: 'card-6', url: 'https://example.com/card-6' },
-          ],
-        });
-        expect(player2view).toEqual({
-          gameId: gameId(1),
-          id: playerId(2),
-          name: playerId(2),
-          storyteller: playerId(1),
-          phase: 'selecting-cards',
-          score: 0,
-          playerStatus: {
-            [playerId(1)]: 'ready',
-            [playerId(2)]: 'ready',
-            [playerId(3)]: 'ready',
-            [playerId(4)]: 'not-ready',
-          },
-          cards: [
-            { id: 'card-8', url: 'https://example.com/card-8' },
-            { id: 'card-9', url: 'https://example.com/card-9' },
-            { id: 'card-10', url: 'https://example.com/card-10' },
-            { id: 'card-11', url: 'https://example.com/card-11' },
-            { id: 'card-12', url: 'https://example.com/card-12' },
-          ],
-        });
-        expect(player3view).toEqual({
-          gameId: gameId(1),
-          id: playerId(3),
-          name: playerId(3),
-          storyteller: playerId(1),
-          phase: 'selecting-cards',
-          score: 0,
-          playerStatus: {
-            [playerId(1)]: 'ready',
-            [playerId(2)]: 'ready',
-            [playerId(3)]: 'ready',
-            [playerId(4)]: 'not-ready',
-          },
-          cards: [
-            { id: 'card-14', url: 'https://example.com/card-14' },
-            { id: 'card-15', url: 'https://example.com/card-15' },
-            { id: 'card-16', url: 'https://example.com/card-16' },
-            { id: 'card-17', url: 'https://example.com/card-17' },
-            { id: 'card-18', url: 'https://example.com/card-18' },
-          ],
-        });
-        expect(player4view).toEqual({
-          gameId: gameId(1),
-          id: playerId(4),
-          name: playerId(4),
-          storyteller: playerId(1),
-          phase: 'selecting-cards',
-          score: 0,
-          playerStatus: {
-            [playerId(1)]: 'ready',
-            [playerId(2)]: 'ready',
-            [playerId(3)]: 'ready',
-            [playerId(4)]: 'not-ready',
-          },
-          cards: [
-            { id: 'card-19', url: 'https://example.com/card-19' },
-            { id: 'card-20', url: 'https://example.com/card-20' },
-            { id: 'card-21', url: 'https://example.com/card-21' },
-            { id: 'card-22', url: 'https://example.com/card-22' },
-            { id: 'card-23', url: 'https://example.com/card-23' },
-            { id: 'card-24', url: 'https://example.com/card-24' },
-          ],
-        });
-      }).pipe(Effect.provide(makeGameDriverTestLayer()));
-    });
+          expect(player1view).toEqual({
+            gameId: gameId(1),
+            id: playerId(1),
+            name: playerId(1),
+            storyteller: playerId(1),
+            phase: 'selecting-cards',
+            playerStatus: {
+              [playerId(1)]: 'ready',
+              [playerId(2)]: 'ready',
+              [playerId(3)]: 'ready',
+              [playerId(4)]: 'not-ready',
+            },
+            score: 0,
+            cards: [
+              { id: 'card-2', url: 'https://example.com/card-2' },
+              { id: 'card-3', url: 'https://example.com/card-3' },
+              { id: 'card-4', url: 'https://example.com/card-4' },
+              { id: 'card-5', url: 'https://example.com/card-5' },
+              { id: 'card-6', url: 'https://example.com/card-6' },
+            ],
+          });
+          expect(player2view).toEqual({
+            gameId: gameId(1),
+            id: playerId(2),
+            name: playerId(2),
+            storyteller: playerId(1),
+            phase: 'selecting-cards',
+            score: 0,
+            playerStatus: {
+              [playerId(1)]: 'ready',
+              [playerId(2)]: 'ready',
+              [playerId(3)]: 'ready',
+              [playerId(4)]: 'not-ready',
+            },
+            cards: [
+              { id: 'card-8', url: 'https://example.com/card-8' },
+              { id: 'card-9', url: 'https://example.com/card-9' },
+              { id: 'card-10', url: 'https://example.com/card-10' },
+              { id: 'card-11', url: 'https://example.com/card-11' },
+              { id: 'card-12', url: 'https://example.com/card-12' },
+            ],
+          });
+          expect(player3view).toEqual({
+            gameId: gameId(1),
+            id: playerId(3),
+            name: playerId(3),
+            storyteller: playerId(1),
+            phase: 'selecting-cards',
+            score: 0,
+            playerStatus: {
+              [playerId(1)]: 'ready',
+              [playerId(2)]: 'ready',
+              [playerId(3)]: 'ready',
+              [playerId(4)]: 'not-ready',
+            },
+            cards: [
+              { id: 'card-14', url: 'https://example.com/card-14' },
+              { id: 'card-15', url: 'https://example.com/card-15' },
+              { id: 'card-16', url: 'https://example.com/card-16' },
+              { id: 'card-17', url: 'https://example.com/card-17' },
+              { id: 'card-18', url: 'https://example.com/card-18' },
+            ],
+          });
+          expect(player4view).toEqual({
+            gameId: gameId(1),
+            id: playerId(4),
+            name: playerId(4),
+            storyteller: playerId(1),
+            phase: 'selecting-cards',
+            score: 0,
+            playerStatus: {
+              [playerId(1)]: 'ready',
+              [playerId(2)]: 'ready',
+              [playerId(3)]: 'ready',
+              [playerId(4)]: 'not-ready',
+            },
+            cards: [
+              { id: 'card-19', url: 'https://example.com/card-19' },
+              { id: 'card-20', url: 'https://example.com/card-20' },
+              { id: 'card-21', url: 'https://example.com/card-21' },
+              { id: 'card-22', url: 'https://example.com/card-22' },
+              { id: 'card-23', url: 'https://example.com/card-23' },
+              { id: 'card-24', url: 'https://example.com/card-24' },
+            ],
+          });
+        }).pipe(Effect.provide(makeGameDriverTestLayer()));
+      },
+    );
 
     it.effect('Example: voting cards phase', () => {
       return Effect.gen(function* () {

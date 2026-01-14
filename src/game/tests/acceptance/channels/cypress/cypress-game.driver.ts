@@ -60,19 +60,13 @@ interface CypressGameDriverDSL {
       hostId: string;
       deckId?: string;
     }) => void;
-    readonly joiningGame: (props: {
-      gameId: string;
-      playerId: string;
-    }) => void;
+    readonly joiningGame: (props: { gameId: string; playerId: string }) => void;
     readonly joiningGameWhileAnotherPlayerJustJoinedInBetween: (props: {
       gameId: string;
       playerId: string;
       playerThatHasJustJoinedInBetween: string;
     }) => void;
-    readonly leavingGame: (props: {
-      gameId: string;
-      playerId: string;
-    }) => void;
+    readonly leavingGame: (props: { gameId: string; playerId: string }) => void;
     readonly startingGame: (props: {
       gameId: string;
       playerId: string;

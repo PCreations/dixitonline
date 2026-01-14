@@ -1,9 +1,9 @@
 /** @jsx h */
 /** @jsxFrag Fragment */
-import { h } from "preact";
-import { Card } from "./Card.js";
-import { Menu } from "./Menu.js";
-import { Stars } from "./Stars.js";
+import { h } from 'preact';
+import { Card } from './Card.js';
+import { Menu } from './Menu.js';
+import { Stars } from './Stars.js';
 
 interface GameProps {
   points?: number;
@@ -15,7 +15,7 @@ interface GameProps {
 export function Game({
   points = 2,
   turn = 3,
-  status = "Waiting for the storyteller...",
+  status = 'Waiting for the storyteller...',
   showCardSelection = true,
 }: GameProps) {
   return (

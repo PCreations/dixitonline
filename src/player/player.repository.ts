@@ -18,11 +18,11 @@ export class UsernameAlreadyTakenError extends Data.TaggedError(
  * Uses native ES2022 Error cause so Sentry can display the full error chain.
  */
 export class DatabaseError extends Error {
-  readonly _tag = "DatabaseError" as const;
+  readonly _tag = 'DatabaseError' as const;
 
   constructor(options: { message: string; cause: unknown }) {
     super(options.message, { cause: options.cause });
-    this.name = "DatabaseError";
+    this.name = 'DatabaseError';
   }
 }
 
@@ -111,7 +111,10 @@ const makeInMemoryPlayerRepository =
         // Check username uniqueness (simulate DB constraint)
         const snapshot = player.toSnapshot();
         for (const [id, p] of players) {
-          if (id !== player.id && p.toSnapshot().username === snapshot.username) {
+          if (
+            id !== player.id &&
+            p.toSnapshot().username === snapshot.username
+          ) {
             return Effect.fail(
               new UsernameAlreadyTakenError({ username: snapshot.username }),
             );

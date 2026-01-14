@@ -1,11 +1,15 @@
-import { Effect, Option } from "effect";
-import { InMemoryDeckRepository } from "./deck.repository.js";
-import { isStartedGame } from "./game.entity.js";
-import { GameRepository, InMemoryGameRepository } from "./game.repository.js";
-import { GameView, InMemoryGameView } from "./game-view.js";
-import { GameViewProjector, ShufflerService, TurnBoardCardsShuffler } from "./game-view-projector.js";
-import { withOptimisticRetry } from "./optimistic-retry.js";
-import { PlayerId } from "./player.entity.js";
+import { Effect, Option } from 'effect';
+import { InMemoryDeckRepository } from './deck.repository.js';
+import { isStartedGame } from './game.entity.js';
+import { GameRepository, InMemoryGameRepository } from './game.repository.js';
+import { GameView, InMemoryGameView } from './game-view.js';
+import {
+  GameViewProjector,
+  ShufflerService,
+  TurnBoardCardsShuffler,
+} from './game-view-projector.js';
+import { withOptimisticRetry } from './optimistic-retry.js';
+import { PlayerId } from './player.entity.js';
 
 export type LeaveGameCommand = {
   gameId: string;
@@ -13,7 +17,7 @@ export type LeaveGameCommand = {
 };
 
 export class LeaveGameUseCase extends Effect.Service<LeaveGameUseCase>()(
-  "game/LeaveGameUseCase",
+  'game/LeaveGameUseCase',
   {
     effect: Effect.gen(function* () {
       const gameRepository = yield* GameRepository;
@@ -23,14 +27,22 @@ export class LeaveGameUseCase extends Effect.Service<LeaveGameUseCase>()(
       return {
         leaveGame: (props: LeaveGameCommand) => {
           const leaveGameLogic = Effect.gen(function* () {
-            yield* Effect.annotateCurrentSpan('context.input', JSON.stringify(props));
+            yield* Effect.annotateCurrentSpan(
+              'context.input',
+              JSON.stringify(props),
+            );
 
             const game = yield* gameRepository.findById(props.gameId);
 
             return yield* Option.match(game, {
               onNone: () => {
-                Effect.runSync(Effect.annotateCurrentSpan('context.output', JSON.stringify({ error: 'Game not found' })));
-                return Effect.fail(new Error("Game not found"));
+                Effect.runSync(
+                  Effect.annotateCurrentSpan(
+                    'context.output',
+                    JSON.stringify({ error: 'Game not found' }),
+                  ),
+                );
+                return Effect.fail(new Error('Game not found'));
               },
               onSome: (gameEntity) =>
                 Effect.gen(function* () {
@@ -48,10 +60,13 @@ export class LeaveGameUseCase extends Effect.Service<LeaveGameUseCase>()(
                     );
                   }
 
-                  yield* Effect.annotateCurrentSpan('context.output', JSON.stringify({
-                    snapshot: updatedGame.toSnapshot(),
-                    events,
-                  }));
+                  yield* Effect.annotateCurrentSpan(
+                    'context.output',
+                    JSON.stringify({
+                      snapshot: updatedGame.toSnapshot(),
+                      events,
+                    }),
+                  );
                 }),
             });
           });

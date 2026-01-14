@@ -11,7 +11,7 @@ const getFullErrorChain = (error: unknown): Error => {
   }
 
   // Walk the cause chain to build a comprehensive message
-  const messages: string[] = [];
+  const messages: Array<string> = [];
   let current: unknown = error;
   let depth = 0;
   const maxDepth = 10; // Prevent infinite loops
@@ -105,10 +105,13 @@ export const withHttpSpan =
   (request: { method: string; url: string }) =>
   <A, E, R>(effect: Effect.Effect<A, E, R>): Effect.Effect<A, E, R> =>
     Effect.gen(function* () {
-      yield* Effect.annotateCurrentSpan('context.input', JSON.stringify({
-        method: request.method,
-        url: request.url,
-      }));
+      yield* Effect.annotateCurrentSpan(
+        'context.input',
+        JSON.stringify({
+          method: request.method,
+          url: request.url,
+        }),
+      );
 
       const result = yield* effect;
 

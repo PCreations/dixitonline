@@ -1,8 +1,8 @@
-import { Context, Effect, Layer } from "effect";
-import { GameId } from "./game.entity.js";
-import { GameViewValueObject } from "./game-view-projector.js";
+import { Context, Effect, Layer } from 'effect';
+import { GameId } from './game.entity.js';
+import { GameViewValueObject } from './game-view-projector.js';
 
-export class GameView extends Effect.Tag("game/GameView")<
+export class GameView extends Effect.Tag('game/GameView')<
   GameView,
   {
     save(gameView: GameViewValueObject): Effect.Effect<void>;
@@ -25,7 +25,4 @@ const makeInMemoryGameView = (): Context.Tag.Service<GameView> => {
   };
 };
 
-export const InMemoryGameView = Layer.sync(
-  GameView,
-  makeInMemoryGameView,
-);
+export const InMemoryGameView = Layer.sync(GameView, makeInMemoryGameView);

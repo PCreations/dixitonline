@@ -18,12 +18,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
   return (
     <div x-data="authStore()" x-init="init()">
       {/* Loading state */}
-      <div x-show="loading" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div
+        x-show="loading"
+        class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+      >
         <div class="text-white text-xl">Chargement...</div>
       </div>
 
       {/* Login modal for new users */}
-      <div x-show="showLoginModal && !loading" x-cloak class="auth-modal-overlay">
+      <div
+        x-show="showLoginModal && !loading"
+        x-cloak
+        class="auth-modal-overlay"
+      >
         <div class="auth-modal">
           <h2 class="auth-modal-title">Bienvenue sur Tixid !</h2>
           <LoginForm variant="modal" />
@@ -31,10 +38,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
       </div>
 
       {/* Upgrade modal for anonymous users who want to save their account */}
-      <div x-show="showUpgradeModal && !loading" x-cloak class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div
+        x-show="showUpgradeModal && !loading"
+        x-cloak
+        class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+      >
         <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
           <div class="flex justify-between items-center mb-4">
-            <h2 class="text-2xl font-bold text-gray-800">Sauvegarder mon compte</h2>
+            <h2 class="text-2xl font-bold text-gray-800">
+              Sauvegarder mon compte
+            </h2>
             <button
               type="button"
               {...alpine.onClick('showUpgradeModal = false')}
@@ -44,7 +57,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
             </button>
           </div>
           <p class="text-gray-600 mb-4">
-            Créez un compte pour retrouver votre progression sur n'importe quel appareil.
+            Créez un compte pour retrouver votre progression sur n'importe quel
+            appareil.
           </p>
 
           <form {...alpine.onSubmitPrevent('upgradeWithEmail()')} class="mb-4">
@@ -63,7 +77,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
               minLength={6}
               class="w-full px-4 py-2 border border-gray-300 rounded-lg mb-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
-            <div x-show="error" class="text-red-500 text-sm mb-3" x-text="error"></div>
+            <div
+              x-show="error"
+              class="text-red-500 text-sm mb-3"
+              x-text="error"
+            ></div>
             <button
               type="submit"
               {...alpine.bindDisabled('loading')}

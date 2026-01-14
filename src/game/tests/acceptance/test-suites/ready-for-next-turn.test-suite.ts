@@ -10,7 +10,7 @@ import { defaultIdFactory, type IdFactory } from './create-game.test-suite.js';
 
 export const readyForNextTurnTestSuite = (
   makeGameDriverTestLayer: () => GameDriverLayer,
-  idFactory: IdFactory = defaultIdFactory
+  idFactory: IdFactory = defaultIdFactory,
 ) => {
   const { gameId, playerId } = idFactory;
 

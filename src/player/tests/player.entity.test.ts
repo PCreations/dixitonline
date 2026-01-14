@@ -1,99 +1,99 @@
-import { describe, expect, it } from "@effect/vitest";
-import { Effect, Exit } from "effect";
-import { PlayerEntity } from "../player.entity.js";
+import { describe, expect, it } from '@effect/vitest';
+import { Effect, Exit } from 'effect';
+import { PlayerEntity } from '../player.entity.js';
 
-describe("PlayerEntity", () => {
-  describe("createFromAuth", () => {
-    it("should create an anonymous player without email", () => {
+describe('PlayerEntity', () => {
+  describe('createFromAuth', () => {
+    it('should create an anonymous player without email', () => {
       const player = PlayerEntity.createFromAuth({
-        id: "player-1",
-        username: "Alice",
+        id: 'player-1',
+        username: 'Alice',
         isAnonymous: true,
       });
 
       const snapshot = player.toSnapshot();
-      expect(snapshot.id).toBe("player-1");
-      expect(snapshot.username).toBe("Alice");
+      expect(snapshot.id).toBe('player-1');
+      expect(snapshot.username).toBe('Alice');
       expect(snapshot.email).toBeNull();
       expect(snapshot.isAnonymous).toBe(true);
       expect(snapshot.createdAt).toBeInstanceOf(Date);
       expect(snapshot.updatedAt).toBeInstanceOf(Date);
     });
 
-    it("should create a non-anonymous player with email", () => {
+    it('should create a non-anonymous player with email', () => {
       const player = PlayerEntity.createFromAuth({
-        id: "player-2",
-        username: "Bob",
-        email: "bob@example.com",
+        id: 'player-2',
+        username: 'Bob',
+        email: 'bob@example.com',
         isAnonymous: false,
       });
 
       const snapshot = player.toSnapshot();
-      expect(snapshot.id).toBe("player-2");
-      expect(snapshot.username).toBe("Bob");
-      expect(snapshot.email).toBe("bob@example.com");
+      expect(snapshot.id).toBe('player-2');
+      expect(snapshot.username).toBe('Bob');
+      expect(snapshot.email).toBe('bob@example.com');
       expect(snapshot.isAnonymous).toBe(false);
     });
   });
 
-  describe("updateUsername", () => {
-    it("should return the same instance if username unchanged", () => {
+  describe('updateUsername', () => {
+    it('should return the same instance if username unchanged', () => {
       const player = PlayerEntity.createFromAuth({
-        id: "player-1",
-        username: "Alice",
+        id: 'player-1',
+        username: 'Alice',
         isAnonymous: true,
       });
 
-      const updated = player.updateUsername("Alice");
+      const updated = player.updateUsername('Alice');
 
       expect(updated).toBe(player);
     });
 
-    it("should return a new instance with updated username", () => {
+    it('should return a new instance with updated username', () => {
       const player = PlayerEntity.createFromAuth({
-        id: "player-1",
-        username: "Alice",
+        id: 'player-1',
+        username: 'Alice',
         isAnonymous: true,
       });
 
-      const updated = player.updateUsername("Alicia");
+      const updated = player.updateUsername('Alicia');
 
       expect(updated).not.toBe(player);
-      expect(updated.toSnapshot().username).toBe("Alicia");
-      expect(player.toSnapshot().username).toBe("Alice");
+      expect(updated.toSnapshot().username).toBe('Alicia');
+      expect(player.toSnapshot().username).toBe('Alice');
     });
   });
 
-  describe("linkEmail", () => {
+  describe('linkEmail', () => {
     it.effect(
-      "should link email and set isAnonymous to false for anonymous player",
+      'should link email and set isAnonymous to false for anonymous player',
       () =>
         Effect.gen(function* () {
           const player = PlayerEntity.createFromAuth({
-            id: "player-1",
-            username: "Alice",
+            id: 'player-1',
+            username: 'Alice',
             isAnonymous: true,
           });
 
-          const updated = yield* player.linkEmail("alice@example.com");
+          const updated = yield* player.linkEmail('alice@example.com');
 
           const snapshot = updated.toSnapshot();
-          expect(snapshot.email).toBe("alice@example.com");
+          expect(snapshot.email).toBe('alice@example.com');
           expect(snapshot.isAnonymous).toBe(false);
         }),
     );
 
-    it.effect("should fail if email already linked", () =>
+    it.effect('should fail if email already linked', () =>
       Effect.gen(function* () {
         const player = PlayerEntity.createFromAuth({
-          id: "player-1",
-          username: "Alice",
-          email: "alice@example.com",
+          id: 'player-1',
+          username: 'Alice',
+          email: 'alice@example.com',
           isAnonymous: false,
         });
 
         const result = yield* player
-          .linkEmail("newemail@example.com")
+          .linkEmail('newemail@example.com')
           .pipe(Effect.exit);
 
         expect(Exit.isFailure(result)).toBe(true);
@@ -101,12 +101,12 @@ describe("PlayerEntity", () => {
     );
   });
 
-  describe("fromSnapshot / toSnapshot", () => {
-    it("should roundtrip correctly", () => {
+  describe('fromSnapshot / toSnapshot', () => {
+    it('should roundtrip correctly', () => {
       const original = PlayerEntity.createFromAuth({
-        id: "player-1",
-        username: "Alice",
-        email: "alice@example.com",
+        id: 'player-1',
+        username: 'Alice',
+        email: 'alice@example.com',
         isAnonymous: false,
       });
 
@@ -116,10 +116,10 @@ describe("PlayerEntity", () => {
       expect(restored.toSnapshot()).toEqual(snapshot);
     });
 
-    it("should roundtrip correctly with null email", () => {
+    it('should roundtrip correctly with null email', () => {
       const original = PlayerEntity.createFromAuth({
-        id: "player-1",
-        username: "Alice",
+        id: 'player-1',
+        username: 'Alice',
         isAnonymous: true,
       });
 

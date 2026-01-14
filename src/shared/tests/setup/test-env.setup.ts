@@ -13,7 +13,7 @@ const execPromise = promisify(exec);
 
 async function execAsync(
   command: string,
-  options?: Parameters<typeof exec>[1]
+  options?: Parameters<typeof exec>[1],
 ): Promise<{ stdout: string | Buffer; stderr: string | Buffer }> {
   const result = await execPromise(command, options);
   // Print output to console
@@ -70,7 +70,9 @@ export function setupTestEnvironment(testEnv?: Partial<TestEnvironment>): void {
 /**
  * Runs Drizzle migrations for test database
  */
-export async function runDrizzleMigrations(databaseDirectUrl: string): Promise<void> {
+export async function runDrizzleMigrations(
+  databaseDirectUrl: string,
+): Promise<void> {
   console.log('Setting up test database schema...');
 
   try {
@@ -79,16 +81,13 @@ export async function runDrizzleMigrations(databaseDirectUrl: string): Promise<v
     const projectRoot = process.cwd();
     const configPath = path.join(projectRoot, 'drizzle.config.ts');
 
-    await execAsync(
-      `npx drizzle-kit migrate --config "${configPath}"`,
-      {
-        env: {
-          ...process.env,
-          DATABASE_URL: databaseDirectUrl,
-        },
-        cwd: projectRoot,
-      }
-    );
+    await execAsync(`npx drizzle-kit migrate --config "${configPath}"`, {
+      env: {
+        ...process.env,
+        DATABASE_URL: databaseDirectUrl,
+      },
+      cwd: projectRoot,
+    });
 
     console.log('✓ Database schema applied successfully');
   } catch (error) {

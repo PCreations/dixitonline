@@ -1,12 +1,12 @@
-import { Brand, Data, Effect, Option } from "effect";
+import { Brand, Data, Effect, Option } from 'effect';
 
-export type PlayerId = string & Brand.Brand<"PlayerId">;
+export type PlayerId = string & Brand.Brand<'PlayerId'>;
 
 export const PlayerId = Brand.nominal<PlayerId>();
 
 // Erreurs métier typées
 export class EmailAlreadyLinkedError extends Data.TaggedError(
-  "EmailAlreadyLinkedError",
+  'EmailAlreadyLinkedError',
 )<{
   readonly playerId: PlayerId;
   readonly existingEmail: string;

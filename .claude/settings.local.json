@@ -44,7 +44,8 @@
       "Bash(./node_modules/.bin/cypress install:*)",
       "Bash(./node_modules/.bin/cypress run:*)",
       "Bash(ELECTRON_EXTRA_LAUNCH_ARGS=\"\" ./node_modules/.bin/cypress run:*)",
-      "Bash(xargs:*)"
+      "Bash(xargs:*)",
+      "Bash(pnpm lint-fix:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

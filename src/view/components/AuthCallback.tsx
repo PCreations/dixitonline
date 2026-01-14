@@ -23,7 +23,11 @@ export function AuthCallback() {
       </div>
 
       {/* Username form for new users */}
-      <div x-show="needsUsername && !loading" x-cloak className="auth-callback-form">
+      <div
+        x-show="needsUsername && !loading"
+        x-cloak
+        className="auth-callback-form"
+      >
         <h2 className="auth-callback-title">Bienvenue !</h2>
         <p className="auth-callback-subtitle">
           Choisissez un pseudo pour continuer
@@ -59,9 +63,15 @@ export function AuthCallback() {
       </div>
 
       {/* Error state */}
-      <div x-show="error && !needsUsername && !loading" x-cloak className="auth-callback-error-container">
+      <div
+        x-show="error && !needsUsername && !loading"
+        x-cloak
+        className="auth-callback-error-container"
+      >
         <p className="auth-callback-error" x-text="error" />
-        <a href="/" className="auth-callback-link">Retour à l'accueil</a>
+        <a href="/" className="auth-callback-link">
+          Retour à l'accueil
+        </a>
       </div>
     </div>
   );

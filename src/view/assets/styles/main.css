@@ -634,13 +634,15 @@ body {
   width: 268px;
   height: 425px;
   cursor: pointer;
-  transition: transform 0.3s ease, box-shadow 0.3s ease, outline 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease,
+    outline 0.3s ease;
   border-radius: 22.57px;
   position: relative;
   outline: 2px solid transparent;
   outline-offset: -2px;
 }
-
 
 .card-selected {
   transform: translateY(-20px);
@@ -950,7 +952,9 @@ body {
   font-weight: 500;
   font-size: 14px;
   @apply text-white;
-  transition: opacity 0.2s, transform 0.2s;
+  transition:
+    opacity 0.2s,
+    transform 0.2s;
 }
 
 .auth-modal-button:hover {
@@ -1190,7 +1194,9 @@ body {
   font-weight: 500;
   font-size: 14px;
   @apply text-white;
-  transition: opacity 0.2s, transform 0.2s;
+  transition:
+    opacity 0.2s,
+    transform 0.2s;
 }
 
 .auth-callback-button:hover {

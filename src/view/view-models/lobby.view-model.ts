@@ -1,6 +1,9 @@
-import { MAX_PLAYERS } from "../../game/game.entity.js";
-import type { LobbyAction } from "../../game/game-view-projector.js";
-import type { LobbyPlayer, LobbyState } from "../../game/lobby.query-service.js";
+import { MAX_PLAYERS } from '../../game/game.entity.js';
+import type { LobbyAction } from '../../game/game-view-projector.js';
+import type {
+  LobbyPlayer,
+  LobbyState,
+} from '../../game/lobby.query-service.js';
 
 export interface LobbyPlayerViewModel {
   readonly name: string;
@@ -35,8 +38,8 @@ export function createLobbyViewModel(
 
   return {
     gameId,
-    title: "Lobby",
-    statusMessage: canStart ? "Prêt à démarrer !" : "En attente de joueurs...",
+    title: 'Lobby',
+    statusMessage: canStart ? 'Prêt à démarrer !' : 'En attente de joueurs...',
     playerCount: `${players.length}/${MAX_PLAYERS}`,
     players: derivePlayers(players, { currentPlayerId, hostId }),
     inviteUrl: `/game/${gameId}/join`,

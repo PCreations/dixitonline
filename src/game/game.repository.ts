@@ -1,5 +1,4 @@
-import { Context, Data, Effect, Layer, Option, ParseResult } from "effect";
-import type { GameEvent } from "./game-events.js";
+import { Context, Data, Effect, Layer, Option, ParseResult } from 'effect';
 import {
   EndedGameEntity,
   GameEntity,
@@ -7,13 +6,14 @@ import {
   isStartedGame,
   NotStartedGameEntity,
   StartedGameEntity,
-} from "./game.entity.js";
+} from './game.entity.js';
+import type { GameEvent } from './game-events.js';
 
 const isEndedGame = (game: GameEntity): game is EndedGameEntity =>
   !isNotStartedGame(game) && !isStartedGame(game);
 
 export class OptimisticConcurrencyError extends Data.TaggedError(
-  "OptimisticConcurrencyError",
+  'OptimisticConcurrencyError',
 )<{}> {}
 
 /**
@@ -21,18 +21,23 @@ export class OptimisticConcurrencyError extends Data.TaggedError(
  * Uses native ES2022 Error cause so Sentry can display the full error chain.
  */
 export class DatabaseError extends Error {
-  readonly _tag = "DatabaseError" as const;
+  readonly _tag = 'DatabaseError' as const;
 
   constructor(options: { message: string; cause: unknown }) {
     super(options.message, { cause: options.cause });
-    this.name = "DatabaseError";
+    this.name = 'DatabaseError';
   }
 }
 
-export class GameRepository extends Effect.Tag("game/GameRepository")<
+export class GameRepository extends Effect.Tag('game/GameRepository')<
   GameRepository,
   {
-    save: (game: GameEntity) => Effect.Effect<void, OptimisticConcurrencyError | DatabaseError | ParseResult.ParseError>;
+    save: (
+      game: GameEntity,
+    ) => Effect.Effect<
+      void,
+      OptimisticConcurrencyError | DatabaseError | ParseResult.ParseError
+    >;
     /**
      * Save the game and events atomically in a transaction.
      * Events are inserted into the outbox table for reliable delivery.
@@ -40,19 +45,34 @@ export class GameRepository extends Effect.Tag("game/GameRepository")<
     saveWithEvents: (
       game: GameEntity,
       events: ReadonlyArray<GameEvent>,
-    ) => Effect.Effect<void, OptimisticConcurrencyError | DatabaseError | ParseResult.ParseError>;
+    ) => Effect.Effect<
+      void,
+      OptimisticConcurrencyError | DatabaseError | ParseResult.ParseError
+    >;
     findById: (
       id: string,
-    ) => Effect.Effect<Option.Option<NotStartedGameEntity | StartedGameEntity | EndedGameEntity>, ParseResult.ParseError | DatabaseError>;
+    ) => Effect.Effect<
+      Option.Option<NotStartedGameEntity | StartedGameEntity | EndedGameEntity>,
+      ParseResult.ParseError | DatabaseError
+    >;
     findNotStartedGameById: (
       id: string,
-    ) => Effect.Effect<Option.Option<NotStartedGameEntity>, ParseResult.ParseError | DatabaseError>;
+    ) => Effect.Effect<
+      Option.Option<NotStartedGameEntity>,
+      ParseResult.ParseError | DatabaseError
+    >;
     findStartedGameById: (
       id: string,
-    ) => Effect.Effect<Option.Option<StartedGameEntity>, ParseResult.ParseError | DatabaseError>;
+    ) => Effect.Effect<
+      Option.Option<StartedGameEntity>,
+      ParseResult.ParseError | DatabaseError
+    >;
     findEndedGameById: (
       id: string,
-    ) => Effect.Effect<Option.Option<EndedGameEntity>, ParseResult.ParseError | DatabaseError>;
+    ) => Effect.Effect<
+      Option.Option<EndedGameEntity>,
+      ParseResult.ParseError | DatabaseError
+    >;
     isPlayerInGame: (
       gameId: string,
       playerId: string,
@@ -186,7 +206,9 @@ const makeInMemoryGameRepository = (
     },
     isPlayerInGame: (gameId: string, playerId: string) => {
       const maybeGame = Option.fromNullable(
-        notStartedGames.get(gameId) ?? startedGames.get(gameId) ?? endedGames.get(gameId),
+        notStartedGames.get(gameId) ??
+          startedGames.get(gameId) ??
+          endedGames.get(gameId),
       );
       if (Option.isNone(maybeGame)) {
         return Effect.succeed(false);
@@ -216,8 +238,8 @@ export const InMemoryGameRepository = Layer.sync(
 export const InMemoryGameRepositoryWithEventBus = Layer.effect(
   GameRepository,
   Effect.gen(function* () {
-    const { GameEventBus } = yield* Effect.promise(() =>
-      import('./game-event-bus.js'),
+    const { GameEventBus } = yield* Effect.promise(
+      () => import('./game-event-bus.js'),
     );
     const eventBus = yield* GameEventBus;
 

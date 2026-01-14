@@ -10,7 +10,7 @@ export const startGameTestSuite = (
   makeGameDriverTestLayer: (options?: {
     randomizeStrategy?: PlayersRandomizeStrategy;
   }) => GameDriverLayer,
-  idFactory: IdFactory = defaultIdFactory
+  idFactory: IdFactory = defaultIdFactory,
 ) => {
   const { gameId, playerId, deckId } = idFactory;
 

@@ -1,6 +1,6 @@
+import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import pg from 'pg';
-import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 let testDb: NodePgDatabase<Record<string, never>> | null = null;
 let client: pg.Pool | null = null;
@@ -12,7 +12,7 @@ let client: pg.Pool | null = null;
 export function getTestDb(): NodePgDatabase<Record<string, never>> {
   if (!testDb) {
     throw new Error(
-      'Test database not initialized. Make sure acceptance test setup has run.'
+      'Test database not initialized. Make sure acceptance test setup has run.',
     );
   }
   return testDb;

@@ -14,7 +14,7 @@ describe('Feature: Authentification guest', () => {
 
   // Data reset happens automatically in before:spec (see cypress.config.ts)
 
-  it("Example: A user who is not connected can authenticate as a guest", () => {
+  it('Example: A user who is not connected can authenticate as a guest', () => {
     // GIVEN
     driver.auth.given.userNotConnected();
 

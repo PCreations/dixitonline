@@ -1,10 +1,10 @@
-import { Brand } from "effect";
+import { Brand } from 'effect';
 
-export type DeckId = string & Brand.Brand<"DeckId">;
+export type DeckId = string & Brand.Brand<'DeckId'>;
 
 export const DeckId = Brand.nominal<DeckId>();
 
-export type CardId = string & Brand.Brand<"CardId">;
+export type CardId = string & Brand.Brand<'CardId'>;
 
 export const CardId = Brand.nominal<CardId>();
 
@@ -32,7 +32,7 @@ export class Card {
     };
   }
 
-  static fromSnapshot(snapshot: ReturnType<Card["toSnapshot"]>) {
+  static fromSnapshot(snapshot: ReturnType<Card['toSnapshot']>) {
     return Card.create({
       id: CardId(snapshot.id),
       url: snapshot.url,
@@ -78,8 +78,8 @@ export class DeckEntity {
     return new DeckEntity({
       ...props,
       cards: props.cards ?? [],
-      shuffleStrategy: props.shuffleStrategy ??
-        new IdentityDeckShuffleStrategy(),
+      shuffleStrategy:
+        props.shuffleStrategy ?? new IdentityDeckShuffleStrategy(),
     });
   }
 
@@ -104,4 +104,4 @@ export class DeckEntity {
   }
 }
 
-export type DeckSnapshot = ReturnType<DeckEntity["toSnapshot"]>;
+export type DeckSnapshot = ReturnType<DeckEntity['toSnapshot']>;

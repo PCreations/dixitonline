@@ -1,8 +1,8 @@
-import { Effect } from "effect";
-import { PlayerRepository } from "./player.repository.js";
+import { Effect } from 'effect';
+import { PlayerRepository } from './player.repository.js';
 
 export class CheckUsernameAvailabilityUseCase extends Effect.Service<CheckUsernameAvailabilityUseCase>()(
-  "player/CheckUsernameAvailabilityUseCase",
+  'player/CheckUsernameAvailabilityUseCase',
   {
     effect: Effect.gen(function* () {
       const playerRepository = yield* PlayerRepository;

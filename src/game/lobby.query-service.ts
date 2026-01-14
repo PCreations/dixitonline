@@ -1,11 +1,8 @@
-import { Effect, Option } from "effect";
-import { PlayerId, PlayerRepository } from "../player/index.js";
-import { isNotStartedGame } from "./game.entity.js";
-import { GameRepository } from "./game.repository.js";
-import {
-  GameViewProjector,
-  type LobbyAction,
-} from "./game-view-projector.js";
+import { Effect, Option } from 'effect';
+import { PlayerId, PlayerRepository } from '../player/index.js';
+import { isNotStartedGame } from './game.entity.js';
+import { GameRepository } from './game.repository.js';
+import { GameViewProjector, type LobbyAction } from './game-view-projector.js';
 
 export interface LobbyPlayer {
   readonly id: string;
@@ -22,7 +19,7 @@ export interface LobbyState {
 }
 
 export class LobbyQueryService extends Effect.Service<LobbyQueryService>()(
-  "game/LobbyQueryService",
+  'game/LobbyQueryService',
   {
     effect: Effect.gen(function* () {
       const gameRepository = yield* GameRepository;
@@ -59,7 +56,7 @@ export class LobbyQueryService extends Effect.Service<LobbyQueryService>()(
                 const player = playersMap.get(PlayerId(id));
                 return {
                   id,
-                  username: player?.toSnapshot().username ?? "Joueur inconnu",
+                  username: player?.toSnapshot().username ?? 'Joueur inconnu',
                 };
               },
             );

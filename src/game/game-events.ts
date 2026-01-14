@@ -1,6 +1,6 @@
-import { Data } from "effect";
-import type { GameId } from "./game.entity.js";
-import type { PlayerId } from "./player.entity.js";
+import { Data } from 'effect';
+import type { GameId } from './game.entity.js';
+import type { PlayerId } from './player.entity.js';
 
 /**
  * Domain events for game state changes.
@@ -44,11 +44,32 @@ export {
 /**
  * Extract specific event types for function signatures.
  */
-export type PlayerJoinedEvent = Extract<GameEvent, { readonly _tag: "PlayerJoined" }>;
-export type PlayerLeftEvent = Extract<GameEvent, { readonly _tag: "PlayerLeft" }>;
-export type GameStartedEvent = Extract<GameEvent, { readonly _tag: "GameStarted" }>;
-export type ClueSubmittedEvent = Extract<GameEvent, { readonly _tag: "ClueSubmitted" }>;
-export type CardSelectedEvent = Extract<GameEvent, { readonly _tag: "CardSelected" }>;
-export type VoteSubmittedEvent = Extract<GameEvent, { readonly _tag: "VoteSubmitted" }>;
-export type TurnScoredEvent = Extract<GameEvent, { readonly _tag: "TurnScored" }>;
-export type GameEndedEvent = Extract<GameEvent, { readonly _tag: "GameEnded" }>;
+export type PlayerJoinedEvent = Extract<
+  GameEvent,
+  { readonly _tag: 'PlayerJoined' }
+>;
+export type PlayerLeftEvent = Extract<
+  GameEvent,
+  { readonly _tag: 'PlayerLeft' }
+>;
+export type GameStartedEvent = Extract<
+  GameEvent,
+  { readonly _tag: 'GameStarted' }
+>;
+export type ClueSubmittedEvent = Extract<
+  GameEvent,
+  { readonly _tag: 'ClueSubmitted' }
+>;
+export type CardSelectedEvent = Extract<
+  GameEvent,
+  { readonly _tag: 'CardSelected' }
+>;
+export type VoteSubmittedEvent = Extract<
+  GameEvent,
+  { readonly _tag: 'VoteSubmitted' }
+>;
+export type TurnScoredEvent = Extract<
+  GameEvent,
+  { readonly _tag: 'TurnScored' }
+>;
+export type GameEndedEvent = Extract<GameEvent, { readonly _tag: 'GameEnded' }>;
