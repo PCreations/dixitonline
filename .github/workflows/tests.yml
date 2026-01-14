@@ -76,11 +76,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build CSS
-        run: pnpm css:build
+      - name: Build TypeScript
+        run: pnpm build
 
-      # Supabase + server startup is managed by scripts/run-cypress-e2e.ts
-      # which uses Testcontainers for Supabase
+      # Supabase + server startup is handled by cypress.config.ts hooks
+      # using Testcontainers for isolated Supabase environment
       - name: Run Cypress tests
         run: pnpm test:acceptance:e2e
         env:
@@ -92,4 +92,12 @@ jobs:
         with:
           name: cypress-screenshots
           path: cypress/screenshots
+          if-no-files-found: ignore
+
+      - name: Upload Cypress videos on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-videos
+          path: cypress/videos
           if-no-files-found: ignore
