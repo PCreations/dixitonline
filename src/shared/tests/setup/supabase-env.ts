@@ -105,7 +105,7 @@ export const startSupabase = async () => {
   return {
     instanceId, // Return the instance ID for cleanup
     db: {
-      host: '0.0.0.0',
+      host: '127.0.0.1',
       port: dbPort,
       user: 'postgres',
       password: supabaseEnv.POSTGRES_PASSWORD,
@@ -113,7 +113,7 @@ export const startSupabase = async () => {
     },
     databaseUrl,
     databaseDirectUrl,
-    supabaseUrl: `http://0.0.0.0:${kongPort}`,
+    supabaseUrl: `http://127.0.0.1:${kongPort}`,
     supabaseKey: supabaseEnv.SERVICE_ROLE_KEY,
     anonKey: supabaseEnv.ANON_KEY,
     authUrl: `http://0.0.0.0:${authPort}`,

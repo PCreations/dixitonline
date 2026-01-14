@@ -67,7 +67,11 @@ const databaseUrl =
   'postgresql://postgres:postgres@localhost:5432/dixitonline';
 const supabaseUrl = process.env.SUPABASE_URL || 'http://127.0.0.1:54321';
 const supabasePublishableKey = process.env.SUPABASE_PUBLISHABLE_KEY;
-const jwtVerifier = createJwtVerifier({ url: supabaseUrl });
+const supabaseJwtIssuer = process.env.SUPABASE_JWT_ISSUER;
+const jwtVerifier = createJwtVerifier({
+  url: supabaseUrl,
+  ...(supabaseJwtIssuer ? { jwtIssuer: supabaseJwtIssuer } : {}),
+});
 const pollIntervalMs = isDev ? 2000 : 5000;
 
 // Build application layer

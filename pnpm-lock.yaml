@@ -150,8 +150,8 @@ importers:
         specifier: ^9.2.1
         version: 9.2.1
       cypress:
-        specifier: ^15.8.1
-        version: 15.8.1
+        specifier: 15.8.2
+        version: 15.8.2
       drizzle-kit:
         specifier: ^0.31.4
         version: 0.31.4
@@ -180,8 +180,8 @@ importers:
         specifier: ^8.5.6
         version: 8.5.6
       supabase:
-        specifier: ^2.34.3
-        version: 2.34.3
+        specifier: ^2.70.5
+        version: 2.70.5
       tailwindcss:
         specifier: ^4.1.12
         version: 4.1.12
@@ -364,8 +364,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@cypress/request@3.0.9':
-    resolution: {integrity: sha512-I3l7FdGRXluAS44/0NguwWlO83J18p0vlr2FYHrJkWdNYhgVoiYo61IXPqaOsL+vNxU1ZqMACzItGK3/KKDsdw==}
+  '@cypress/request@3.0.10':
+    resolution: {integrity: sha512-hauBrOdvu08vOsagkZ/Aju5XuiZx6ldsLfByg1htFeldhex+PeMrYauANzFsMJeAA0+dyPLbDoX2OYuvVoLDkQ==}
     engines: {node: '>= 6'}
 
   '@cypress/xvfb@1.2.4':
@@ -2257,9 +2257,9 @@ packages:
   bcrypt-pbkdf@1.0.2:
     resolution: {integrity: sha512-qeFIXtP4MSoi6NLqO12WfqARWWuCKi2Rn/9hJLEmtB5yTNr9DqFWkJRCf2qShWzPeAMRnOgCrq0sg/KLv5ES9w==}
 
-  bin-links@5.0.0:
-    resolution: {integrity: sha512-sdleLVfCjBtgO5cNjA2HVRvWBJAHs4zwenaCPMNJAJU0yNxpzj80IpjOIimkpkr+mhlA+how5poQtt53PygbHA==}
-    engines: {node: ^18.17.0 || >=20.5.0}
+  bin-links@6.0.0:
+    resolution: {integrity: sha512-X4CiKlcV2GjnCMwnKAfbVWpHa++65th9TuzAEYtZoATiOE2DQKhSp4CJlyLoTqdhBKlXjpXjCTYPNNFS33Fi6w==}
+    engines: {node: ^20.17.0 || >=22.9.0}
 
   binary-extensions@2.3.0:
     resolution: {integrity: sha512-Ceh+7ox5qe7LJuLHoY0feh3pHuUDHAcRUeyL2VYghZwfpkNIy/+8Ocg0a3UuSoYzavmylwuLWQOf3hl0jjMMIw==}
@@ -2406,9 +2406,9 @@ packages:
     resolution: {integrity: sha512-BSeNnyus75C4//NQ9gQt1/csTXyo/8Sb+afLAkzAptFuMsod9HFokGNudZpi/oQV73hnVK+sR+5PVRMd+Dr7YQ==}
     engines: {node: '>=12'}
 
-  cmd-shim@7.0.0:
-    resolution: {integrity: sha512-rtpaCbr164TPPh+zFdkWpCyZuKkjpAzODfaZCf/SVJZzJN+4bHQb/LP3Jzq5/+84um3XXY8r548XiWKSborwVw==}
-    engines: {node: ^18.17.0 || >=20.5.0}
+  cmd-shim@8.0.0:
+    resolution: {integrity: sha512-Jk/BK6NCapZ58BKUxlSI+ouKRbjH1NLZCgJkYoab+vEHUY3f6OzpNBN9u7HFSv9J6TRDGs4PLOHezoKGaFRSCA==}
+    engines: {node: ^20.17.0 || >=22.9.0}
 
   color-convert@2.0.1:
     resolution: {integrity: sha512-RRECPsj7iu/xb5oKYcsFHSppFNnsj/52OVTRKb4zP5onXwVF3zVmmToNcOfGC+CRDpfK/U584fMg38ZHCaElKQ==}
@@ -2482,8 +2482,8 @@ packages:
     resolution: {integrity: sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==}
     engines: {node: '>= 8'}
 
-  cypress@15.8.1:
-    resolution: {integrity: sha512-ogc62stTQGh1395ipKxfCE5hQuSApTzeH5e0d9U6m7wYO9HQeCpgnkYtBtd0MbkN2Fnch5Od2mX9u4hoTlrH4Q==}
+  cypress@15.8.2:
+    resolution: {integrity: sha512-KGpuiE8o9l9eyVLPkig574t8zOXkEDKzI0a+RQwy4cfXzpaLipvTOv0t+QEEkLiw/8HbgMNZ0fbPKakJAB3USA==}
     engines: {node: ^20.1.0 || ^22.0.0 || >=24.0.0}
     hasBin: true
 
@@ -3823,6 +3823,10 @@ packages:
     resolution: {integrity: sha512-oG62iEk+CYt5Xj2YqI5Xi9xWUeZhDI8jjQmC5oThVH5JGCTgIjr7ciJDzC7MBzYd//WvR1OTmP5Q38Q8ShQtVA==}
     engines: {node: '>= 18'}
 
+  minizlib@3.1.0:
+    resolution: {integrity: sha512-KZxYo1BUkWD2TVFLr0MQoM8vUUigWD3LlD83a/75BqC+4qE0Hb1Vo5v1FgcfaNXvfXzr+5EhQ6ing/CaBijTlw==}
+    engines: {node: '>= 18'}
+
   mkdirp-classic@0.5.3:
     resolution: {integrity: sha512-gKLcREMhtuZRwRAfqP3RFW+TK4JqApVBtOIftVgjuABpAtpxhPGaDcfvbhNvD0B8iD1oUr/txX35NjcaY6Ns/A==}
 
@@ -3905,9 +3909,9 @@ packages:
     resolution: {integrity: sha512-bdok/XvKII3nUpklnV6P2hxtMNrCboOjAcyBuQnWEhO665FwrSNRxU+AqpsyvO6LgGYPspN+lu5CLtw4jPRKNA==}
     engines: {node: '>=0.10.0'}
 
-  npm-normalize-package-bin@4.0.0:
-    resolution: {integrity: sha512-TZKxPvItzai9kN9H/TkmCtx/ZN/hvr3vUycjlfmH0ootY9yFBzNOpiXAdIn1Iteqsvk4lQn6B5PTrt+n6h8k/w==}
-    engines: {node: ^18.17.0 || >=20.5.0}
+  npm-normalize-package-bin@5.0.0:
+    resolution: {integrity: sha512-CJi3OS4JLsNMmr2u07OJlhcrPxCeOeP/4xq67aWNai6TNWWbTrlNDgl8NcFKVlcBKp18GPj+EzbNIgrBfZhsag==}
+    engines: {node: ^20.17.0 || >=22.9.0}
 
   npm-run-path@4.0.1:
     resolution: {integrity: sha512-S48WzZW777zhNIrn7gxOlISNAqi9ZC/uQFnRdbeIHhZhCA6UqpkOT8T1G7BvfdgP4Er8gF4sUbaS0i7QvIfCWw==}
@@ -4159,9 +4163,9 @@ packages:
     resolution: {integrity: sha512-Pdlw/oPxN+aXdmM9R00JVC9WVFoCLTKJvDVLgmJ+qAffBMxsV85l/Lu7sNx4zSzPyoL2euImuEwHhOXdEgNFZQ==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
 
-  proc-log@5.0.0:
-    resolution: {integrity: sha512-Azwzvl90HaF0aCz1JrDdXQykFakSSNPaPoiZ9fm5qJIMHioDZEi7OAdRwSm6rSoPtY3Qutnm3L7ogmg3dc+wbQ==}
-    engines: {node: ^18.17.0 || >=20.5.0}
+  proc-log@6.1.0:
+    resolution: {integrity: sha512-iG+GYldRf2BQ0UDUAd6JQ/RwzaQy6mXmsk/IzlYyal4A4SNFw54MeH4/tLkF4I5WoWG9SQwuqWzS99jaFQHBuQ==}
+    engines: {node: ^20.17.0 || >=22.9.0}
 
   process-nextick-args@2.0.1:
     resolution: {integrity: sha512-3ouUOpQhtgrbOa17J7+uxOTpITYWaGP7/AhoR3+A+/1e9skrzelGi/dXzEYyvbxubEF6Wn2ypscTKiKJFFn1ag==}
@@ -4200,8 +4204,8 @@ packages:
   pure-rand@6.1.0:
     resolution: {integrity: sha512-bVWawvoZoBYpp6yIoQtQXHZjmz35RSVHnUOTefl8Vcjr8snTPY1wnpSPMWekcFwbxI6gtmT7rSYPFvz71ldiOA==}
 
-  qs@6.14.0:
-    resolution: {integrity: sha512-YWWTjgABSKcvs/nWBi9PycY/JiPJqOD4JA6o9Sej2AtvSGarXxKC3OQSk4pAarbdQlKAh5D4FCQkJNkW+GAn3w==}
+  qs@6.14.1:
+    resolution: {integrity: sha512-4EK3+xJl8Ts67nLYNwqw/dsFVnCf+qR7RgXSK9jEEm9unao3njwMDdmsdvoKBKHzxd7tCYz5e5M+SnMjdtXGQQ==}
     engines: {node: '>=0.6'}
 
   queue-microtask@1.2.3:
@@ -4213,9 +4217,9 @@ packages:
   react-is@18.3.1:
     resolution: {integrity: sha512-/LLMVyas0ljjAtoYiPqYiL8VWXzUUdThrmU5+n20DZv+a+ClRoevUzw5JxU+Ieh5/c87ytoTBV9G1FiKfNJdmg==}
 
-  read-cmd-shim@5.0.0:
-    resolution: {integrity: sha512-SEbJV7tohp3DAAILbEMPXavBjAnMN0tVnh4+9G8ihV4Pq3HYF9h8QNez9zkJ1ILkv9G2BjdzwctznGZXgu/HGw==}
-    engines: {node: ^18.17.0 || >=20.5.0}
+  read-cmd-shim@6.0.0:
+    resolution: {integrity: sha512-1zM5HuOfagXCBWMN83fuFI/x+T/UhZ7k+KIzhrHXcQoeX5+7gmaDYjELQHmmzIodumBHeByBJT4QYS7ufAgs7A==}
+    engines: {node: ^20.17.0 || >=22.9.0}
 
   read-pkg-up@7.0.1:
     resolution: {integrity: sha512-zK0TB7Xd6JpCLmlLmufqykGE+/TlOePD6qKClNW7hHDKFh/J7/7gCWGR7joEQEW1bKq3a3yUZSObOoWLFQ4ohg==}
@@ -4557,8 +4561,8 @@ packages:
   strip-literal@3.1.0:
     resolution: {integrity: sha512-8r3mkIM/2+PpjHoOtiAW8Rg3jJLHaV7xPwG+YRGrv6FP0wwk/toTpATxWYOW0BKdWwl82VT2tFYi5DlROa0Mxg==}
 
-  supabase@2.34.3:
-    resolution: {integrity: sha512-nMO7MFkw3ze/ScRt8S7AssNuBDbFeEsu2MTF2hol5T8HoAz5WgoLhhwCL5NUh8G0Jigpg88QIaDEPhHdNvv9TQ==}
+  supabase@2.70.5:
+    resolution: {integrity: sha512-HtMGtYbcL9dxi2Yz4eGWWlxl9nQi76pOyGgCTBeE67p5AeIlv+KJhDOR8oinaNfHHMPKk0Uo1WW7Kxyrz+tdgg==}
     engines: {npm: '>=8'}
     hasBin: true
 
@@ -4574,8 +4578,8 @@ packages:
     resolution: {integrity: sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==}
     engines: {node: '>= 0.4'}
 
-  systeminformation@5.29.0:
-    resolution: {integrity: sha512-d4H5A/8uuK/w1Ee6Rpp0HuelXv5TTcyyqikPlPUiIREDwDWmXxRMLQAE90jL09fejuIxwHcn1fxlpNiAhNpy6A==}
+  systeminformation@5.30.1:
+    resolution: {integrity: sha512-5zK8Sqqn71b0AoYKnj8nurrugOVogo4hBxAeQR9N0lbC5V+Fkw1hRBRWLaKxBmuvX8v4xH3cxifOJjlhQQW1lQ==}
     engines: {node: '>=8.0.0'}
     os: [darwin, linux, win32, freebsd, openbsd, netbsd, sunos, android]
     hasBin: true
@@ -4602,6 +4606,10 @@ packages:
 
   tar@7.4.3:
     resolution: {integrity: sha512-5S7Va8hKfV7W5U6g3aYxXmlPoZVAwUMy9AOKyF2fVuZa2UD3qZjg578OrLRt8PcNN1PleVaL/5/yYATNL0ICUw==}
+    engines: {node: '>=18'}
+
+  tar@7.5.2:
+    resolution: {integrity: sha512-7NyxrTE4Anh8km8iEy7o0QYPs+0JKBTj5ZaqHg6B39erLg0qYXN3BijtShwbsNSvQ+LN75+KV+C4QR/f6Gwnpg==}
     engines: {node: '>=18'}
 
   test-exclude@7.0.1:
@@ -4917,9 +4925,9 @@ packages:
   wrappy@1.0.2:
     resolution: {integrity: sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ==}
 
-  write-file-atomic@6.0.0:
-    resolution: {integrity: sha512-GmqrO8WJ1NuzJ2DrziEI2o57jKAVIQNf8a18W3nCYU3H7PNWqCCVTeH6/NQE93CIllIgQS98rrmVkYgTX9fFJQ==}
-    engines: {node: ^18.17.0 || >=20.5.0}
+  write-file-atomic@7.0.0:
+    resolution: {integrity: sha512-YnlPC6JqnZl6aO4uRc+dx5PHguiR9S6WeoLtpxNT9wIG+BDya7ZNE1q7KOjVgaA73hKhKLpVPgJ5QA9THQ5BRg==}
+    engines: {node: ^20.17.0 || >=22.9.0}
 
   ws@8.18.3:
     resolution: {integrity: sha512-PEIGCY5tSlUt50cqyMXfCzX+oOPqN0vuGqWzbcJ2xvnkzkq46oOpz7dQaTDBdfICb4N14+GARUDw2XV2N4tvzg==}
@@ -5166,7 +5174,7 @@ snapshots:
   '@biomejs/cli-win32-x64@2.1.2':
     optional: true
 
-  '@cypress/request@3.0.9':
+  '@cypress/request@3.0.10':
     dependencies:
       aws-sign2: 0.7.0
       aws4: 1.13.2
@@ -5181,7 +5189,7 @@ snapshots:
       json-stringify-safe: 5.0.1
       mime-types: 2.1.35
       performance-now: 2.1.0
-      qs: 6.14.0
+      qs: 6.14.1
       safe-buffer: 5.2.1
       tough-cookie: 5.1.2
       tunnel-agent: 0.6.0
@@ -6935,13 +6943,13 @@ snapshots:
     dependencies:
       tweetnacl: 0.14.5
 
-  bin-links@5.0.0:
+  bin-links@6.0.0:
     dependencies:
-      cmd-shim: 7.0.0
-      npm-normalize-package-bin: 4.0.0
-      proc-log: 5.0.0
-      read-cmd-shim: 5.0.0
-      write-file-atomic: 6.0.0
+      cmd-shim: 8.0.0
+      npm-normalize-package-bin: 5.0.0
+      proc-log: 6.1.0
+      read-cmd-shim: 6.0.0
+      write-file-atomic: 7.0.0
 
   binary-extensions@2.3.0:
     optional: true
@@ -7091,7 +7099,7 @@ snapshots:
       strip-ansi: 6.0.1
       wrap-ansi: 7.0.0
 
-  cmd-shim@7.0.0: {}
+  cmd-shim@8.0.0: {}
 
   color-convert@2.0.1:
     dependencies:
@@ -7162,9 +7170,9 @@ snapshots:
       shebang-command: 2.0.0
       which: 2.0.2
 
-  cypress@15.8.1:
+  cypress@15.8.2:
     dependencies:
-      '@cypress/request': 3.0.9
+      '@cypress/request': 3.0.10
       '@cypress/xvfb': 1.2.4(supports-color@8.1.1)
       '@types/sinonjs__fake-timers': 8.1.1
       '@types/sizzle': 2.3.10
@@ -7201,7 +7209,7 @@ snapshots:
       proxy-from-env: 1.0.0
       request-progress: 3.0.0
       supports-color: 8.1.1
-      systeminformation: 5.29.0
+      systeminformation: 5.30.1
       tmp: 0.2.5
       tree-kill: 1.2.2
       untildify: 4.0.0
@@ -8113,7 +8121,7 @@ snapshots:
   https-proxy-agent@7.0.6:
     dependencies:
       agent-base: 7.1.4
-      debug: 4.4.1
+      debug: 4.4.3(supports-color@8.1.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -8657,6 +8665,10 @@ snapshots:
     dependencies:
       minipass: 7.1.2
 
+  minizlib@3.1.0:
+    dependencies:
+      minipass: 7.1.2
+
   mkdirp-classic@0.5.3: {}
 
   mkdirp@1.0.4: {}
@@ -8726,7 +8738,7 @@ snapshots:
 
   normalize-range@0.1.2: {}
 
-  npm-normalize-package-bin@4.0.0: {}
+  npm-normalize-package-bin@5.0.0: {}
 
   npm-run-path@4.0.1:
     dependencies:
@@ -8987,7 +8999,7 @@ snapshots:
       ansi-styles: 5.2.0
       react-is: 18.3.1
 
-  proc-log@5.0.0: {}
+  proc-log@6.1.0: {}
 
   process-nextick-args@2.0.1: {}
 
@@ -9033,7 +9045,7 @@ snapshots:
 
   pure-rand@6.1.0: {}
 
-  qs@6.14.0:
+  qs@6.14.1:
     dependencies:
       side-channel: 1.1.0
 
@@ -9043,7 +9055,7 @@ snapshots:
 
   react-is@18.3.1: {}
 
-  read-cmd-shim@5.0.0: {}
+  read-cmd-shim@6.0.0: {}
 
   read-pkg-up@7.0.1:
     dependencies:
@@ -9457,12 +9469,12 @@ snapshots:
     dependencies:
       js-tokens: 9.0.1
 
-  supabase@2.34.3:
+  supabase@2.70.5:
     dependencies:
-      bin-links: 5.0.0
+      bin-links: 6.0.0
       https-proxy-agent: 7.0.6
       node-fetch: 3.3.2
-      tar: 7.4.3
+      tar: 7.5.2
     transitivePeerDependencies:
       - supports-color
 
@@ -9476,7 +9488,7 @@ snapshots:
 
   supports-preserve-symlinks-flag@1.0.0: {}
 
-  systeminformation@5.29.0: {}
+  systeminformation@5.30.1: {}
 
   tailwindcss@4.1.12: {}
 
@@ -9525,6 +9537,14 @@ snapshots:
       minipass: 7.1.2
       minizlib: 3.0.2
       mkdirp: 3.0.1
+      yallist: 5.0.0
+
+  tar@7.5.2:
+    dependencies:
+      '@isaacs/fs-minipass': 4.0.1
+      chownr: 3.0.0
+      minipass: 7.1.2
+      minizlib: 3.1.0
       yallist: 5.0.0
 
   test-exclude@7.0.1:
@@ -9907,7 +9927,7 @@ snapshots:
 
   wrappy@1.0.2: {}
 
-  write-file-atomic@6.0.0:
+  write-file-atomic@7.0.0:
     dependencies:
       imurmurhash: 0.1.4
       signal-exit: 4.1.0

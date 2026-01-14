@@ -56,24 +56,9 @@ jobs:
         env:
           CI: true
 
-  acceptance-e2e:
-    name: Acceptance Tests (E2E)
+  acceptance-cypress:
+    name: Acceptance Tests (Cypress)
     runs-on: ubuntu-latest
-
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: test
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
 
     steps:
       - name: Checkout code
@@ -94,24 +79,8 @@ jobs:
       - name: Build CSS
         run: pnpm css:build
 
-      - name: Run database migrations
-        run: pnpm db:migrate
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test
-
-      - name: Start server in background
-        run: |
-          pnpm dev &
-          echo $! > server.pid
-        env:
-          NODE_ENV: development
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test
-          SUPABASE_URL: http://localhost:54321
-
-      - name: Wait for server to be ready
-        run: |
-          timeout 60 bash -c 'until curl -f http://localhost:3000 > /dev/null 2>&1; do sleep 1; done'
-
+      # Supabase + server startup is managed by scripts/run-cypress-e2e.ts
+      # which uses Testcontainers for Supabase
       - name: Run Cypress tests
         run: pnpm test:acceptance:e2e
         env:
@@ -124,10 +93,3 @@ jobs:
           name: cypress-screenshots
           path: cypress/screenshots
           if-no-files-found: ignore
-
-      - name: Stop server
-        if: always()
-        run: |
-          if [ -f server.pid ]; then
-            kill $(cat server.pid) || true
-          fi

@@ -28,7 +28,7 @@
     "test": "vitest",
     "test:acceptance:in-memory": "vitest acceptance/channels/in-memory",
     "test:acceptance:drizzle": "vitest --config vitest.config.int.ts",
-    "test:acceptance:e2e": "cypress run",
+    "test:acceptance:e2e": "./node_modules/.bin/cypress run",
     "cypress:open": "cypress open",
     "cypress:run": "cypress run",
     "coverage": "vitest --coverage",
@@ -84,7 +84,7 @@
     "autoprefixer": "^10.4.21",
     "babel-plugin-annotate-pure-calls": "^0.4.0",
     "concurrently": "^9.2.1",
-    "cypress": "^15.8.1",
+    "cypress": "15.8.2",
     "drizzle-kit": "^0.31.4",
     "eslint": "^9.10.0",
     "eslint-import-resolver-typescript": "^3.6.3",
@@ -94,7 +94,7 @@
     "eslint-plugin-sort-destructure-keys": "^2.0.0",
     "pino-pretty": "^13.1.1",
     "postcss": "^8.5.6",
-    "supabase": "^2.34.3",
+    "supabase": "^2.70.5",
     "tailwindcss": "^4.1.12",
     "tsx": "^4.17.0",
     "typescript": "^5.6.2",
@@ -106,6 +106,7 @@
       "babel-plugin-annotate-pure-calls@0.4.0": "patches/babel-plugin-annotate-pure-calls@0.4.0.patch"
     },
     "onlyBuiltDependencies": [
+      "cypress",
       "esbuild",
       "supabase",
       "unrs-resolver"

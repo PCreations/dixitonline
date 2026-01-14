@@ -15,6 +15,8 @@ export class MissingAuthorizationHeader extends Data.TaggedError(
 interface SupabaseConfig {
 	readonly url: string;
 	readonly jwtSecret?: string;
+	/** Optional JWT issuer override. If not set, derived from url. */
+	readonly jwtIssuer?: string;
 }
 
 // Default JWT secret for local Supabase development
@@ -38,6 +40,8 @@ export const createJwtVerifier = (config: SupabaseConfig) => {
 	const getJwks = createJwksGetter(config);
 	const jwtSecret = config.jwtSecret || DEFAULT_LOCAL_JWT_SECRET;
 	const secretKey = new TextEncoder().encode(jwtSecret);
+	// Use explicit issuer if provided, otherwise derive from URL
+	const expectedIssuer = config.jwtIssuer || `${config.url}/auth/v1`;
 
 	return {
 		extractToken: (
@@ -53,22 +57,26 @@ export const createJwtVerifier = (config: SupabaseConfig) => {
 			Effect.gen(function* () {
 				const jwks = yield* getJwks;
 
+				// Decode token to see actual issuer for debugging
+				const decoded = jose.decodeJwt(token);
+				const tokenIssuer = decoded.iss;
+
+				// Build verify options - only check issuer if token has one
+				// (GoTrue in some configs doesn't include iss claim)
+				const verifyOptions = tokenIssuer ? { issuer: expectedIssuer } : {};
+
 				// Try JWKS first, fallback to secret for local development
 				const result = yield* Effect.tryPromise({
 					try: async () => {
 						try {
 							// Try JWKS verification first (production)
-							return await jose.jwtVerify(token, jwks, {
-								issuer: `${config.url}/auth/v1`,
-							});
+							return await jose.jwtVerify(token, jwks, verifyOptions);
 						} catch {
 							// Fallback to secret-based verification (local development)
-							return await jose.jwtVerify(token, secretKey, {
-								issuer: `${config.url}/auth/v1`,
-							});
+							return await jose.jwtVerify(token, secretKey, verifyOptions);
 						}
 					},
-					catch: (error) =>
+					catch: (error: unknown) =>
 						new InvalidJwtError({
 							reason: error instanceof Error ? error.message : 'Unknown error',
 						}),

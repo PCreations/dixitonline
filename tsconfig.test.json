@@ -12,5 +12,9 @@
   "include": [
     "**/*.test.ts",
     "src/game/tests/acceptance/create-game.usecase.spec.ts"
+  ],
+  "exclude": [
+    "src/game/tests/acceptance/channels/cypress/**/*",
+    "cypress/**/*"
   ]
 }

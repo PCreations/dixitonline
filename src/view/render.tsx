@@ -130,14 +130,21 @@ document.addEventListener('alpine:init', () => {
       this.error = null;
 
       try {
+        console.log('[DEBUG] Supabase URL:', window.supabase.supabaseUrl);
+        console.log('[DEBUG] Starting playAsGuest for:', this.guestUsername.trim());
+
         // Check username availability
         const check = await fetch('/api/auth/check-username?username=' + encodeURIComponent(this.guestUsername.trim()));
         const { available } = await check.json();
+        console.log('[DEBUG] Username available:', available);
         if (!available) throw new Error('Ce pseudo est déjà pris');
 
+        console.log('[DEBUG] Calling signInAnonymously...');
         const { data, error } = await window.supabase.auth.signInAnonymously({
           options: { data: { username: this.guestUsername.trim() } }
         });
+        console.log('[DEBUG] signInAnonymously result - data:', JSON.stringify(data, null, 2));
+        console.log('[DEBUG] signInAnonymously result - error:', JSON.stringify(error, null, 2));
         if (error) throw error;
 
         setAuthCookie(data.session?.access_token);
@@ -288,6 +295,8 @@ export function renderHtmlPage(title: string, body: string, options?: RenderHtml
     <script src="https://unpkg.com/htmx-ext-sse@2.2.2/sse.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
+      console.log('[DEBUG] Creating Supabase client with URL:', '${supabaseUrl}');
+      console.log('[DEBUG] Using publishable key:', '${supabasePublishableKey}'.substring(0, 50) + '...');
       window.supabase = window.supabase.createClient('${supabaseUrl}', '${supabasePublishableKey}');
     </script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>

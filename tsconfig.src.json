@@ -1,6 +1,7 @@
 {
   "extends": "./tsconfig.base.json",
   "include": ["src", "src/**/*.json"],
+  "exclude": ["src/game/tests/acceptance/channels/cypress/**/*"],
   "compilerOptions": {
     "types": ["node"],
     "outDir": "build/src",

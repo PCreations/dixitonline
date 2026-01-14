@@ -21,7 +21,7 @@ export function LoginForm({ variant }: LoginFormProps) {
   return (
     <div x-data="loginForm()" className={formClass}>
       {/* Section 1: Jouer en tant qu'invité */}
-      <div className="login-section">
+      <form id="guest-form" className="login-section" {...{ '@submit.prevent': 'playAsGuest()' }}>
         <h3 className="login-section-title">Jouer en tant qu'invité</h3>
         <div className="login-field">
           <input
@@ -39,22 +39,21 @@ export function LoginForm({ variant }: LoginFormProps) {
           />
         </div>
         <button
-          type="button"
+          type="submit"
           className={buttonClass}
-          {...{ '@click': 'playAsGuest()' }}
           {...{ ':disabled': 'loading' }}
         >
           <span x-show="!loading">Commencer à jouer</span>
           <span x-show="loading">Chargement...</span>
         </button>
-      </div>
+      </form>
 
       <div className="login-divider">
         <span>ou</span>
       </div>
 
       {/* Section 2: S'inscrire / Se connecter */}
-      <div className="login-section">
+      <form id="auth-form" className="login-section" {...{ '@submit.prevent': 'sendMagicLink()' }}>
         <h3 className="login-section-title">S'inscrire / Se connecter</h3>
         <div className="login-field">
           <input
@@ -70,9 +69,8 @@ export function LoginForm({ variant }: LoginFormProps) {
           />
         </div>
         <button
-          type="button"
+          type="submit"
           className={buttonClass}
-          {...{ '@click': 'sendMagicLink()' }}
           {...{ ':disabled': 'loading' }}
         >
           <span x-show="!loading">Recevoir un magic link</span>
@@ -84,7 +82,7 @@ export function LoginForm({ variant }: LoginFormProps) {
           className="login-success"
           x-text="successMessage"
         />
-      </div>
+      </form>
 
       {/* Global error */}
       <p x-show="error" className="login-error" x-text="error" />
