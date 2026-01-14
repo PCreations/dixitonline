@@ -73,13 +73,18 @@ jobs:
           node-version: '22'
           cache: 'pnpm'
 
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build TypeScript
+        run: pnpm build
+
       # Supabase + server startup is handled by cypress.config.ts hooks
       # using Testcontainers for isolated Supabase environment
       - name: Cypress run
         uses: cypress-io/github-action@v6
         with:
-          install-command: pnpm install --frozen-lockfile
-          build: pnpm build
+          install: false
         env:
           CI: true
 
