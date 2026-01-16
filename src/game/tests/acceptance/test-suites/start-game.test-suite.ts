@@ -1,6 +1,6 @@
 import { describe, it } from '@effect/vitest';
 import { Effect } from 'effect';
-import { PlayersRandomizeStrategy } from '../../../game.entity.js';
+import { PlayersRandomizeStrategy, PlayersRandomizeStrategyType } from '../../../game.entity.js';
 import { PlayerId } from '../../../player.entity.js';
 import { GameBuilder } from '../../game.builder.js';
 import { GameDriver, type GameDriverLayer } from '../../game.driver.js';
@@ -8,7 +8,7 @@ import { defaultIdFactory, type IdFactory } from './create-game.test-suite.js';
 
 export const startGameTestSuite = (
   makeGameDriverTestLayer: (options?: {
-    randomizeStrategy?: PlayersRandomizeStrategy;
+    randomizeStrategy?: PlayersRandomizeStrategyType;
   }) => GameDriverLayer,
   idFactory: IdFactory = defaultIdFactory,
 ) => {
