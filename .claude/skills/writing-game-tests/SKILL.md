@@ -223,7 +223,8 @@ it.effect("Example: lobby phase projection", () => {
 ## File Locations
 
 - Tests: `src/game/tests/{feature}.test.ts`
-- Driver: [game.driver.ts](src/game/tests/game.driver.ts)
+- Driver Interface: [game-driver.interface.ts](src/game/tests/game-driver.interface.ts)
+- Driver Implementation: [game.driver.ts](src/game/tests/game.driver.ts)
 - Builder: [game.builder.ts](src/game/tests/game.builder.ts)
 
 ## Checklist
@@ -233,3 +234,17 @@ it.effect("Example: lobby phase projection", () => {
 3. Use `it.effect()` for Effect-based tests
 4. Follow Given/When/Then pattern
 5. End with `.pipe(Effect.provide(makeGameDriverTestLayer()))`
+
+## Multi-Channel Testing
+
+For tests that need to run across multiple channels (in-memory, PostgreSQL, Playwright E2E), see the **four-layer-testing** skill which explains the test-cases/test-suites architecture:
+
+```
+src/game/tests/acceptance/
+├── test-cases/     # Pure Effect programs (runner-agnostic)
+├── test-suites/    # Vitest adapters
+└── channels/       # Channel-specific test files
+    ├── in-memory/
+    ├── drizzle/
+    └── playwright/
+```

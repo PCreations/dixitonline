@@ -11,104 +11,261 @@ This testing approach separates concerns into 4 distinct layers, making tests re
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  Layer 1: TEST SUITE                                        │
-│  *.test.ts - Acceptance tests in business language          │
-│  Uses: Given/When/Then pattern with Driver DSL              │
+│  Layer 1: TEST CASES (Pure Effect Programs)                 │
+│  test-cases/*.ts - Test logic as reusable Effect programs   │
+│  Runner-agnostic: works with Vitest, Playwright, etc.       │
 ├─────────────────────────────────────────────────────────────┤
-│  Layer 2: DSL (Domain-Specific Language)                    │
+│  Layer 2: TEST SUITES (Runner Adapters)                     │
+│  test-suites/*.ts - Wraps test cases with runner (vitest)   │
+│  channels/playwright/*.spec.ts - Playwright adapter         │
+├─────────────────────────────────────────────────────────────┤
+│  Layer 3: DSL + DRIVER                                      │
 │  {Module}DriverDSL interface - given/when/assert namespaces │
-│  Exposes: Business-level operations                         │
-├─────────────────────────────────────────────────────────────┤
-│  Layer 3: DRIVER                                            │
-│  {Module}Driver implementation - Translates DSL to actions  │
-│  Uses: Use cases, repositories, error capture               │
+│  Multiple implementations: InMemory, Drizzle, Playwright    │
 ├─────────────────────────────────────────────────────────────┤
 │  Layer 4: APPLICATION                                       │
-│  Use cases, entities, repositories (in-memory for tests)    │
+│  Use cases, entities, repositories                          │
 │  The actual business logic being tested                     │
 └─────────────────────────────────────────────────────────────┘
 ```
 
+## Multi-Channel Architecture
+
+Tests can run against different "channels" (infrastructure implementations):
+
+```
+                    ┌─────────────────────────┐
+                    │   Test Cases            │
+                    │   (Pure Effect programs)│
+                    └───────────┬─────────────┘
+                                │
+        ┌───────────────────────┼───────────────────────┐
+        │                       │                       │
+        ▼                       ▼                       ▼
+┌───────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│  In-Memory    │     │    Drizzle      │     │   Playwright    │
+│  Channel      │     │    Channel      │     │   E2E Channel   │
+│  (unit tests) │     │  (integration)  │     │  (browser UI)   │
+└───────────────┘     └─────────────────┘     └─────────────────┘
+        │                       │                       │
+        ▼                       ▼                       ▼
+   InMemoryRepo           PostgreSQL              Browser + API
+```
+
 ## Files Structure
 
-For a module named `player`:
+For a module named `game`:
 
 ```
-src/player/
-├── player.entity.ts           # Domain entity
-├── player.repository.ts       # Repository interface + InMemory
-├── ensure-player-exists.usecase.ts
-├── index.ts                   # Layer exports
+src/game/
+├── game.entity.ts
+├── game.repository.ts
+├── create-game.usecase.ts
+├── index.ts
 └── tests/
-    ├── player.driver.ts       # Driver + DSL + Test Layer factory
-    ├── player.builder.ts      # Optional: fluent builder for scenarios
-    ├── player.entity.test.ts  # Unit tests (no driver needed)
-    └── ensure-player-exists.usecase.test.ts  # Acceptance tests
+    ├── game-driver.interface.ts     # DSL interface (runner-agnostic)
+    ├── game.driver.ts               # In-memory driver implementation
+    ├── game.builder.ts              # Fluent builder for scenarios
+    │
+    └── acceptance/
+        ├── test-cases/              # Pure Effect programs
+        │   └── create-game.test-cases.ts
+        │
+        ├── test-suites/             # Vitest adapters
+        │   └── create-game.test-suite.ts
+        │
+        └── channels/
+            ├── in-memory/           # Unit tests (fast, no I/O)
+            │   └── create-game.usecase.test.ts
+            │
+            ├── drizzle/             # Integration tests (PostgreSQL)
+            │   └── create-game.usecase.int.test.ts
+            │
+            └── playwright/          # E2E tests (browser)
+                ├── playwright-game.driver.ts
+                ├── playwright-test-utils.ts
+                └── create-game.spec.ts
 ```
 
-## Layer 1: Test Suite
+## Layer 1: Test Cases (Pure Effect Programs)
 
-Tests are written in business language using Given/When/Then:
+Test cases are **pure Effect programs** that are completely runner-agnostic. They can be executed with Vitest, Playwright, or any other test runner.
 
 ```typescript
-import { describe, it } from "@effect/vitest";
-import { Effect } from "effect";
-import { PlayerDriver, makePlayerDriverTestLayer } from "./player.driver.js";
+// test-cases/create-game.test-cases.ts
+import { Effect } from 'effect';
+import { GameDriver } from '../../game-driver.interface.js';
+import type { IdFactory } from '../test-suites/create-game.test-suite.js';
 
-describe("Feature: Ensuring player exists", () => {
-  it.effect("Example: Creating a new player when not exists", () =>
-    Effect.gen(function* () {
-      const driver = yield* PlayerDriver;
+export interface TestCase<R = GameDriver> {
+  readonly name: string;
+  readonly program: (idFactory: IdFactory) => Effect.Effect<void, unknown, R>;
+  /**
+   * Skip this test in certain channels.
+   * E.g., custom deck selection is not available in Playwright UI.
+   */
+  readonly skipChannels?: ReadonlyArray<'playwright' | 'in-memory' | 'drizzle'>;
+}
 
-      // GIVEN - Setup (optional, may be empty)
-      // No existing player
+export const createGameTestCases: ReadonlyArray<TestCase> = [
+  {
+    name: 'Creating a new game with the default deck and settings',
+    program: (idFactory) =>
+      Effect.gen(function* () {
+        const gameDriver = yield* GameDriver;
 
-      // WHEN - Action
-      yield* driver.when.ensuringPlayerExists({
-        playerId: "player-1",
-        username: "Alice",
-        isAnonymous: true,
+        // GIVEN
+        yield* gameDriver.given.defaultDeck({
+          id: idFactory.deckId(1),
+        });
+
+        // WHEN
+        yield* gameDriver.when.creatingGame({
+          gameId: idFactory.gameId(1),
+          hostId: idFactory.playerId(1),
+        });
+
+        // THEN
+        yield* gameDriver.assert.createdGameToEqual({
+          id: idFactory.gameId(1),
+          createdBy: idFactory.playerId(1),
+          deckId: idFactory.deckId(1),
+          players: [idFactory.playerId(1)],
+        });
+      }),
+  },
+  {
+    name: 'Creating a new game with a custom deck',
+    skipChannels: ['playwright'], // Custom deck selection not available in UI
+    program: (idFactory) =>
+      Effect.gen(function* () {
+        const gameDriver = yield* GameDriver;
+        yield* gameDriver.given.existingDeck({ id: idFactory.deckId(2) });
+        yield* gameDriver.when.creatingGame({
+          gameId: idFactory.gameId(1),
+          hostId: idFactory.playerId(1),
+          deckId: idFactory.deckId(2),
+        });
+        yield* gameDriver.assert.createdGameToEqual({
+          id: idFactory.gameId(1),
+          createdBy: idFactory.playerId(1),
+          deckId: idFactory.deckId(2),
+          players: [idFactory.playerId(1)],
+        });
+      }),
+  },
+];
+```
+
+### IdFactory Pattern
+
+The `IdFactory` generates IDs appropriate for each channel:
+
+```typescript
+// For in-memory tests: simple string IDs
+export const defaultIdFactory: IdFactory = {
+  gameId: (id) => `id-game-${id}`,
+  playerId: (id) => `id-player-${id}`,
+  deckId: (id) => `id-deck-${id}`,
+};
+
+// For PostgreSQL/Playwright: valid UUIDs
+import { gameId, playerId, deckId } from '../uuid-test-helper.js';
+
+export const uuidIdFactory: IdFactory = {
+  gameId: (id) => gameId(Number(id)),     // "00000000-0000-0000-0000-000000000001"
+  playerId: (id) => playerId(Number(id)), // "10000000-0000-0000-0000-000000000001"
+  deckId: (id) => deckId(Number(id)),     // "20000000-0000-0000-0000-000000000001"
+};
+```
+
+## Layer 2: Test Suites (Runner Adapters)
+
+Test suites wrap test cases with a specific test runner.
+
+### Vitest Adapter (for in-memory and drizzle channels)
+
+```typescript
+// test-suites/create-game.test-suite.ts
+import { describe, it } from '@effect/vitest';
+import { Effect } from 'effect';
+import type { GameDriverLayer } from '../../game.driver.js';
+import { createGameTestCases } from '../test-cases/create-game.test-cases.js';
+
+export interface IdFactory {
+  gameId: (id: string | number) => string;
+  playerId: (id: string | number) => string;
+  deckId: (id: string | number) => string;
+}
+
+export const createGameTestSuite = (
+  makeGameDriverTestLayer: () => GameDriverLayer,
+  idFactory: IdFactory = defaultIdFactory,
+) => {
+  describe('Feature: Creating a new game', () => {
+    for (const testCase of createGameTestCases) {
+      it.effect(`Example: ${testCase.name}`, () => {
+        return testCase
+          .program(idFactory)
+          .pipe(Effect.provide(makeGameDriverTestLayer()));
       });
+    }
+  });
+};
+```
 
-      // THEN - Assertions
-      yield* driver.assert.playerToExist({
-        playerId: "player-1",
-        username: "Alice",
-      });
-    }).pipe(Effect.provide(makePlayerDriverTestLayer())),
-  );
+### Playwright Adapter (for E2E channel)
 
-  it.effect("Example: Updating username when player exists", () =>
-    Effect.gen(function* () {
-      const driver = yield* PlayerDriver;
+```typescript
+// channels/playwright/create-game.spec.ts
+import { test } from '@playwright/test';
+import { Effect } from 'effect';
+import { GameDriver } from '../../../game-driver.interface.js';
+import { createGameTestCases } from '../../test-cases/create-game.test-cases.js';
+import { makePlaywrightGameDriver } from './playwright-game.driver.js';
 
-      // GIVEN
-      yield* driver.given.existingPlayer({
-        playerId: "player-1",
-        username: "Alice",
-        isAnonymous: true,
-      });
+// Each test gets unique IDs to avoid conflicts
+const createUuidIdFactory = (testIndex: number): IdFactory => {
+  const offset = testIndex * 100;
+  return {
+    gameId: (id) => gameId(Number(id) + offset),
+    playerId: (id) => playerId(Number(id) + offset),
+    deckId: (id) => deckId(Number(id) + offset),
+  };
+};
 
-      // WHEN
-      yield* driver.when.ensuringPlayerExists({
-        playerId: "player-1",
-        username: "Alicia",  // New username
-        isAnonymous: true,
-      });
+test.describe('E2E: Create Game', () => {
+  test.beforeEach(async () => {
+    await resetDatabase(); // Reset game data between tests
+  });
 
-      // THEN
-      yield* driver.assert.playerToHaveUsername({
-        playerId: "player-1",
-        username: "Alicia",
-      });
-    }).pipe(Effect.provide(makePlayerDriverTestLayer())),
-  );
+  let testIndex = 0;
+  for (const testCase of createGameTestCases) {
+    const currentTestIndex = testIndex++;
+
+    // Skip tests not supported via Playwright
+    if (testCase.skipChannels?.includes('playwright')) {
+      test.skip(`Example: ${testCase.name}`, () => {});
+      continue;
+    }
+
+    test(`Example: ${testCase.name}`, async ({ page }) => {
+      const driver = makePlaywrightGameDriver(page);
+      const uuidIdFactory = createUuidIdFactory(currentTestIndex);
+
+      await Effect.runPromise(
+        testCase.program(uuidIdFactory).pipe(
+          Effect.provideService(GameDriver, driver as any),
+        ),
+      );
+    });
+  }
 });
 ```
 
-## Layer 2: DSL Interface
+## Layer 3: DSL Interface
 
-Define business-level operations:
+The DSL interface is defined **without test framework dependencies**. Define business-level operations:
 
 ```typescript
 interface PlayerDriverDSL {
@@ -415,30 +572,166 @@ build(driver: DriverDSL): Effect.Effect<void> {
 }
 ```
 
+## Playwright Driver Implementation
+
+For E2E testing, implement a driver that uses browser interactions via Playwright:
+
+```typescript
+// channels/playwright/playwright-game.driver.ts
+import { Effect, Option } from 'effect';
+import type { Page } from '@playwright/test';
+import type { GameDriverDSL } from '../../game-driver.interface.js';
+
+const BASE_URL = process.env.BASE_URL || 'http://localhost:3010';
+
+export const makePlaywrightGameDriver = (page: Page): GameDriverDSL => {
+  const testState = {
+    currentError: Option.none<Error>(),
+    failFast: false,
+  };
+
+  // Helper for HTTP backdoor calls (setup data not available in UI)
+  const httpPost = <T>(url: string, body: object): Effect.Effect<T, Error> =>
+    Effect.tryPromise({
+      try: async () => {
+        const response = await fetch(`${BASE_URL}${url}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return response.json() as T;
+      },
+      catch: (e) => new Error(String(e)),
+    });
+
+  // Helper for UI interactions
+  const uiAction = (fn: () => Promise<void>): Effect.Effect<void, Error> =>
+    Effect.tryPromise({ try: fn, catch: (e) => new Error(String(e)) });
+
+  const given: GameDriverDSL['given'] = {
+    // Use backdoor API for data setup (no UI for decks)
+    defaultDeck: (props) =>
+      httpPost('/api/test/setup/deck', { ...props, isDefault: true }),
+
+    existingDeck: (props) =>
+      httpPost('/api/test/setup/deck', props),
+  };
+
+  const when: GameDriverDSL['when'] = {
+    // Use UI for actual user actions
+    creatingGame: (props) =>
+      uiAction(async () => {
+        await page.goto(`${BASE_URL}`);
+        await page.fill('input[placeholder="Pseudo"]', props.hostId);
+        await page.click('button[type="submit"]');
+        await page.click('text=Créer une partie');
+        await page.click('button:has-text("Créer la partie")');
+        await page.waitForURL(/\/game\/.*\/lobby/);
+      }).pipe(
+        Effect.catchAll((error) => {
+          if (testState.failFast) {
+            return Effect.die(new Error(`[PlaywrightDriver] ${error.message}`));
+          }
+          testState.currentError = Option.some(error);
+          return Effect.succeed(void 0);
+        }),
+      ),
+  };
+
+  const assert: GameDriverDSL['assert'] = {
+    createdGameToEqual: (expected) =>
+      uiAction(async () => {
+        const { expect } = await import('@playwright/test');
+        await expect(page.locator('[data-testid="host-name"]'))
+          .toContainText(expected.createdBy);
+        await expect(page.locator('[data-testid="player-count"]'))
+          .toContainText(`${expected.players.length}/6`);
+      }),
+  };
+
+  return { given, when, assert };
+};
+```
+
+### Backdoor API Pattern
+
+Some test setup cannot be done via UI (e.g., creating decks). Use backdoor API routes:
+
+```typescript
+// src/http/routes/test.routes.ts (only in non-production)
+if (process.env.NODE_ENV !== 'production') {
+  fastify.post('/api/test/setup/deck', async (request) => {
+    // Create deck directly in database
+  });
+}
+```
+
 ## Checklist for New Module
 
+### Basic Setup (Single Channel)
+
 1. [ ] Create `tests/` folder in module
-2. [ ] Create `{module}.driver.ts`:
+2. [ ] Create `{module}-driver.interface.ts`:
    - [ ] Define `{Module}DriverDSL` interface with `given`/`when`/`assert`
    - [ ] Create `{Module}Driver` Effect Tag
+3. [ ] Create `{module}.driver.ts`:
    - [ ] Implement `make{Module}Driver()` factory
    - [ ] Implement `make{Module}DriverTestLayer()` layer factory
-3. [ ] Optional: Create `{module}.builder.ts` for complex scenarios
-4. [ ] Create test files: `{feature}.test.ts`
-5. [ ] Follow Given/When/Then pattern in all tests
-6. [ ] End each test with `.pipe(Effect.provide(make{Module}DriverTestLayer()))`
+4. [ ] Optional: Create `{module}.builder.ts` for complex scenarios
+5. [ ] Create test files: `{feature}.usecase.test.ts`
+
+### Multi-Channel Setup (In-Memory + Drizzle + Playwright)
+
+1. [ ] Create `tests/acceptance/` folder structure:
+   ```
+   tests/acceptance/
+   ├── test-cases/           # Pure Effect programs
+   ├── test-suites/          # Vitest adapters
+   └── channels/
+       ├── in-memory/
+       ├── drizzle/
+       └── playwright/
+   ```
+2. [ ] Create test cases in `test-cases/{feature}.test-cases.ts`:
+   - [ ] Define `TestCase` interface with `name`, `program`, optional `skipChannels`
+   - [ ] Export test cases as `ReadonlyArray<TestCase>`
+3. [ ] Create test suite in `test-suites/{feature}.test-suite.ts`:
+   - [ ] Define `IdFactory` interface
+   - [ ] Create suite function that iterates over test cases
+4. [ ] Create channel-specific files:
+   - [ ] `channels/in-memory/{feature}.usecase.test.ts`
+   - [ ] `channels/drizzle/{feature}.usecase.int.test.ts`
+   - [ ] `channels/playwright/{feature}.spec.ts`
+5. [ ] Create Playwright driver if needed:
+   - [ ] `channels/playwright/playwright-{module}.driver.ts`
+   - [ ] Use `uiAction()` helper for browser interactions
+   - [ ] Use `httpPost()` helper for backdoor API calls
 
 ## Examples
 
-- [GameDriver](src/game/tests/game.driver.ts) - Complete driver with DSL
-- [GameBuilder](src/game/tests/game.builder.ts) - Fluent builder for complex game scenarios
-- [join-game.usecase.test.ts](src/game/tests/join-game.usecase.test.ts) - Simple tests
-- [submit-clue.usecase.test.ts](src/game/tests/submit-clue.usecase.test.ts) - Tests with builder
+### Multi-Channel Architecture (Recommended)
+
+- [create-game.test-cases.ts](src/game/tests/acceptance/test-cases/create-game.test-cases.ts) - Pure Effect test cases
+- [create-game.test-suite.ts](src/game/tests/acceptance/test-suites/create-game.test-suite.ts) - Vitest adapter
+- [channels/in-memory/create-game.usecase.test.ts](src/game/tests/acceptance/channels/in-memory/create-game.usecase.test.ts) - In-memory tests
+- [channels/drizzle/create-game.usecase.int.test.ts](src/game/tests/acceptance/channels/drizzle/create-game.usecase.int.test.ts) - Integration tests
+- [channels/playwright/create-game.spec.ts](src/game/tests/acceptance/channels/playwright/create-game.spec.ts) - E2E tests
+- [channels/playwright/playwright-game.driver.ts](src/game/tests/acceptance/channels/playwright/playwright-game.driver.ts) - Playwright driver
+
+### Core Components
+
+- [game-driver.interface.ts](src/game/tests/game-driver.interface.ts) - DSL interface definition
+- [game.driver.ts](src/game/tests/game.driver.ts) - In-memory driver implementation
+- [game.builder.ts](src/game/tests/game.builder.ts) - Fluent builder for complex game scenarios
 
 ## Benefits
 
-1. **Readability**: Tests read like specifications
-2. **Maintainability**: Change implementation without changing tests
-3. **Reusability**: DSL actions compose for complex scenarios
+1. **Readability**: Tests read like specifications with Given/When/Then
+2. **Maintainability**: Change implementation without changing test logic
+3. **Reusability**: Same test cases run across all channels (in-memory, PostgreSQL, browser)
 4. **Isolation**: In-memory implementations ensure fast, deterministic tests
 5. **Debugging**: Error capture pattern shows what failed without stack traces
+6. **Multi-Channel**: Write once, test at multiple levels (unit, integration, E2E)
+7. **Skip Pattern**: Use `skipChannels` to exclude tests not available in certain channels
+8. **Type-safe**: Effect provides compile-time guarantees on test structure
