@@ -56,8 +56,8 @@ jobs:
         env:
           CI: true
 
-  acceptance-cypress:
-    name: Acceptance Tests (Cypress)
+  acceptance-playwright:
+    name: Acceptance Tests (Playwright E2E)
     runs-on: ubuntu-latest
 
     steps:
@@ -76,33 +76,31 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Install Cypress binary
-        run: npx cypress install
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
 
       - name: Build TypeScript
         run: pnpm build
 
-      # Supabase + server startup is handled by cypress.config.ts hooks
+      # Supabase + server startup is handled by playwright.global-setup.ts
       # using Testcontainers for isolated Supabase environment
-      - name: Cypress run
-        uses: cypress-io/github-action@v6
-        with:
-          install: false
+      - name: Run Playwright tests
+        run: pnpm playwright test
         env:
           CI: true
 
-      - name: Upload Cypress screenshots on failure
+      - name: Upload Playwright report on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: cypress-screenshots
-          path: cypress/screenshots
+          name: playwright-report
+          path: playwright-report/
           if-no-files-found: ignore
 
-      - name: Upload Cypress videos on failure
+      - name: Upload test results on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: cypress-videos
-          path: cypress/videos
+          name: test-results
+          path: test-results/
           if-no-files-found: ignore

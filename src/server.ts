@@ -38,6 +38,7 @@ import {
   gameLobbyRoutes,
   gamePlayRoutes,
   homeRoutes,
+  testRoutes,
 } from './http/routes/index.js';
 import { Database } from './infra/db/database.service.js';
 import { TracingLive } from './infra/observability/index.js';
@@ -212,6 +213,7 @@ await fastify.register(gameCreateRoutes, { prefix: '/game' });
 await fastify.register(gameLobbyRoutes, { prefix: '/game' });
 await fastify.register(gamePlayRoutes, { prefix: '/game' });
 await fastify.register(gameEventsRoutes, { prefix: '/game' });
+await fastify.register(testRoutes, { prefix: '/api/test' });
 
 // Start server
 try {

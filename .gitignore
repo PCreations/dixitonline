@@ -18,7 +18,9 @@ scratchpad/*
 .env.production.local
 /supabase/
 
-# Cypress
-cypress/screenshots/
-cypress/videos/
-cypress/downloads/
+# Playwright
+.playwright-temp/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

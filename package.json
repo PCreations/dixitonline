@@ -28,9 +28,9 @@
     "test": "vitest",
     "test:acceptance:in-memory": "vitest acceptance/channels/in-memory",
     "test:acceptance:drizzle": "vitest --config vitest.config.int.ts",
-    "test:acceptance:e2e": "./node_modules/.bin/cypress run",
-    "cypress:open": "cypress open",
-    "cypress:run": "cypress run",
+    "test:acceptance:e2e": "./node_modules/.bin/playwright test",
+    "playwright": "playwright test",
+    "playwright:ui": "playwright test --ui",
     "coverage": "vitest --coverage",
     "clean": "rm -rf dist build .tsbuildinfo",
     "db:generate": "tsx node_modules/drizzle-kit/bin.cjs generate",
@@ -75,6 +75,7 @@
     "@eslint/compat": "1.1.1",
     "@eslint/eslintrc": "3.1.0",
     "@eslint/js": "9.10.0",
+    "@playwright/test": "^1.57.0",
     "@tailwindcss/cli": "^4.1.12",
     "@types/node": "^22.5.2",
     "@types/pg": "^8.15.6",
@@ -84,7 +85,6 @@
     "autoprefixer": "^10.4.21",
     "babel-plugin-annotate-pure-calls": "^0.4.0",
     "concurrently": "^9.2.1",
-    "cypress": "15.8.2",
     "drizzle-kit": "^0.31.4",
     "eslint": "^9.10.0",
     "eslint-import-resolver-typescript": "^3.6.3",
@@ -106,7 +106,6 @@
       "babel-plugin-annotate-pure-calls@0.4.0": "patches/babel-plugin-annotate-pure-calls@0.4.0.patch"
     },
     "onlyBuiltDependencies": [
-      "cypress",
       "esbuild",
       "supabase",
       "unrs-resolver"
