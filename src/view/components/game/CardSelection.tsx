@@ -1,9 +1,9 @@
 /** @jsx h */
-import { h } from 'preact';
+/** @jsxFrag Fragment */
+import { Fragment, h } from 'preact';
 import type { SelectingCardsAsGuesserView } from '../../view-models/game.view-model.js';
 import { Card } from '../Card.js';
 import { ClueDisplay } from './ClueDisplay.js';
-import { PlayerStatusList } from './PlayerStatusList.js';
 
 interface CardSelectionProps {
   readonly view: SelectingCardsAsGuesserView;
@@ -19,61 +19,73 @@ export function CardSelection({ view }: CardSelectionProps) {
         </div>
 
         <ClueDisplay clue={view.clue} storytellerName={view.storyteller.name} />
-
-        <PlayerStatusList players={view.playersStatus} />
       </div>
     );
   }
 
   return (
-    <div className="card-selection">
-      <div className="phase-instructions">
-        <h2 className="phase-title">Choisis une carte !</h2>
-        <p className="phase-description">
-          Sélectionne une carte de ta main qui correspond à l'indice. Les autres
-          joueurs devront deviner quelle est la carte du conteur.
-        </p>
-      </div>
-
-      <ClueDisplay clue={view.clue} storytellerName={view.storyteller.name} />
-
-      <form
-        hx-post={view.action.url}
-        hx-target="#game-content"
-        hx-swap="innerHTML"
-        x-data="{ selectedCard: null }"
-        className="card-selection-form"
-      >
-        <input type="hidden" name="cardId" x-bind:value="selectedCard" />
-
-        <div className="hand-cards">
-          <p className="hand-label">Choisis une carte :</p>
-          <div className="cards-grid">
-            {view.hand.map((card) => (
-              <div
-                key={card.id}
-                className="card-selectable"
-                x-on:click={`selectedCard = '${card.id}'`}
-                x-bind:class={`selectedCard === '${card.id}' ? 'card-selected' : ''`}
-              >
-                <Card id={card.id} url={card.url} />
-              </div>
-            ))}
-          </div>
+    <>
+      <div className="card-selection">
+        <div className="phase-instructions">
+          <h2 className="phase-title">Choisis une carte !</h2>
+          <p className="phase-description">
+            Sélectionne une carte de ta main qui correspond à l'indice. Les
+            autres joueurs devront deviner quelle est la carte du conteur.
+          </p>
         </div>
 
-        <button
-          type="submit"
-          className="btn btn-primary"
-          x-bind:disabled="!selectedCard"
-        >
-          <SelectIcon />
-          {view.action.label}
-        </button>
-      </form>
+        <ClueDisplay clue={view.clue} storytellerName={view.storyteller.name} />
 
-      <PlayerStatusList players={view.playersStatus} />
-    </div>
+        <p className="hand-label">Clique sur une carte pour la choisir :</p>
+      </div>
+
+      <div className="game-cards">
+        {view.hand.map((card, index) => (
+          <Card
+            key={card.id}
+            id={card.id}
+            url={card.url}
+            index={index}
+            total={view.hand.length}
+            modalContent={
+              <SelectCardForm cardId={card.id} action={view.action} />
+            }
+          />
+        ))}
+      </div>
+    </>
+  );
+}
+
+interface SelectCardFormProps {
+  readonly cardId: string;
+  readonly action: SelectingCardsAsGuesserView['action'];
+}
+
+function SelectCardForm({ cardId, action }: SelectCardFormProps) {
+  return (
+    <form
+      hx-post={action.url}
+      hx-target="#game-content"
+      hx-swap="innerHTML"
+      className="modal-select-form"
+    >
+      <input type="hidden" name="cardId" value={cardId} />
+
+      <div className="modal-actions">
+        <button
+          type="button"
+          className="btn btn-secondary"
+          x-on:click="modalOpen = false"
+        >
+          Annuler
+        </button>
+        <button type="submit" className="btn btn-primary">
+          <SelectIcon />
+          {action.label}
+        </button>
+      </div>
+    </form>
   );
 }
 
