@@ -45,7 +45,17 @@
       "Bash(./node_modules/.bin/cypress run:*)",
       "Bash(ELECTRON_EXTRA_LAUNCH_ARGS=\"\" ./node_modules/.bin/cypress run:*)",
       "Bash(xargs:*)",
-      "Bash(pnpm lint-fix:*)"
+      "Bash(pnpm lint-fix:*)",
+      "Bash(mgrep:*)",
+      "Bash(npx playwright install:*)",
+      "Bash(pnpm exec playwright install:*)",
+      "Bash(pnpm playwright test:*)",
+      "Bash(./node_modules/.bin/playwright test:*)",
+      "Bash(kill:*)",
+      "Bash(pnpm playwright:*)",
+      "Bash(mkdir:*)",
+      "Bash(pnpm clean:*)",
+      "Bash(grep:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
