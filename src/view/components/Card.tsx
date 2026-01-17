@@ -5,10 +5,53 @@ import { CardBack } from './CardBack.js';
 interface CardProps {
   id?: string;
   url?: string;
+  /** Index in the fan (0-based) */
+  index?: number;
+  /** Total cards in the fan */
+  total?: number;
 }
 
-export function Card({ id, url }: CardProps) {
+/**
+ * Calculate fan transform based on position
+ */
+function getFanTransform(
+  index: number,
+  total: number,
+): { transform: string; zIndex: number } {
+  // Position from center: -1 = far left, 0 = center, 1 = far right
+  const center = (total - 1) / 2;
+  const offset = index - center;
+  const maxOffset = center || 1;
+
+  // Normalize offset to -1...1 range
+  const normalizedOffset = offset / maxOffset;
+
+  // Calculate rotation (-15 to 15 degrees)
+  const rotation = normalizedOffset * 15;
+
+  // Calculate scale (1 at center, 0.8 at edges)
+  const scale = 1 - Math.abs(normalizedOffset) * 0.2;
+
+  // Calculate vertical offset (0 at center, 30px at edges)
+  const translateY = Math.abs(normalizedOffset) * 30;
+
+  // Z-index: higher for center cards
+  const zIndex = Math.round((1 - Math.abs(normalizedOffset)) * 10);
+
+  return {
+    transform: `scale(${scale.toFixed(2)}) rotate(${rotation.toFixed(1)}deg) translateY(${translateY.toFixed(0)}px)`,
+    zIndex,
+  };
+}
+
+export function Card({ id, url, index, total }: CardProps) {
   const showFront = !!url;
+
+  // Calculate fan transform if index and total are provided
+  const fanStyle =
+    index !== undefined && total !== undefined
+      ? getFanTransform(index, total)
+      : undefined;
 
   return (
     <div className="card-wrapper" x-data="{ modalOpen: false }">
@@ -28,7 +71,11 @@ export function Card({ id, url }: CardProps) {
         </svg>
       </div>
 
-      <div className="card" x-on:click="modalOpen = ! modalOpen">
+      <div
+        className="card"
+        x-on:click="modalOpen = ! modalOpen"
+        style={fanStyle ? { transform: fanStyle.transform, zIndex: fanStyle.zIndex, transformOrigin: 'bottom center' } : undefined}
+      >
         {showFront ? (
           <img src={url} alt={id ?? 'card'} className="card-image" />
         ) : (

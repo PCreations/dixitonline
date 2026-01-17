@@ -57,10 +57,18 @@ export function GamePreview({
       {showCardSelection && (
         <div className="game-cards">
           {cards && cards.length > 0
-            ? cards.map((card) => (
-                <Card key={card.id} id={card.id} url={card.url} />
+            ? cards.map((card, index) => (
+                <Card
+                  key={card.id}
+                  id={card.id}
+                  url={card.url}
+                  index={index}
+                  total={cards.length}
+                />
               ))
-            : Array.from({ length: 5 }, (_, i) => <Card key={i} />)}
+            : Array.from({ length: 5 }, (_, i) => (
+                <Card key={i} index={i} total={5} />
+              ))}
         </div>
       )}
     </div>

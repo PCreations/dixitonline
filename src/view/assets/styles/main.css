@@ -689,33 +689,8 @@ body {
   transition: transform 0.3s ease;
 }
 
-.game-cards .card-wrapper:nth-child(1) .card {
-  transform: scale(0.85) rotate(-12deg) translateY(20px);
-  transform-origin: bottom center;
-}
-
-.game-cards .card-wrapper:nth-child(2) .card {
-  transform: scale(0.9) rotate(-6deg) translateY(10px);
-  transform-origin: bottom center;
-}
-
-.game-cards .card-wrapper:nth-child(3) .card {
-  transform: scale(1);
-  z-index: 5;
-}
-
-.game-cards .card-wrapper:nth-child(4) .card {
-  transform: scale(0.9) rotate(6deg) translateY(10px);
-  transform-origin: bottom center;
-}
-
-.game-cards .card-wrapper:nth-child(5) .card {
-  transform: scale(0.85) rotate(12deg) translateY(20px);
-  transform-origin: bottom center;
-}
-
 .game-cards .card-wrapper:hover {
-  z-index: 10;
+  z-index: 10 !important;
 }
 
 .game-cards .card-wrapper:hover .card {
@@ -1259,9 +1234,9 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px 24px 40px;
+  padding: 20px 24px 120px;
   width: 100%;
-  max-width: 600px;
+  max-width: 800px;
   margin: 0 auto;
 }
 
@@ -1335,11 +1310,14 @@ body {
   opacity: 0.9;
 }
 
-.cards-grid {
-  display: flex;
+/* Override game-cards positioning when inside forms */
+.hand-cards .game-cards {
+  position: relative;
+  bottom: auto;
+  left: auto;
+  transform: none;
   justify-content: center;
-  gap: 16px;
-  flex-wrap: wrap;
+  margin: 0 auto;
 }
 
 /* ===== GENERIC BUTTONS ===== */

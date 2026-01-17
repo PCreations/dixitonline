@@ -25,7 +25,6 @@
     --color-white: #fff;
     --spacing: 0.25rem;
     --container-md: 28rem;
-    --container-2xl: 42rem;
     --text-xs: 0.75rem;
     --text-xs--line-height: calc(1 / 0.75);
     --text-sm: 0.875rem;
@@ -34,9 +33,6 @@
     --text-xl--line-height: calc(1.75 / 1.25);
     --text-2xl: 1.5rem;
     --text-2xl--line-height: calc(2 / 1.5);
-    --text-3xl: 1.875rem;
-    --text-3xl--line-height: calc(2.25 / 1.875);
-    --font-weight-semibold: 600;
     --font-weight-bold: 700;
     --tracking-wider: 0.05em;
     --radius-lg: 0.5rem;
@@ -1159,28 +1155,8 @@ body {
 .game-cards .card-wrapper {
   transition: transform 0.3s ease;
 }
-.game-cards .card-wrapper:nth-child(1) .card {
-  transform: scale(0.85) rotate(-12deg) translateY(20px);
-  transform-origin: bottom center;
-}
-.game-cards .card-wrapper:nth-child(2) .card {
-  transform: scale(0.9) rotate(-6deg) translateY(10px);
-  transform-origin: bottom center;
-}
-.game-cards .card-wrapper:nth-child(3) .card {
-  transform: scale(1);
-  z-index: 5;
-}
-.game-cards .card-wrapper:nth-child(4) .card {
-  transform: scale(0.9) rotate(6deg) translateY(10px);
-  transform-origin: bottom center;
-}
-.game-cards .card-wrapper:nth-child(5) .card {
-  transform: scale(0.85) rotate(12deg) translateY(20px);
-  transform-origin: bottom center;
-}
 .game-cards .card-wrapper:hover {
-  z-index: 10;
+  z-index: 10 !important;
 }
 .game-cards .card-wrapper:hover .card {
   transform: scale(1.05) rotate(0deg) translateY(-20px) !important;
@@ -1682,9 +1658,9 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px 24px 40px;
+  padding: 20px 24px 120px;
   width: 100%;
-  max-width: 600px;
+  max-width: 800px;
   margin: 0 auto;
 }
 .phase-instructions {
@@ -1759,11 +1735,13 @@ body {
   color: var(--color-white);
   opacity: 0.9;
 }
-.cards-grid {
-  display: flex;
+.hand-cards .game-cards {
+  position: relative;
+  bottom: auto;
+  left: auto;
+  transform: none;
   justify-content: center;
-  gap: 16px;
-  flex-wrap: wrap;
+  margin: 0 auto;
 }
 .btn {
   display: flex;

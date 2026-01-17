@@ -22,7 +22,7 @@ export function StorytellerClueForm({ view }: StorytellerClueFormProps) {
         hx-post={view.action.url}
         hx-target="#game-content"
         hx-swap="innerHTML"
-        x-data="{ selectedCard: null, clue: '' }"
+        x-data="{ clue: '' }"
         className="clue-form"
       >
         <div className="form-group">
@@ -40,20 +40,17 @@ export function StorytellerClueForm({ view }: StorytellerClueFormProps) {
           />
         </div>
 
-        <input type="hidden" name="cardId" x-bind:value="selectedCard" />
-
         <div className="hand-cards">
-          <p className="hand-label">Choisis une carte :</p>
-          <div className="cards-grid">
-            {view.hand.map((card) => (
-              <div
+          <p className="hand-label">Tes cartes :</p>
+          <div className="game-cards">
+            {view.hand.map((card, index) => (
+              <Card
                 key={card.id}
-                className="card-selectable"
-                x-on:click={`selectedCard = '${card.id}'`}
-                x-bind:class={`selectedCard === '${card.id}' ? 'card-selected' : ''`}
-              >
-                <Card id={card.id} url={card.url} />
-              </div>
+                id={card.id}
+                url={card.url}
+                index={index}
+                total={view.hand.length}
+              />
             ))}
           </div>
         </div>
@@ -61,7 +58,7 @@ export function StorytellerClueForm({ view }: StorytellerClueFormProps) {
         <button
           type="submit"
           className="btn btn-primary"
-          x-bind:disabled="!selectedCard || !clue.trim()"
+          x-bind:disabled="!clue.trim()"
         >
           <SubmitIcon />
           {view.action.label}

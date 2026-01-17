@@ -1,20 +1,77 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { h } from 'preact';
-import { GamePreview } from '../../view/components/GamePreview.js';
+import type {
+  CardView,
+  EndedView,
+  GamePlayerView,
+  PlayerInfo,
+  ScoringView,
+  SelectingCardsAsGuesserView,
+  SelectingCardsAsStorytellerView,
+  StorytellingAsGuesserView,
+  StorytellingAsStorytellerView,
+  VotingAsGuesserView,
+  VotingAsStorytellerView,
+} from '../../game/game.query-service.js';
+import { Game } from '../../view/components/Game.js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'http://127.0.0.1:44321';
 
 const buildCardUrl = (cardNumber: number) =>
   `${SUPABASE_URL}/storage/v1/object/public/decks/default/card_${cardNumber}.jpg`;
 
-// Mock cards using Supabase storage URLs
-const mockCards = [100, 101, 102, 103, 104].map((n) => ({
+// Mock data
+const mockCurrentPlayer: PlayerInfo = {
+  id: 'player-1',
+  name: 'Toi',
+  isCurrentPlayer: true,
+};
+
+const mockStoryteller: PlayerInfo = {
+  id: 'player-2',
+  name: 'Alice',
+  isCurrentPlayer: false,
+};
+
+const mockHand: ReadonlyArray<CardView> = [100, 101, 102, 103, 104, 105].map(
+  (n) => ({
+    id: `card_${n}`,
+    url: buildCardUrl(n),
+  }),
+);
+
+const mockBoardCards: ReadonlyArray<CardView> = [
+  200, 201, 202, 203, 204, 205,
+].map((n) => ({
   id: `card_${n}`,
   url: buildCardUrl(n),
 }));
 
+const mockPlayersStatus = [
+  { player: mockCurrentPlayer, status: 'ready' as const },
+  { player: mockStoryteller, status: 'not-ready' as const },
+  {
+    player: { id: 'player-3', name: 'Bob', isCurrentPlayer: false },
+    status: 'ready' as const,
+  },
+];
+
 const devPreviewRoutes: FastifyPluginAsync = async (fastify) => {
   const { renderHtmlPage, renderToString } = fastify;
+
+  // Helper function to render game preview
+  function renderGamePreview(
+    reply: import('fastify').FastifyReply,
+    title: string,
+    view: GamePlayerView,
+  ) {
+    const component = h(Game, { view });
+    const body = renderToString(component);
+    const html = renderHtmlPage(`Preview: ${title} - Tixid Online`, body, {
+      isAuthenticated: true,
+    });
+    return reply.type('text/html').send(html);
+  }
 
   // Index page listing all preview routes
   fastify.get('/dev/preview', async (_request, reply) => {
@@ -55,104 +112,185 @@ const devPreviewRoutes: FastifyPluginAsync = async (fastify) => {
     return reply.type('text/html').send(html);
   });
 
-  // Helper function to render preview
-  function renderPreview(
-    reply: import('fastify').FastifyReply,
-    title: string,
-    status: string,
-    points = 5,
-    turn = 1,
-  ) {
-    const component = h(GamePreview, {
-      points,
-      turn,
-      status,
-      cards: mockCards,
-    });
-    const body = renderToString(component);
-    const html = renderHtmlPage(`Preview: ${title} - Tixid Online`, body, {
-      isAuthenticated: true,
-    });
-    return reply.type('text/html').send(html);
-  }
-
   // Storytelling as Storyteller
   fastify.get(
     '/dev/preview/storytelling-storyteller',
     async (_request, reply) => {
-      return renderPreview(
-        reply,
-        'Storytelling as Storyteller',
-        "C'est ton tour ! Choisis une carte et donne un indice.",
-        0,
-        1,
-      );
+      const view: StorytellingAsStorytellerView = {
+        _tag: 'StorytellingAsStoryteller',
+        gameId: 'dev-game',
+        currentPlayer: mockCurrentPlayer,
+        score: 0,
+        turnNumber: 1,
+        storyteller: mockCurrentPlayer,
+        hand: mockHand,
+        playersStatus: mockPlayersStatus,
+        action: {
+          type: 'submit-clue',
+          url: '/game/dev-game/clue',
+          method: 'POST',
+          label: 'Donner mon indice',
+          disabled: false,
+        },
+      };
+      return renderGamePreview(reply, 'Storytelling as Storyteller', view);
     },
   );
 
   // Storytelling as Guesser
   fastify.get('/dev/preview/storytelling-guesser', async (_request, reply) => {
-    return renderPreview(
-      reply,
-      'Storytelling as Guesser',
-      "En attente de l'indice d'Alice...",
-      5,
-      1,
-    );
+    const view: StorytellingAsGuesserView = {
+      _tag: 'StorytellingAsGuesser',
+      gameId: 'dev-game',
+      currentPlayer: mockCurrentPlayer,
+      score: 5,
+      turnNumber: 1,
+      storyteller: mockStoryteller,
+      hand: mockHand,
+      playersStatus: mockPlayersStatus,
+    };
+    return renderGamePreview(reply, 'Storytelling as Guesser', view);
   });
 
   // Selecting Cards as Storyteller
   fastify.get('/dev/preview/selecting-storyteller', async (_request, reply) => {
-    return renderPreview(
-      reply,
-      'Selecting Cards as Storyteller',
-      'Les joueurs choisissent leurs cartes...',
-      0,
-      1,
-    );
+    const view: SelectingCardsAsStorytellerView = {
+      _tag: 'SelectingCardsAsStoryteller',
+      gameId: 'dev-game',
+      currentPlayer: mockCurrentPlayer,
+      score: 0,
+      turnNumber: 1,
+      storyteller: mockCurrentPlayer,
+      hand: mockHand,
+      playersStatus: mockPlayersStatus,
+      clue: 'Un voyage dans les étoiles',
+    };
+    return renderGamePreview(reply, 'Selecting Cards as Storyteller', view);
   });
 
   // Selecting Cards as Guesser
   fastify.get('/dev/preview/selecting-guesser', async (_request, reply) => {
-    return renderPreview(
-      reply,
-      'Selecting Cards as Guesser',
-      'Choisis une carte qui correspond à l\'indice "Un voyage dans les étoiles"',
-      5,
-      1,
-    );
+    const view: SelectingCardsAsGuesserView = {
+      _tag: 'SelectingCardsAsGuesser',
+      gameId: 'dev-game',
+      currentPlayer: mockCurrentPlayer,
+      score: 5,
+      turnNumber: 1,
+      storyteller: mockStoryteller,
+      hand: mockHand,
+      playersStatus: mockPlayersStatus,
+      clue: 'Un voyage dans les étoiles',
+      hasSelectedCard: false,
+      action: {
+        type: 'select-card',
+        url: '/game/dev-game/select-card',
+        method: 'POST',
+        label: 'Choisir cette carte',
+        disabled: false,
+      },
+    };
+    return renderGamePreview(reply, 'Selecting Cards as Guesser', view);
   });
 
   // Voting as Storyteller
   fastify.get('/dev/preview/voting-storyteller', async (_request, reply) => {
-    return renderPreview(
-      reply,
-      'Voting as Storyteller',
-      'Les joueurs votent...',
-      0,
-      1,
-    );
+    const view: VotingAsStorytellerView = {
+      _tag: 'VotingAsStoryteller',
+      gameId: 'dev-game',
+      currentPlayer: mockCurrentPlayer,
+      score: 0,
+      turnNumber: 1,
+      storyteller: mockCurrentPlayer,
+      hand: mockHand,
+      playersStatus: mockPlayersStatus,
+      clue: 'Un voyage dans les étoiles',
+      boardCards: mockBoardCards,
+    };
+    return renderGamePreview(reply, 'Voting as Storyteller', view);
   });
 
   // Voting as Guesser
   fastify.get('/dev/preview/voting-guesser', async (_request, reply) => {
-    return renderPreview(
-      reply,
-      'Voting as Guesser',
-      'Vote pour la carte du conteur !',
-      5,
-      1,
-    );
+    const view: VotingAsGuesserView = {
+      _tag: 'VotingAsGuesser',
+      gameId: 'dev-game',
+      currentPlayer: mockCurrentPlayer,
+      score: 5,
+      turnNumber: 1,
+      storyteller: mockStoryteller,
+      hand: mockHand,
+      playersStatus: mockPlayersStatus,
+      clue: 'Un voyage dans les étoiles',
+      boardCards: mockBoardCards,
+      hasVoted: false,
+      ownCardId: 'card_201',
+      action: {
+        type: 'vote',
+        url: '/game/dev-game/vote',
+        method: 'POST',
+        label: 'Voter',
+        disabled: false,
+      },
+    };
+    return renderGamePreview(reply, 'Voting as Guesser', view);
   });
 
   // Scoring
   fastify.get('/dev/preview/scoring', async (_request, reply) => {
-    return renderPreview(reply, 'Scoring', 'Résultats du tour', 8, 1);
+    const view: ScoringView = {
+      _tag: 'Scoring',
+      gameId: 'dev-game',
+      currentPlayer: mockCurrentPlayer,
+      score: 8,
+      turnNumber: 1,
+      storyteller: mockStoryteller,
+      hand: mockHand,
+      playersStatus: mockPlayersStatus,
+      clue: 'Un voyage dans les étoiles',
+      boardCards: mockBoardCards,
+      storytellerCardId: 'card_200',
+      votes: {
+        card_200: [mockCurrentPlayer],
+        card_201: [mockStoryteller],
+      },
+      pointsEarned: [
+        { points: 3, reason: { _tag: 'YouFoundTheStorytellerCard' } },
+      ],
+      action: {
+        type: 'ready',
+        url: '/game/dev-game/ready',
+        method: 'POST',
+        label: 'Continuer',
+        disabled: false,
+      },
+    };
+    return renderGamePreview(reply, 'Scoring', view);
   });
 
   // Game Ended
   fastify.get('/dev/preview/ended', async (_request, reply) => {
-    return renderPreview(reply, 'Game Ended', 'Partie terminée !', 25, 5);
+    const view: EndedView = {
+      _tag: 'Ended',
+      gameId: 'dev-game',
+      currentPlayer: mockCurrentPlayer,
+      rankings: [
+        { rank: 1, player: mockCurrentPlayer, score: 25 },
+        { rank: 2, player: mockStoryteller, score: 20 },
+        {
+          rank: 3,
+          player: { id: 'player-3', name: 'Bob', isCurrentPlayer: false },
+          score: 15,
+        },
+      ],
+      action: {
+        type: 'back-to-lobby',
+        url: '/lobby',
+        method: 'GET',
+        label: 'Retour au lobby',
+        disabled: false,
+      },
+    };
+    return renderGamePreview(reply, 'Game Ended', view);
   });
 };
 
