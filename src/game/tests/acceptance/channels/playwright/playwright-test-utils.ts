@@ -16,7 +16,11 @@ interface TestConfig {
  */
 function getTestConfig(): TestConfig | null {
   try {
-    const configPath = join(process.cwd(), '.playwright-temp', 'test-config.json');
+    const configPath = join(
+      process.cwd(),
+      '.playwright-temp',
+      'test-config.json',
+    );
     const content = readFileSync(configPath, 'utf-8');
     return JSON.parse(content) as TestConfig;
   } catch {

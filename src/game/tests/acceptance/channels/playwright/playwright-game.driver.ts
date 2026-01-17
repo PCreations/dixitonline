@@ -37,7 +37,9 @@ interface PlaywrightGameDriverDSL {
   readonly gameEndedGameSnapshot: (
     gameId: string,
   ) => Effect.Effect<unknown, Error>;
-  readonly unsafe__saveGameEntity: (game: unknown) => Effect.Effect<void, Error>;
+  readonly unsafe__saveGameEntity: (
+    game: unknown,
+  ) => Effect.Effect<void, Error>;
   readonly given: {
     readonly defaultDeck: (props: {
       id: string;
@@ -56,7 +58,9 @@ interface PlaywrightGameDriverDSL {
       players?: ReadonlyArray<string>;
       endCondition?: EndConditionDto;
     }) => Effect.Effect<void, Error>;
-    readonly existingFullGame: (props: { gameId: string }) => Effect.Effect<void, Error>;
+    readonly existingFullGame: (props: {
+      gameId: string;
+    }) => Effect.Effect<void, Error>;
     readonly existingGame: (
       driver: PlaywrightGameDriverDSL,
       builder: GameBuilder,
@@ -259,9 +263,7 @@ export const makePlaywrightGameDriver = (
     });
 
   // Helper for UI actions
-  const uiAction = <T = void>(
-    fn: () => Promise<T>,
-  ): Effect.Effect<T, Error> =>
+  const uiAction = <T = void>(fn: () => Promise<T>): Effect.Effect<T, Error> =>
     Effect.tryPromise({
       try: fn,
       catch: (e) => new Error(String(e)),
@@ -343,7 +345,9 @@ export const makePlaywrightGameDriver = (
         testState.failFast = true;
 
         // Cast to unknown for E2E compatibility - the builder doesn't verify types at runtime
-        yield* builder.build(driver as unknown as Parameters<typeof builder.build>[0]);
+        yield* builder.build(
+          driver as unknown as Parameters<typeof builder.build>[0],
+        );
 
         testState.failFast = originalFailFast;
 
@@ -363,7 +367,9 @@ export const makePlaywrightGameDriver = (
             cards: [],
             isDefault: false,
             cardsById: {},
-            shuffleStrategy: { shuffle: (cards: ReadonlyArray<unknown>) => cards },
+            shuffleStrategy: {
+              shuffle: (cards: ReadonlyArray<unknown>) => cards,
+            },
           } as unknown as DeckSnapshot,
         };
       }),

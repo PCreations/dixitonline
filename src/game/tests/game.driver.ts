@@ -38,10 +38,7 @@ import { SelectCardUseCase } from '../select-card.usecase.js';
 import { StartGameUseCase } from '../start-game.usecase.js';
 import { SubmitClueUseCase } from '../submit-clue.usecase.js';
 import { VoteOnCardUseCase } from '../vote-on-card.usecase.js';
-import {
-  GameDriver,
-  type GameDriverDSL,
-} from './game-driver.interface.js';
+import { GameDriver, type GameDriverDSL } from './game-driver.interface.js';
 
 // Re-export types from the interface file for backward compatibility
 export { GameDriver, type GameDriverDSL } from './game-driver.interface.js';

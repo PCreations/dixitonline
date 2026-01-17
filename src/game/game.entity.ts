@@ -890,6 +890,9 @@ export const isStartedGameSnapshot = (
   return snapshot.status._tag === 'StartedGame';
 };
 
+export const isEndedGame = (game: GameEntity): game is EndedGameEntity =>
+  $is('EndedGame')(game.status);
+
 export const isEndedGameSnapshot = (
   snapshot: GameEntitySnapshot,
 ): snapshot is EndedGameSnapshot => {

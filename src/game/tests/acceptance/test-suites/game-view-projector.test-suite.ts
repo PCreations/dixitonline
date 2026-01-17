@@ -248,6 +248,7 @@ export const gameViewProjectorTestSuite = (
               [playerId(4)]: 'not-ready',
             },
             score: 0,
+            clue: 'A clue',
             cards: [
               { id: 'card-2', url: 'https://example.com/card-2' },
               { id: 'card-3', url: 'https://example.com/card-3' },
@@ -263,6 +264,7 @@ export const gameViewProjectorTestSuite = (
             storyteller: playerId(1),
             phase: 'selecting-cards',
             score: 0,
+            clue: 'A clue',
             playerStatus: {
               [playerId(1)]: 'ready',
               [playerId(2)]: 'ready',
@@ -284,6 +286,7 @@ export const gameViewProjectorTestSuite = (
             storyteller: playerId(1),
             phase: 'selecting-cards',
             score: 0,
+            clue: 'A clue',
             playerStatus: {
               [playerId(1)]: 'ready',
               [playerId(2)]: 'ready',
@@ -305,6 +308,7 @@ export const gameViewProjectorTestSuite = (
             storyteller: playerId(1),
             phase: 'selecting-cards',
             score: 0,
+            clue: 'A clue',
             playerStatus: {
               [playerId(1)]: 'ready',
               [playerId(2)]: 'ready',
@@ -404,6 +408,7 @@ export const gameViewProjectorTestSuite = (
             [playerId(4)]: 'not-ready',
           },
           score: 0,
+          clue: 'A clue',
           boardCards: [
             { id: 'card-7', url: 'https://example.com/card-7' },
             { id: 'card-13', url: 'https://example.com/card-13' },
@@ -425,6 +430,7 @@ export const gameViewProjectorTestSuite = (
           storyteller: playerId(1),
           phase: 'voting',
           score: 0,
+          clue: 'A clue',
           playerStatus: {
             [playerId(1)]: 'ready',
             [playerId(2)]: 'ready',
@@ -452,6 +458,7 @@ export const gameViewProjectorTestSuite = (
           storyteller: playerId(1),
           phase: 'voting',
           score: 0,
+          clue: 'A clue',
           playerStatus: {
             [playerId(1)]: 'ready',
             [playerId(2)]: 'ready',
@@ -479,6 +486,7 @@ export const gameViewProjectorTestSuite = (
           storyteller: playerId(1),
           phase: 'voting',
           score: 0,
+          clue: 'A clue',
           playerStatus: {
             [playerId(1)]: 'ready',
             [playerId(2)]: 'ready',
@@ -591,6 +599,8 @@ export const gameViewProjectorTestSuite = (
             [playerId(4)]: 'not-ready',
           },
           score: 3,
+          clue: 'A clue',
+          storytellerCardId: 'card-1',
           points: [
             {
               points: 3,
@@ -624,6 +634,8 @@ export const gameViewProjectorTestSuite = (
           storyteller: playerId(1),
           phase: 'scoring',
           score: 4,
+          clue: 'A clue',
+          storytellerCardId: 'card-1',
           points: [
             {
               points: 3,
@@ -669,6 +681,8 @@ export const gameViewProjectorTestSuite = (
           storyteller: playerId(1),
           phase: 'scoring',
           score: 0,
+          clue: 'A clue',
+          storytellerCardId: 'card-1',
           points: [],
           playerStatus: {
             [playerId(1)]: 'not-ready',
@@ -703,6 +717,8 @@ export const gameViewProjectorTestSuite = (
           storyteller: playerId(1),
           phase: 'scoring',
           score: 3,
+          clue: 'A clue',
+          storytellerCardId: 'card-1',
           points: [
             {
               points: 3,

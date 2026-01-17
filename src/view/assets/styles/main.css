@@ -622,6 +622,19 @@ body {
   @apply flex-shrink-0;
 }
 
+.game-content {
+  @apply absolute z-10;
+  top: 200px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+}
+
 /* Card styles */
 .card-wrapper {
   position: relative;
@@ -1238,4 +1251,127 @@ body {
 
 .auth-callback-link:hover {
   opacity: 1;
+}
+
+/* ===== STORYTELLER CLUE FORM ===== */
+.storyteller-clue-form {
+  @apply relative z-10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 24px 40px;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.phase-instructions {
+  @apply text-center mb-6;
+}
+
+.phase-title {
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+  font-size: 24px;
+  @apply text-white mb-2;
+}
+
+.phase-description {
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  @apply text-white;
+  opacity: 0.7;
+  line-height: 1.5;
+}
+
+.clue-form {
+  @apply w-full;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.form-group {
+  @apply w-full;
+}
+
+.form-label {
+  font-family: "Poppins", sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  @apply text-white block mb-2;
+  opacity: 0.9;
+}
+
+.clue-input {
+  @apply w-full bg-transparent text-white border-none outline-none;
+  font-family: "Poppins", sans-serif;
+  font-size: 16px;
+  padding: 12px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  transition: border-color 0.2s;
+}
+
+.clue-input:focus {
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+.clue-input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.hand-cards {
+  @apply w-full;
+}
+
+.hand-label {
+  font-family: "Poppins", sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  @apply text-white block mb-4 text-center;
+  opacity: 0.9;
+}
+
+.cards-grid {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* ===== GENERIC BUTTONS ===== */
+.btn {
+  @apply flex items-center justify-center gap-2 cursor-pointer border-none;
+  padding: 14px 28px;
+  border-radius: 4px;
+  font-family: "Poppins", sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  @apply text-white;
+  transition:
+    opacity 0.2s,
+    transform 0.2s;
+  white-space: nowrap;
+}
+
+.btn:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-primary {
+  background: rgba(69, 50, 75, 0.9);
 }

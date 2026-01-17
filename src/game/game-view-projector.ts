@@ -184,6 +184,7 @@ class GameViewProjectorImpl {
       );
       const boardCards = this.getBoardCards({ game });
       const votes = this.getVotes({ game });
+      const clueData = this.getClueData({ game });
       return Object.fromEntries(
         game.players.map((playerId) => [
           playerId,
@@ -207,6 +208,7 @@ class GameViewProjectorImpl {
             playerStatus,
             ...boardCards,
             ...votes,
+            ...clueData,
             ...this.getPoints({ game, playerId }),
           },
         ]),
@@ -330,6 +332,32 @@ class GameViewProjectorImpl {
       };
     }
     return {};
+  }
+
+  private getClueData(opts: { game: StartedGameSnapshot }) {
+    // Only include clue data after storytelling phase
+    if (opts.game.currentTurn.phase === 'storytelling') {
+      return {};
+    }
+
+    if (Option.isNone(opts.game.currentTurn.turnClue)) {
+      return {};
+    }
+
+    const turnClue = opts.game.currentTurn.turnClue.value;
+    const baseClueData = {
+      clue: turnClue.clue,
+    };
+
+    // Include storytellerCardId only in scoring phase (for revealing the correct card)
+    if (opts.game.currentTurn.phase === 'scoring') {
+      return {
+        ...baseClueData,
+        storytellerCardId: turnClue.cardId,
+      };
+    }
+
+    return baseClueData;
   }
 
   private getCardUrl(cardId: CardId) {

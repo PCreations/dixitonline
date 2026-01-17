@@ -280,7 +280,10 @@ const testRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.post('/reset', async (request, reply) => {
     // This route delegates to a Supabase admin operation
     // For now, return success as the actual reset happens in Playwright config
-    return reply.send({ success: true, message: 'Use Playwright reset instead' });
+    return reply.send({
+      success: true,
+      message: 'Use Playwright reset instead',
+    });
   });
 };
 

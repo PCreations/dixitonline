@@ -1,6 +1,9 @@
 import { describe, it } from '@effect/vitest';
 import { Effect } from 'effect';
-import { PlayersRandomizeStrategy, PlayersRandomizeStrategyType } from '../../../game.entity.js';
+import {
+  PlayersRandomizeStrategy,
+  PlayersRandomizeStrategyType,
+} from '../../../game.entity.js';
 import { PlayerId } from '../../../player.entity.js';
 import { GameBuilder } from '../../game.builder.js';
 import { GameDriver, type GameDriverLayer } from '../../game.driver.js';

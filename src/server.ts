@@ -33,6 +33,7 @@ import {
 import { appRuntimePlugin, renderPlugin } from './http/plugins/index.js';
 import {
   authRoutes,
+  devPreviewRoutes,
   gameCreateRoutes,
   gameEventsRoutes,
   gameLobbyRoutes,
@@ -214,6 +215,11 @@ await fastify.register(gameLobbyRoutes, { prefix: '/game' });
 await fastify.register(gamePlayRoutes, { prefix: '/game' });
 await fastify.register(gameEventsRoutes, { prefix: '/game' });
 await fastify.register(testRoutes, { prefix: '/api/test' });
+
+// Dev-only routes for previewing UI components
+if (isDev) {
+  await fastify.register(devPreviewRoutes);
+}
 
 // Start server
 try {

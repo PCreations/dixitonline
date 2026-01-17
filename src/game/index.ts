@@ -8,6 +8,7 @@ import { InMemoryGameView } from './game-view.js';
 export { type GameEvent, GameEventBus } from './game-event-bus.js';
 
 import { NoopRandomizeStrategy } from './game.entity.js';
+import { GameQueryService } from './game.query-service.js';
 import {
   GameViewProjector,
   ShufflerService,
@@ -51,6 +52,7 @@ export const GameLayerWithoutDependencies = Layer.mergeAll(
  */
 const QueryServicesWithoutDependencies = Layer.mergeAll(
   LobbyQueryService.Default,
+  GameQueryService.Default,
 );
 
 /**
