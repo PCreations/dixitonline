@@ -5,11 +5,17 @@ import { Card } from './Card.js';
 import { Menu } from './Menu.js';
 import { Stars } from './Stars.js';
 
+interface CardView {
+  readonly id: string;
+  readonly url: string;
+}
+
 interface GameProps {
   points?: number;
   turn?: number;
   status?: string;
   showCardSelection?: boolean;
+  cards?: ReadonlyArray<CardView>;
 }
 
 export function Game({
@@ -17,6 +23,7 @@ export function Game({
   turn = 3,
   status = 'Waiting for the storyteller...',
   showCardSelection = true,
+  cards,
 }: GameProps) {
   return (
     <div className="game-container">
@@ -46,11 +53,11 @@ export function Game({
 
       {showCardSelection && (
         <div className="game-cards">
-          <Card />
-          <Card />
-          <Card />
-          <Card />
-          <Card />
+          {cards && cards.length > 0
+            ? cards.map((card) => (
+                <Card key={card.id} id={card.id} url={card.url} />
+              ))
+            : Array.from({ length: 5 }, (_, i) => <Card key={i} />)}
         </div>
       )}
     </div>
