@@ -1,5 +1,6 @@
 /** @jsx h */
-import { h } from 'preact';
+/** @jsxFrag Fragment */
+import { Fragment, h } from 'preact';
 import type { StorytellingAsStorytellerView } from '../../view-models/game.view-model.js';
 import { Card } from '../Card.js';
 
@@ -9,33 +10,31 @@ interface StorytellerClueFormProps {
 
 export function StorytellerClueForm({ view }: StorytellerClueFormProps) {
   return (
-    <div className="storyteller-clue-form">
-      <div className="phase-instructions">
-        <h2 className="phase-title">C'est ton tour !</h2>
-        <p className="phase-description">
-          Choisis une carte de ta main et donne un indice aux autres joueurs.
-          L'indice peut être un mot, une phrase, un son, une chanson...
-        </p>
+    <>
+      <div className="storyteller-clue-form">
+        <div className="phase-instructions">
+          <h2 className="phase-title">C'est ton tour !</h2>
+          <p className="phase-description">
+            Choisis une carte de ta main et donne un indice aux autres joueurs.
+            L'indice peut être un mot, une phrase, un son, une chanson...
+          </p>
+        </div>
+        <p className="hand-label">Clique sur une carte pour donner ton indice :</p>
       </div>
 
-      <div className="hand-cards">
-        <p className="hand-label">Clique sur une carte pour donner ton indice :</p>
-        <div className="game-cards">
-          {view.hand.map((card, index) => (
-            <Card
-              key={card.id}
-              id={card.id}
-              url={card.url}
-              index={index}
-              total={view.hand.length}
-              modalContent={
-                <ClueForm cardId={card.id} action={view.action} />
-              }
-            />
-          ))}
-        </div>
+      <div className="game-cards">
+        {view.hand.map((card, index) => (
+          <Card
+            key={card.id}
+            id={card.id}
+            url={card.url}
+            index={index}
+            total={view.hand.length}
+            modalContent={<ClueForm cardId={card.id} action={view.action} />}
+          />
+        ))}
       </div>
-    </div>
+    </>
   );
 }
 
