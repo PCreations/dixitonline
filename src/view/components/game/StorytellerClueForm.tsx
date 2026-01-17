@@ -14,57 +14,80 @@ export function StorytellerClueForm({ view }: StorytellerClueFormProps) {
         <h2 className="phase-title">C'est ton tour !</h2>
         <p className="phase-description">
           Choisis une carte de ta main et donne un indice aux autres joueurs.
-          L'indice peut-etre un mot, une phrase, un son, une chanson...
+          L'indice peut être un mot, une phrase, un son, une chanson...
         </p>
       </div>
 
-      <form
-        hx-post={view.action.url}
-        hx-target="#game-content"
-        hx-swap="innerHTML"
-        x-data="{ clue: '' }"
-        className="clue-form"
-      >
-        <div className="form-group">
-          <label htmlFor="clue-input" className="form-label">
-            Ton indice :
-          </label>
-          <input
-            id="clue-input"
-            type="text"
-            name="clue"
-            x-model="clue"
-            className="clue-input"
-            placeholder="Entre ton indice ici..."
-            autoComplete="off"
-          />
+      <div className="hand-cards">
+        <p className="hand-label">Clique sur une carte pour donner ton indice :</p>
+        <div className="game-cards">
+          {view.hand.map((card, index) => (
+            <Card
+              key={card.id}
+              id={card.id}
+              url={card.url}
+              index={index}
+              total={view.hand.length}
+              modalContent={
+                <ClueForm cardId={card.id} action={view.action} />
+              }
+            />
+          ))}
         </div>
+      </div>
+    </div>
+  );
+}
 
-        <div className="hand-cards">
-          <p className="hand-label">Tes cartes :</p>
-          <div className="game-cards">
-            {view.hand.map((card, index) => (
-              <Card
-                key={card.id}
-                id={card.id}
-                url={card.url}
-                index={index}
-                total={view.hand.length}
-              />
-            ))}
-          </div>
-        </div>
+interface ClueFormProps {
+  readonly cardId: string;
+  readonly action: StorytellingAsStorytellerView['action'];
+}
 
+function ClueForm({ cardId, action }: ClueFormProps) {
+  return (
+    <form
+      hx-post={action.url}
+      hx-target="#game-content"
+      hx-swap="innerHTML"
+      x-data="{ clue: '' }"
+      className="modal-clue-form"
+    >
+      <input type="hidden" name="cardId" value={cardId} />
+
+      <div className="form-group">
+        <label htmlFor={`clue-input-${cardId}`} className="form-label">
+          Ton indice :
+        </label>
+        <input
+          id={`clue-input-${cardId}`}
+          type="text"
+          name="clue"
+          x-model="clue"
+          className="clue-input"
+          placeholder="Entre ton indice ici..."
+          autoComplete="off"
+        />
+      </div>
+
+      <div className="modal-actions">
+        <button
+          type="button"
+          className="btn btn-secondary"
+          x-on:click="modalOpen = false"
+        >
+          Annuler
+        </button>
         <button
           type="submit"
           className="btn btn-primary"
           x-bind:disabled="!clue.trim()"
         >
           <SubmitIcon />
-          {view.action.label}
+          {action.label}
         </button>
-      </form>
-    </div>
+      </div>
+    </form>
   );
 }
 

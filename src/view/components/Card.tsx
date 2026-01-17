@@ -9,6 +9,8 @@ interface CardProps {
   index?: number;
   /** Total cards in the fan */
   total?: number;
+  /** Optional content to display in the modal (replaces default "Choose this card" button) */
+  modalContent?: h.JSX.Element;
 }
 
 /**
@@ -44,7 +46,7 @@ function getFanTransform(
   };
 }
 
-export function Card({ id, url, index, total }: CardProps) {
+export function Card({ id, url, index, total, modalContent }: CardProps) {
   const showFront = !!url;
 
   // Calculate fan transform if index and total are provided
@@ -94,30 +96,34 @@ export function Card({ id, url, index, total }: CardProps) {
           }}
         >
           <div className="card-modal-content" {...{ 'x-on:click.stop': '' }}>
-            <button
-              className="card-modal-button"
-              x-on:click="modalOpen = false"
-            >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <path
-                  d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
-                  fill="white"
-                />
-              </svg>
-              Choose this card
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <path
-                  d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
-                  fill="white"
-                />
-              </svg>
-            </button>
+            {!modalContent && (
+              <button
+                className="card-modal-button"
+                x-on:click="modalOpen = false"
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
+                    fill="white"
+                  />
+                </svg>
+                Choose this card
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
+                    fill="white"
+                  />
+                </svg>
+              </button>
+            )}
 
             {showFront ? (
               <img src={url} alt={id ?? 'card'} className="card-image" />
             ) : (
               <CardBack />
             )}
+
+            {modalContent}
           </div>
         </div>
       </template>
