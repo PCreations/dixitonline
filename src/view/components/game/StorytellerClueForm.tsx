@@ -2,7 +2,7 @@
 /** @jsxFrag Fragment */
 import { Fragment, h } from 'preact';
 import type { StorytellingAsStorytellerView } from '../../view-models/game.view-model.js';
-import { Card } from '../Card.js';
+import { PlayerHand } from './GameHand.js';
 
 interface StorytellerClueFormProps {
   readonly view: StorytellingAsStorytellerView;
@@ -22,18 +22,12 @@ export function StorytellerClueForm({ view }: StorytellerClueFormProps) {
         <p className="hand-label">Clique sur une carte pour donner ton indice :</p>
       </div>
 
-      <div className="game-cards">
-        {view.hand.map((card, index) => (
-          <Card
-            key={card.id}
-            id={card.id}
-            url={card.url}
-            index={index}
-            total={view.hand.length}
-            modalContent={<ClueForm cardId={card.id} action={view.action} />}
-          />
-        ))}
-      </div>
+      <PlayerHand
+        hand={view.hand}
+        renderModalContent={(cardId) => (
+          <ClueForm cardId={cardId} action={view.action} />
+        )}
+      />
     </>
   );
 }
