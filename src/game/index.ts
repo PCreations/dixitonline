@@ -56,6 +56,17 @@ const QueryServicesWithoutDependencies = Layer.mergeAll(
 );
 
 /**
+ * GameViewProjector composed with its dependencies.
+ * Uses JsonDeckRepository for production (instead of InMemoryDeckRepository for tests).
+ * The shuffler services are provided as well.
+ */
+const GameViewProjectorWithJsonDeck = GameViewProjector.DefaultWithoutDependencies.pipe(
+  Layer.provide(TurnBoardCardsShuffler.Default),
+  Layer.provide(ShufflerService.Default),
+  Layer.provide(JsonDeckRepository),
+);
+
+/**
  * Complete game layer with all dependencies including database
  * This layer requires Database to be provided
  *
@@ -81,8 +92,8 @@ export const GameLayerLiveWithoutEventBus = Layer.mergeAll(
   Layer.provideMerge(TurnBoardCardsShuffler.Default),
   Layer.provideMerge(ShufflerService.Default),
   Layer.provideMerge(NoopRandomizeStrategy),
-  // Then add GameViewProjector which uses the deck repository
-  Layer.provideMerge(GameViewProjector.Default),
+  // Add GameViewProjector with its dependencies pre-wired
+  Layer.provideMerge(GameViewProjectorWithJsonDeck),
 );
 
 /**

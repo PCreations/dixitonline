@@ -229,6 +229,7 @@ export const makePlaywrightGameDriver = (
     currentError: Option.none<Error>(),
     failFast: false,
     currentGameId: undefined as string | undefined,
+    currentPlayerId: undefined as string | undefined, // The authenticated player for UI interactions
   };
 
   // Helper for HTTP calls (backdoor API)
@@ -282,6 +283,44 @@ export const makePlaywrightGameDriver = (
         return Effect.succeed(void 0 as T | void);
       }),
     );
+
+  // Authenticate as a specific player via backdoor API
+  // This sets the auth cookie with a JWT containing the playerId as the sub claim
+  const authenticateAsPlayer = (playerId: string): Effect.Effect<void, Error> =>
+    uiAction(async () => {
+      // Call the backdoor auth endpoint to get the JWT token
+      const response = await page.request.post(`${BASE_URL}/api/test/auth/login`, {
+        data: {
+          playerId,
+          username: playerId,
+        },
+      });
+
+      if (!response.ok()) {
+        throw new Error(`Failed to authenticate as ${playerId}: ${response.status()}`);
+      }
+
+      // Get the token from the response body (more reliable than parsing Set-Cookie header)
+      const body = (await response.json()) as { token: string };
+
+      // Add the cookie to the browser context
+      await page.context().addCookies([
+        {
+          name: 'sb-access-token',
+          value: body.token,
+          domain: new URL(BASE_URL).hostname,
+          path: '/',
+          httpOnly: true,
+          sameSite: 'Lax',
+        },
+      ]);
+
+      testState.currentPlayerId = playerId;
+    });
+
+  // Check if the given player is the currently authenticated UI player
+  const isCurrentUiPlayer = (playerId: string): boolean =>
+    testState.currentPlayerId === playerId;
 
   const given: PlaywrightGameDriverDSL['given'] = {
     // Backdoor API - no UI for creating decks
@@ -356,8 +395,15 @@ export const makePlaywrightGameDriver = (
 
         const gameResult = yield* httpGet<{
           found: boolean;
-          snapshot: unknown;
+          snapshot: { players: ReadonlyArray<string> };
         }>(`/api/test/game/${gameId}/snapshot`);
+
+        // Authenticate as the first player for UI interactions
+        const firstPlayer = gameResult.snapshot.players[0];
+        if (firstPlayer) {
+          yield* authenticateAsPlayer(firstPlayer);
+          testState.currentGameId = gameId;
+        }
 
         return {
           game: gameResult.snapshot,
@@ -377,76 +423,43 @@ export const makePlaywrightGameDriver = (
 
   const when: PlaywrightGameDriverDSL['when'] = {
     creatingGame: (props) =>
+      // Use backdoor API for all game creation
+      // The UI form uses AuthProvider which relies on Supabase JS client session,
+      // but our test auth cookie is not recognized by the JS client.
+      // Visual testing focuses on the game flow (game-scenarios) rather than form submission.
       withErrorHandling(
-        uiAction(async () => {
-          // Navigate to home and authenticate
-          await page.goto(`${BASE_URL}`);
+        Effect.gen(function* () {
+          // Authenticate via backdoor API
+          yield* authenticateAsPlayer(props.hostId);
 
-          // Wait for the page to load and check if we need to authenticate
-          const guestForm = page.locator('#guest-form');
-          if (await guestForm.isVisible({ timeout: 5000 }).catch(() => false)) {
-            await page.fill('input[placeholder="Pseudo"]', props.hostId);
-            await page.click('#guest-form button[type="submit"]');
-            await page.waitForSelector('text=Créer une partie', {
-              timeout: 10000,
-            });
-          }
-
-          // Navigate to create game page
-          await page.click('text=Créer une partie');
-
-          // Fill the form based on endCondition
-          if (props.endCondition?.type === 'LimitOfPoints') {
-            await page.click('input[value="LimitOfPoints"]');
-            if (props.endCondition.limit) {
-              await page.fill(
-                'input[name="limitOfPoints"]',
-                String(props.endCondition.limit),
-              );
-            }
-          } else if (
-            props.endCondition?.type === 'NumberOfTimesBeingStoryteller' &&
-            props.endCondition.numberOfTimes
-          ) {
-            await page.fill(
-              'input[name="numberOfTimes"]',
-              String(props.endCondition.numberOfTimes),
-            );
-          }
-
-          // Submit the form
-          await page.click('button:has-text("Créer la partie")');
-
-          // Wait for redirect to lobby
-          await page.waitForURL(/\/game\/[a-f0-9-]+\/lobby/, {
-            timeout: 10000,
+          // Create game via backdoor API
+          yield* httpPost('/api/test/action/create-game', {
+            gameId: props.gameId,
+            hostId: props.hostId,
+            deckId: props.deckId ?? 'default-deck-id',
+            endCondition: props.endCondition,
           });
 
-          // Extract gameId from URL
-          const url = page.url();
-          const match = url.match(/\/game\/([a-f0-9-]+)\/lobby/);
-          if (match) {
-            testState.currentGameId = match[1];
-          }
+          testState.currentGameId = props.gameId;
+
+          // Navigate to the lobby to verify creation visually
+          yield* uiAction(async () => {
+            await page.goto(`${BASE_URL}/game/${props.gameId}/lobby`);
+            await page.waitForURL(/\/game\/[a-f0-9-]+\/lobby/, {
+              timeout: 10000,
+            });
+          });
         }),
       ),
 
     joiningGame: (props) =>
       withErrorHandling(
-        uiAction(async () => {
-          // Navigate to join page
-          await page.goto(`${BASE_URL}/game/${props.gameId}/join`);
-
-          // Check if we need to authenticate
-          const guestForm = page.locator('#guest-form');
-          if (await guestForm.isVisible({ timeout: 5000 }).catch(() => false)) {
-            await page.fill('input[placeholder="Pseudo"]', props.playerId);
-            await page.click('#guest-form button[type="submit"]');
-          }
-
-          // Wait for lobby
-          await page.waitForURL(/\/game\/.*\/lobby/, { timeout: 10000 });
-        }),
+        // Use backdoor API for joining - UI-based join doesn't support multiple players
+        // in a single browser session (they would all use the same authenticated user)
+        httpPost('/api/test/action/join-game', {
+          gameId: props.gameId,
+          playerId: props.playerId,
+        }).pipe(Effect.map(() => void 0)),
       ),
 
     joiningGameWhileAnotherPlayerJustJoinedInBetween: () =>
@@ -466,12 +479,12 @@ export const makePlaywrightGameDriver = (
 
     startingGame: (props) =>
       withErrorHandling(
-        uiAction(async () => {
-          // Click the start game button
-          await page.click('button:has-text("Démarrer")');
-          // Wait for redirect to play page
-          await page.waitForURL(/\/game\/.*\/play/, { timeout: 10000 });
-        }),
+        // Use backdoor API for starting - UI-based start requires the host to be
+        // authenticated, but in multi-player scenarios we use a single browser session
+        httpPost('/api/test/action/start-game', {
+          gameId: props.gameId,
+          playerId: props.playerId,
+        }).pipe(Effect.map(() => void 0)),
       ),
 
     startingGameWhileAnotherPlayerLeftInBetween: () =>
@@ -481,53 +494,137 @@ export const makePlaywrightGameDriver = (
         ),
       ),
 
-    submittingClue: (props) =>
-      withErrorHandling(
-        uiAction(async () => {
-          // This would interact with the game UI
-          // For now, use backdoor API
-          await fetch(`${BASE_URL}/api/test/action/submit-clue`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(props),
-          });
-        }),
-      ),
+    submittingClue: (props) => {
+      // Use UI when the player is the current authenticated player
+      if (isCurrentUiPlayer(props.playerId)) {
+        return withErrorHandling(
+          uiAction(async () => {
+            // Navigate to game page
+            await page.goto(`${BASE_URL}/game/${props.gameId}`);
 
-    selectingCard: (props) =>
-      withErrorHandling(
-        uiAction(async () => {
-          // This would interact with the game UI
-          await fetch(`${BASE_URL}/api/test/action/select-card`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(props),
-          });
-        }),
-      ),
+            // Click on the card to open modal
+            const card = page.locator(`.card[data-card-id="${props.cardId}"]`);
+            await card.click();
 
-    votingOnCard: (props) =>
-      withErrorHandling(
-        uiAction(async () => {
-          // This would interact with the game UI
-          await fetch(`${BASE_URL}/api/test/action/vote-on-card`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(props),
-          });
-        }),
-      ),
+            // Wait for modal and fill clue
+            await page.waitForSelector('.card-modal-content');
+            await page.fill('.clue-input', props.clue);
 
-    notifyingToBeReadyForNextTurn: (props) =>
-      withErrorHandling(
-        uiAction(async () => {
-          await fetch(`${BASE_URL}/api/test/action/notify-ready`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(props),
-          });
-        }),
-      ),
+            // Submit the form
+            await page.click('.modal-clue-form button[type="submit"]');
+
+            // Wait for the clue to be displayed (phase change)
+            await expect(page.locator('.clue-display')).toBeVisible({
+              timeout: 10000,
+            });
+          }),
+        );
+      }
+
+      // For other players, use backdoor API
+      return withErrorHandling(
+        httpPost('/api/test/action/submit-clue', props).pipe(
+          Effect.map(() => void 0),
+        ),
+      );
+    },
+
+    selectingCard: (props) => {
+      // Use UI when the player is the current authenticated player
+      if (isCurrentUiPlayer(props.playerId)) {
+        return withErrorHandling(
+          uiAction(async () => {
+            // Navigate to game page
+            await page.goto(`${BASE_URL}/game/${props.gameId}`);
+
+            // Click on the card to open modal
+            const card = page.locator(`.card[data-card-id="${props.cardId}"]`);
+            await card.click();
+
+            // Wait for modal
+            await page.waitForSelector('.card-modal-content');
+
+            // Submit the selection
+            await page.click('.modal-select-form button[type="submit"]');
+
+            // Wait for confirmation (phase title changes or shows "Carte sélectionnée")
+            await expect(
+              page.locator('.phase-title').filter({ hasText: 'sélectionnée' }),
+            ).toBeVisible({ timeout: 10000 });
+          }),
+        );
+      }
+
+      // For other players, use backdoor API
+      return withErrorHandling(
+        httpPost('/api/test/action/select-card', props).pipe(
+          Effect.map(() => void 0),
+        ),
+      );
+    },
+
+    votingOnCard: (props) => {
+      // Use UI when the player is the current authenticated player
+      if (isCurrentUiPlayer(props.playerId)) {
+        return withErrorHandling(
+          uiAction(async () => {
+            // Navigate to game page
+            await page.goto(`${BASE_URL}/game/${props.gameId}`);
+
+            // Click on the votable card to select it
+            const votableCard = page.locator(
+              `.card-votable[data-card-id="${props.cardId}"]`,
+            );
+            await votableCard.click();
+
+            // Verify the card is selected
+            await expect(votableCard).toHaveClass(/card-selected/);
+
+            // Submit the vote
+            await page.click('.voting-form button[type="submit"]');
+
+            // Wait for vote confirmation (shows "Vote enregistré !")
+            await expect(
+              page.locator('.phase-title').filter({ hasText: 'enregistré' }),
+            ).toBeVisible({ timeout: 10000 });
+          }),
+        );
+      }
+
+      // For other players, use backdoor API
+      return withErrorHandling(
+        httpPost('/api/test/action/vote-on-card', props).pipe(
+          Effect.map(() => void 0),
+        ),
+      );
+    },
+
+    notifyingToBeReadyForNextTurn: (props) => {
+      // Use UI when the player is the current authenticated player
+      if (isCurrentUiPlayer(props.playerId)) {
+        return withErrorHandling(
+          uiAction(async () => {
+            // Navigate to game page
+            await page.goto(`${BASE_URL}/game/${props.gameId}`);
+
+            // Click the continue button
+            await page.click('.continue-form button[type="submit"]');
+
+            // Wait for waiting message
+            await expect(page.locator('.waiting-message')).toBeVisible({
+              timeout: 10000,
+            });
+          }),
+        );
+      }
+
+      // For other players, use backdoor API
+      return withErrorHandling(
+        httpPost('/api/test/action/notify-ready', props).pipe(
+          Effect.map(() => void 0),
+        ),
+      );
+    },
   };
 
   const assert: PlaywrightGameDriverDSL['assert'] = {
@@ -600,56 +697,115 @@ export const makePlaywrightGameDriver = (
       Effect.gen(function* () {
         const result = yield* httpGet<{
           found: boolean;
-          snapshot: { players: string[] };
+          snapshot: { players: ReadonlyArray<string> };
         }>(`/api/test/game/${props.gameId}/snapshot`);
 
         expect(result.snapshot.players).toEqual(props.players);
       }),
 
     gameToHaveBeenStarted: (props) =>
-      Effect.gen(function* () {
-        const result = yield* httpGet<{
-          found: boolean;
-          snapshot: { status: { _tag: string } };
-        }>(`/api/test/game/${props.gameId}/snapshot`);
+      uiAction(async () => {
+        // Navigate to game page
+        await page.goto(`${BASE_URL}/game/${props.gameId}`);
 
-        expect(result.snapshot.status._tag).toBe('StartedGame');
+        // Verify the game has started - should show game UI with turn info
+        await expect(page.locator('.game-info')).toBeVisible();
+        await expect(page.locator('.game-turn')).toContainText(/Tour/);
       }),
 
     currentTurnToBeStarted: (props) =>
+      uiAction(async () => {
+        // Navigate to game page
+        await page.goto(`${BASE_URL}/game/${props.gameId}`);
+
+        // Verify turn 1 is displayed
+        await expect(page.locator('.game-turn')).toContainText('Tour 1');
+
+        // If current player is the storyteller, verify it's their turn
+        if (props.storytellerId === testState.currentPlayerId) {
+          await expect(page.locator('.game-status')).toContainText(
+            /Ton tour|Donne un indice/,
+          );
+        } else {
+          // Otherwise, verify we're waiting for the storyteller
+          await expect(page.locator('.game-status')).toContainText(
+            /attente.*conteur/i,
+          );
+        }
+      }),
+
+    newTurnToBeStarted: (props) =>
+      uiAction(async () => {
+        // Navigate to game page
+        await page.goto(`${BASE_URL}/game/${props.gameId}`);
+
+        // Verify we're in storytelling phase
+        if (props.storytellerId === testState.currentPlayerId) {
+          // Current player is the new storyteller
+          await expect(page.locator('.game-status')).toContainText(
+            /Ton tour|Donne un indice/,
+          );
+        } else {
+          // Waiting for the new storyteller
+          await expect(page.locator('.game-status')).toContainText(
+            /attente.*conteur/i,
+          );
+        }
+      }),
+
+    playerHandsToEqual: (props) =>
+      Effect.gen(function* () {
+        const result = yield* httpGet<{
+          found: boolean;
+          snapshot: {
+            hands: Record<string, ReadonlyArray<{ id: string }>>;
+          };
+        }>(`/api/test/game/${props.gameId}/snapshot`);
+
+        for (const { playerId, cards } of props.playerHands) {
+          const hand = result.snapshot.hands[playerId];
+          expect(hand?.map((c) => c.id)).toEqual(cards);
+        }
+      }),
+
+    turnClueToBeSubmitted: (props) =>
+      uiAction(async () => {
+        // Navigate to game page to verify the clue is displayed
+        await page.goto(`${BASE_URL}/game/${props.gameId}`);
+
+        // Verify the clue is displayed visually
+        await expect(page.locator('.clue-text')).toContainText(
+          props.storytellerClue,
+        );
+
+        // Verify we're in the selecting-cards phase (status shows "Sélection" or similar)
+        await expect(page.locator('.game-status')).toContainText(/Sélection|Choisis/);
+      }),
+
+    turnToHaveSelectedCards: (props) =>
       Effect.gen(function* () {
         const result = yield* httpGet<{
           found: boolean;
           snapshot: {
             currentTurn: {
-              currentStorytellerId: string;
-              phase: string;
-              turnNumber: number;
+              selectedCards: ReadonlyArray<{ cardId: string; playerId: string }>;
             };
           };
         }>(`/api/test/game/${props.gameId}/snapshot`);
 
-        expect(result.snapshot.currentTurn.currentStorytellerId).toBe(
-          props.storytellerId,
+        expect(result.snapshot.currentTurn.selectedCards).toEqual(
+          expect.arrayContaining([...props.selectedCards]),
         );
-        expect(result.snapshot.currentTurn.phase).toBe('storytelling');
-        expect(result.snapshot.currentTurn.turnNumber).toBe(1);
       }),
 
-    newTurnToBeStarted: () =>
-      Effect.fail(new Error('Not implemented for Playwright driver')),
+    turnToBeInVotingPhase: (props) =>
+      uiAction(async () => {
+        // Navigate to game page
+        await page.goto(`${BASE_URL}/game/${props.gameId}`);
 
-    playerHandsToEqual: () =>
-      Effect.fail(new Error('Not implemented for Playwright driver')),
-
-    turnClueToBeSubmitted: () =>
-      Effect.fail(new Error('Not implemented for Playwright driver')),
-
-    turnToHaveSelectedCards: () =>
-      Effect.fail(new Error('Not implemented for Playwright driver')),
-
-    turnToBeInVotingPhase: () =>
-      Effect.fail(new Error('Not implemented for Playwright driver')),
+        // Verify we're in voting phase by checking the status or voting board
+        await expect(page.locator('.game-status')).toContainText(/vote/i);
+      }),
 
     playerToNotHaveBeenAbleToSubmitClue: (props) =>
       Effect.sync(() => {
@@ -669,8 +825,28 @@ export const makePlaywrightGameDriver = (
         testState.currentError = Option.none();
       }),
 
-    playerToHaveVotedOnCard: () =>
-      Effect.fail(new Error('Not implemented for Playwright driver')),
+    playerToHaveVotedOnCard: (props) =>
+      Effect.gen(function* () {
+        const result = yield* httpGet<{
+          found: boolean;
+          snapshot: {
+            currentTurn: {
+              votes: ReadonlyArray<{
+                votedBy: string;
+                ownedBy: string;
+                cardId: string;
+              }>;
+            };
+          };
+        }>(`/api/test/game/${props.gameId}/snapshot`);
+
+        const vote = result.snapshot.currentTurn.votes.find(
+          (v) => v.votedBy === props.votedBy,
+        );
+        expect(vote).toBeDefined();
+        expect(vote?.ownedBy).toBe(props.ownedBy);
+        expect(vote?.cardId).toBe(props.cardId);
+      }),
 
     playerToNotHaveBeenAbleToVoteOnCard: (props) =>
       Effect.sync(() => {
@@ -681,14 +857,51 @@ export const makePlaywrightGameDriver = (
         testState.currentError = Option.none();
       }),
 
-    turnToBeInScoringPhase: () =>
-      Effect.fail(new Error('Not implemented for Playwright driver')),
+    turnToBeInScoringPhase: (props) =>
+      uiAction(async () => {
+        // Navigate to game page
+        await page.goto(`${BASE_URL}/game/${props.gameId}`);
 
-    playersToHaveScore: () =>
-      Effect.fail(new Error('Not implemented for Playwright driver')),
+        // Verify we're in scoring phase
+        await expect(page.locator('.game-status')).toContainText(/Résultats/);
+        await expect(page.locator('.scoring-results')).toBeVisible();
+      }),
 
-    playersReadyForNextTurnToEqual: () =>
-      Effect.fail(new Error('Not implemented for Playwright driver')),
+    playersToHaveScore: (props) =>
+      uiAction(async () => {
+        // Navigate to game page
+        await page.goto(`${BASE_URL}/game/${props.gameId}`);
+
+        // Verify the current player's score is displayed in the header
+        // We can only visually verify the current authenticated player's score
+        const currentPlayerScore = props.scores.find(
+          (s) => s.playerId === testState.currentPlayerId,
+        );
+        if (currentPlayerScore !== undefined) {
+          await expect(page.locator('.game-points')).toContainText(
+            `${currentPlayerScore.score} points`,
+          );
+        }
+      }),
+
+    playersReadyForNextTurnToEqual: (props) =>
+      Effect.gen(function* () {
+        const result = yield* httpGet<{
+          found: boolean;
+          snapshot: {
+            currentTurn: {
+              playersReadyForNextTurn: ReadonlyArray<string>;
+            };
+          };
+        }>(`/api/test/game/${props.gameId}/snapshot`);
+
+        expect(result.snapshot.currentTurn.playersReadyForNextTurn).toEqual(
+          expect.arrayContaining([...props.playersReadyForNextTurn]),
+        );
+        expect(
+          result.snapshot.currentTurn.playersReadyForNextTurn.length,
+        ).toBe(props.playersReadyForNextTurn.length);
+      }),
 
     playerToNotHaveBeenAbleToNotifyToBeReadyForNextTurn: (props) =>
       Effect.sync(() => {
@@ -703,13 +916,12 @@ export const makePlaywrightGameDriver = (
       Effect.fail(new Error('Not implemented for Playwright driver')),
 
     gameToBeEnded: (props) =>
-      Effect.gen(function* () {
-        const result = yield* httpGet<{
-          found: boolean;
-          snapshot: { status: { _tag: string } };
-        }>(`/api/test/game/${props.gameId}/snapshot`);
+      uiAction(async () => {
+        // Navigate to game page
+        await page.goto(`${BASE_URL}/game/${props.gameId}`);
 
-        expect(result.snapshot.status._tag).toBe('EndedGame');
+        // Verify the game ended status is displayed
+        await expect(page.locator('.game-status')).toContainText(/terminée/i);
       }),
   };
 

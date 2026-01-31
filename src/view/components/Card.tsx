@@ -11,6 +11,8 @@ interface CardProps {
   total?: number;
   /** Optional content to display in the modal (replaces default "Choose this card" button) */
   modalContent?: h.JSX.Element;
+  /** Disable the modal interaction (for use in VotingBoard where parent handles clicks) */
+  disableModal?: boolean;
 }
 
 /**
@@ -46,7 +48,7 @@ function getFanTransform(
   };
 }
 
-export function Card({ id, url, index, total, modalContent }: CardProps) {
+export function Card({ id, url, index, total, modalContent, disableModal }: CardProps) {
   const showFront = !!url;
 
   // Calculate fan transform if index and total are provided
@@ -54,6 +56,25 @@ export function Card({ id, url, index, total, modalContent }: CardProps) {
     index !== undefined && total !== undefined
       ? getFanTransform(index, total)
       : undefined;
+
+  // When modal is disabled, render a simpler card without modal interaction
+  if (disableModal) {
+    return (
+      <div className="card-wrapper">
+        <div
+          className="card"
+          data-card-id={id}
+          style={fanStyle ? { transform: fanStyle.transform, zIndex: fanStyle.zIndex, transformOrigin: 'bottom center' } : undefined}
+        >
+          {showFront ? (
+            <img src={url} alt={id ?? 'card'} className="card-image" />
+          ) : (
+            <CardBack />
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="card-wrapper" x-data="{ modalOpen: false }">
@@ -75,6 +96,7 @@ export function Card({ id, url, index, total, modalContent }: CardProps) {
 
       <div
         className="card"
+        data-card-id={id}
         x-on:click="modalOpen = ! modalOpen"
         style={fanStyle ? { transform: fanStyle.transform, zIndex: fanStyle.zIndex, transformOrigin: 'bottom center' } : undefined}
       >

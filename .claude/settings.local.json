@@ -55,7 +55,9 @@
       "Bash(pnpm playwright:*)",
       "Bash(mkdir:*)",
       "Bash(pnpm clean:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(pnpm test:e2e:*)",
+      "Bash(git commit:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

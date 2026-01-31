@@ -63,6 +63,7 @@ export function VotingBoard({ view }: VotingBoardProps) {
               return (
                 <div
                   key={card.id}
+                  data-card-id={card.id}
                   className={`card-votable ${isOwnCard ? 'card-own' : ''}`}
                   x-on:click={isOwnCard ? '' : `selectedCard = '${card.id}'`}
                   x-bind:class={`selectedCard === '${card.id}' ? 'card-selected' : ''`}
@@ -70,7 +71,7 @@ export function VotingBoard({ view }: VotingBoardProps) {
                     isOwnCard ? 'Ta carte - tu ne peux pas voter pour elle' : ''
                   }
                 >
-                  <Card id={card.id} url={card.url} />
+                  <Card id={card.id} url={card.url} disableModal />
                   {isOwnCard && <div className="card-own-badge">Ta carte</div>}
                 </div>
               );

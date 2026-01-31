@@ -149,10 +149,12 @@ export class GameViewProjector extends Effect.Service<GameViewProjector>()(
           Effect.succeed(LobbyViewProjectorImpl.project(game)),
       };
     }),
+    // InMemoryDeckRepository is included for unit tests (in-memory channel)
+    // For production, use GameViewProjector.DefaultWithoutDependencies composed with JsonDeckRepository
     dependencies: [
       TurnBoardCardsShuffler.Default,
-      InMemoryDeckRepository,
       ShufflerService.Default,
+      InMemoryDeckRepository,
     ],
   },
 ) {}
