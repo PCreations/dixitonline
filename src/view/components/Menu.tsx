@@ -13,7 +13,7 @@ export function Menu() {
           <span>Home</span>
         </a>
 
-        <button className="menu-profile-button">
+        <a href="/profile" className="menu-profile-button">
           <svg
             width="25"
             height="25"
@@ -36,7 +36,7 @@ export function Menu() {
               stroke-linecap="round"
             />
           </svg>
-        </button>
+        </a>
       </div>
     </nav>
   );

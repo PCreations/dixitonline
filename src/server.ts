@@ -29,6 +29,7 @@ import {
 import {
   GameLayerLiveWithoutEventBus,
   InMemoryGameEventBus,
+  RandomShufflerLayer,
 } from './game/index.js';
 import { appRuntimePlugin, renderPlugin } from './http/plugins/index.js';
 import {
@@ -39,6 +40,7 @@ import {
   gameLobbyRoutes,
   gamePlayRoutes,
   homeRoutes,
+  profileRoutes,
   testRoutes,
 } from './http/routes/index.js';
 import { Database } from './infra/db/database.service.js';
@@ -97,7 +99,10 @@ const AppLayer = (() => {
     : OutboxEventRelayTest;
 
   return Layer.mergeAll(
-    GameLayerLiveWithoutEventBus.pipe(Layer.provide(SharedServicesLayer)),
+    GameLayerLiveWithoutEventBus.pipe(
+      Layer.provide(SharedServicesLayer),
+      Layer.provide(RandomShufflerLayer),
+    ),
     PlayerLayerLive,
     makeOutboxPollingDaemonLive({ pollIntervalMs }).pipe(
       Layer.provide(SharedServicesLayer),
@@ -209,6 +214,7 @@ registerAuthHook(fastify, {
 
 // Register route plugins
 await fastify.register(homeRoutes);
+await fastify.register(profileRoutes);
 await fastify.register(authRoutes, { prefix: '/api/auth' });
 await fastify.register(gameCreateRoutes, { prefix: '/game' });
 await fastify.register(gameLobbyRoutes, { prefix: '/game' });

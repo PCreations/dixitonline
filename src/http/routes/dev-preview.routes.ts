@@ -14,6 +14,8 @@ import type {
   VotingAsStorytellerView,
 } from '../../game/game.query-service.js';
 import { Game } from '../../view/components/Game.js';
+import { ProfilePage } from '../../view/components/profile/ProfilePage.js';
+import { createProfileViewModel } from '../../view/view-models/profile.view-model.js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'http://127.0.0.1:44321';
 
@@ -315,6 +317,17 @@ const devPreviewRoutes: FastifyPluginAsync = async (fastify) => {
       },
     };
     return renderGamePreview(reply, 'Game Ended', view);
+  });
+
+  // Profile Dashboard Preview
+  fastify.get('/dev/preview/profile', async (_request, reply) => {
+    const viewModel = createProfileViewModel();
+    const component = h(ProfilePage, { vm: viewModel });
+    const body = renderToString(component);
+    const html = renderHtmlPage('Preview: Profile Dashboard - Tixid Online', body, {
+      isAuthenticated: true,
+    });
+    return reply.type('text/html').send(html);
   });
 };
 

@@ -5,4 +5,5 @@ export { default as gameEventsRoutes } from './game-events.routes.js';
 export { default as gameLobbyRoutes } from './game-lobby.routes.js';
 export { default as gamePlayRoutes } from './game-play.routes.js';
 export { default as homeRoutes } from './home.routes.js';
+export { default as profileRoutes } from './profile.routes.js';
 export { default as testRoutes } from './test.routes.js';
