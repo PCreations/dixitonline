@@ -130,11 +130,15 @@ const gameEventsRoutes: FastifyPluginAsync = async (fastify) => {
 
             function sendGameUpdate(eventName: string) {
               return Effect.gen(function* () {
-                console.log(`[SSE] Sending game update: ${eventName} to player ${currentPlayerId}`);
+                console.log(
+                  `[SSE] Sending game update: ${eventName} to player ${currentPlayerId}`,
+                );
                 const html = yield* Effect.promise(() => renderGameFragment());
                 if (html) {
                   const encodedHtml = html.replace(/\n/g, '');
-                  console.log(`[SSE] Writing ${encodedHtml.length} bytes for ${eventName}`);
+                  console.log(
+                    `[SSE] Writing ${encodedHtml.length} bytes for ${eventName}`,
+                  );
                   reply.raw.write(
                     `event: ${eventName}\ndata: ${encodedHtml}\n\n`,
                   );

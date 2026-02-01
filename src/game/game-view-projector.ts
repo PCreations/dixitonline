@@ -294,7 +294,7 @@ class GameViewProjectorImpl {
         .concat([
           {
             id: storytellerCard.cardId,
-            url: `https://example.com/${storytellerCard.cardId}`,
+            url: this.getCardUrl(storytellerCard.cardId),
           },
         ]);
       return {
