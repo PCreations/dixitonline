@@ -46,6 +46,8 @@ export function VotingBoard({ view }: VotingBoardProps) {
                 modalContent={
                   isOwnCard ? (
                     <OwnCardModal />
+                  ) : view.hasVoted ? (
+                    <AlreadyVotedModal />
                   ) : (
                     <VoteCardForm cardId={card.id} action={view.action} />
                   )
@@ -67,6 +69,21 @@ function OwnCardModal() {
   return (
     <div className="own-card-message">
       <p>C'est ta carte ! Tu ne peux pas voter pour elle.</p>
+      <button
+        type="button"
+        className="btn btn-secondary"
+        x-on:click="modalOpen = false"
+      >
+        Fermer
+      </button>
+    </div>
+  );
+}
+
+function AlreadyVotedModal() {
+  return (
+    <div className="own-card-message">
+      <p>Tu as déjà voté pour ce tour.</p>
       <button
         type="button"
         className="btn btn-secondary"

@@ -25,6 +25,28 @@ export function ScoringResults({ view }: ScoringResultsProps) {
 
         <ClueDisplay clue={view.clue} storytellerName={view.storyteller.name} />
 
+        <div className="scoring-points">
+          <h3 className="scoring-points__title">Tes points ce tour :</h3>
+          {view.pointsEarned.length > 0 ? (
+            <div className="scoring-points__list">
+              {view.pointsEarned.map((p, i) => (
+                <div key={i} className="scoring-points__item">
+                  <span className="scoring-points__value">+{p.points}</span>
+                  <span className="scoring-points__reason">
+                    {getReasonLabel(p.reason)}
+                  </span>
+                </div>
+              ))}
+              <div className="scoring-points__total">
+                Total : +
+                {view.pointsEarned.reduce((sum, p) => sum + p.points, 0)} points
+              </div>
+            </div>
+          ) : (
+            <p className="scoring-points__empty">Aucun point ce tour</p>
+          )}
+        </div>
+
         <div className="scoring-board">
           <p className="scoring-board__label">Votes révélés :</p>
           <div className="scoring-board__cards">
@@ -59,28 +81,6 @@ export function ScoringResults({ view }: ScoringResultsProps) {
               );
             })}
           </div>
-        </div>
-
-        <div className="scoring-points">
-          <h3 className="scoring-points__title">Tes points ce tour :</h3>
-          {view.pointsEarned.length > 0 ? (
-            <div className="scoring-points__list">
-              {view.pointsEarned.map((p, i) => (
-                <div key={i} className="scoring-points__item">
-                  <span className="scoring-points__value">+{p.points}</span>
-                  <span className="scoring-points__reason">
-                    {getReasonLabel(p.reason)}
-                  </span>
-                </div>
-              ))}
-              <div className="scoring-points__total">
-                Total : +
-                {view.pointsEarned.reduce((sum, p) => sum + p.points, 0)} points
-              </div>
-            </div>
-          ) : (
-            <p className="scoring-points__empty">Aucun point ce tour</p>
-          )}
         </div>
 
         {!isReady ? (
