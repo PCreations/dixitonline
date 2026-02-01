@@ -176,12 +176,21 @@ export const makeDrizzlePlayerRepository = ({
           },
           catch: (error) => {
             // PostgreSQL unique violation error code: 23505
+            // Drizzle wraps the PG error, so check both the error and its cause
+            const pgError =
+              error instanceof Error && 'code' in error
+                ? error
+                : error instanceof Error &&
+                    error.cause instanceof Error &&
+                    'code' in error.cause
+                  ? error.cause
+                  : null;
+
             if (
-              error instanceof Error &&
-              'code' in error &&
-              error.code === '23505' &&
-              'constraint' in error &&
-              String(error.constraint).includes('username')
+              pgError &&
+              pgError.code === '23505' &&
+              'constraint' in pgError &&
+              String(pgError.constraint).includes('username')
             ) {
               return new UsernameAlreadyTakenError({
                 username: snapshot.username,

@@ -2122,6 +2122,92 @@ body {
   color: white;
 }
 
+.profile-header-name-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.profile-header-name-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+}
+
+.profile-username-input {
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+  font-size: 18px;
+  color: white;
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 6px 12px;
+  width: 180px;
+  outline: none;
+  transition:
+    border-color 0.2s,
+    background-color 0.2s;
+}
+
+.profile-username-input:focus {
+  border-color: #6366f1;
+  background: rgba(99, 102, 241, 0.1);
+}
+
+.profile-username-input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.profile-username-save,
+.profile-username-cancel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  transition:
+    background-color 0.2s,
+    transform 0.1s;
+}
+
+.profile-username-save {
+  background: #22c55e;
+  color: white;
+}
+
+.profile-username-save:hover {
+  background: #16a34a;
+  transform: scale(1.05);
+}
+
+.profile-username-cancel {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.profile-username-cancel:hover {
+  background: rgba(239, 68, 68, 0.8);
+  color: white;
+  transform: scale(1.05);
+}
+
+.profile-username-error {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 4px;
+  font-family: "Poppins", sans-serif;
+  font-size: 12px;
+  color: #ef4444;
+  white-space: nowrap;
+}
+
 .profile-header-stats {
   display: flex;
   gap: 32px;

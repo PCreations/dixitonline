@@ -3,6 +3,7 @@ import { CheckUsernameAvailabilityUseCase } from './check-username-availability.
 import { EnsurePlayerExistsUseCase } from './ensure-player-exists.usecase.js';
 import { DrizzlePlayerRepository } from './infra/drizzle/drizzle-player.repository.js';
 import { InMemoryPlayerRepository } from './player.repository.js';
+import { UpdateUsernameUseCase } from './update-username.usecase.js';
 
 export { CheckUsernameAvailabilityUseCase } from './check-username-availability.usecase.js';
 export {
@@ -20,6 +21,11 @@ export {
   PlayerRepository,
   UsernameAlreadyTakenError,
 } from './player.repository.js';
+export {
+  PlayerNotFoundError,
+  type UpdateUsernameCommand,
+  UpdateUsernameUseCase,
+} from './update-username.usecase.js';
 
 /**
  * Player layer without repository implementation
@@ -28,6 +34,7 @@ export {
 export const PlayerLayerWithoutDependencies = Layer.mergeAll(
   EnsurePlayerExistsUseCase.Default,
   CheckUsernameAvailabilityUseCase.Default,
+  UpdateUsernameUseCase.Default,
 );
 
 /**
