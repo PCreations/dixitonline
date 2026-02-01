@@ -1499,7 +1499,7 @@ body {
   background: rgba(15, 14, 29, 0.7);
   border-radius: 12px;
   padding: 16px;
-  z-index: 15;
+  z-index: 5; /* Below game-cards (z-10) so player hand can overlap */
 }
 
 .player-panel-list {
@@ -1660,9 +1660,101 @@ body {
   }
 }
 
-/* Desktop: adjust game content for sidebar */
-@media (min-width: 769px) {
-  .game-content {
-    padding-right: 260px;
+
+/* ===== VOTING LAYOUT (Flex-based, no absolute positioning) ===== */
+
+.voting-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  width: 100%;
+}
+
+.voting-layout__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 24px;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.voting-layout__hand {
+  flex-shrink: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 20px 0 40px;
+}
+
+/* Override absolute positioning when inside voting-layout */
+.voting-layout__hand .game-cards {
+  position: relative;
+  bottom: auto;
+  left: auto;
+  transform: none;
+}
+
+
+/* ===== BOARD CARDS (Voting phase) ===== */
+
+.board-cards-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+  padding: 20px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* Small cards for board display */
+.card--small {
+  width: 160px;
+  height: 254px;
+}
+
+.card--small .card-image,
+.card--small .card-back {
+  width: 160px;
+  height: 254px;
+}
+
+/* Own card message in modal */
+.own-card-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  text-align: center;
+  color: white;
+  font-family: "Poppins", sans-serif;
+}
+
+.own-card-message p {
+  margin: 0;
+  font-size: 16px;
+  opacity: 0.9;
+}
+
+/* Responsive board cards */
+@media (max-width: 768px) {
+  .board-cards-container {
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .card--small {
+    width: 120px;
+    height: 190px;
+  }
+
+  .card--small .card-image,
+  .card--small .card-back {
+    width: 120px;
+    height: 190px;
   }
 }

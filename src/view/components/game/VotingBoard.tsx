@@ -1,96 +1,112 @@
 /** @jsx h */
-import { h } from 'preact';
+/** @jsxFrag Fragment */
+import { Fragment, h } from 'preact';
 import type { VotingAsGuesserView } from '../../view-models/game.view-model.js';
 import { Card } from '../Card.js';
 import { ClueDisplay } from './ClueDisplay.js';
-import { PlayerStatusList } from './PlayerStatusList.js';
+import { PlayerHand } from './GameHand.js';
 
 interface VotingBoardProps {
   readonly view: VotingAsGuesserView;
 }
 
 export function VotingBoard({ view }: VotingBoardProps) {
-  if (view.hasVoted) {
-    return (
-      <div className="voting-board voting-done">
+  return (
+    <div className="voting-layout">
+      <div className="voting-layout__content">
         <div className="phase-instructions">
-          <h2 className="phase-title">Vote enregistré !</h2>
-          <p className="phase-description">En attente des autres joueurs...</p>
+          {view.hasVoted ? (
+            <>
+              <h2 className="phase-title">Vote enregistré !</h2>
+              <p className="phase-description">
+                En attente des autres joueurs...
+              </p>
+            </>
+          ) : (
+            <>
+              <h2 className="phase-title">Vote !</h2>
+              <p className="phase-description">
+                Trouve la carte du conteur parmi toutes les cartes.
+              </p>
+            </>
+          )}
         </div>
 
         <ClueDisplay clue={view.clue} storytellerName={view.storyteller.name} />
 
-        <div className="board-section">
-          <p className="board-label">Cartes sur le plateau :</p>
-          <div className="cards-grid board-cards">
-            {view.boardCards.map((card) => (
-              <Card key={card.id} id={card.id} url={card.url} />
-            ))}
-          </div>
+        <div className="board-cards-container">
+          {view.boardCards.map((card) => {
+            const isOwnCard = card.id === view.ownCardId;
+            return (
+              <Card
+                key={card.id}
+                id={card.id}
+                url={card.url}
+                size="small"
+                modalContent={
+                  isOwnCard ? (
+                    <OwnCardModal />
+                  ) : (
+                    <VoteCardForm cardId={card.id} action={view.action} />
+                  )
+                }
+              />
+            );
+          })}
         </div>
-
-        <PlayerStatusList players={view.playersStatus} />
-      </div>
-    );
-  }
-
-  return (
-    <div className="voting-board">
-      <div className="phase-instructions">
-        <h2 className="phase-title">Vote !</h2>
-        <p className="phase-description">
-          Trouve la carte du conteur parmi toutes les cartes. Tu ne peux pas
-          voter pour ta propre carte.
-        </p>
       </div>
 
-      <ClueDisplay clue={view.clue} storytellerName={view.storyteller.name} />
-
-      <form
-        hx-post={view.action.url}
-        hx-target="#game-content"
-        hx-swap="innerHTML"
-        x-data="{ selectedCard: null }"
-        className="voting-form"
-      >
-        <input type="hidden" name="cardId" x-bind:value="selectedCard" />
-
-        <div className="board-section">
-          <p className="board-label">Clique sur la carte du conteur :</p>
-          <div className="cards-grid board-cards">
-            {view.boardCards.map((card) => {
-              const isOwnCard = card.id === view.ownCardId;
-              return (
-                <div
-                  key={card.id}
-                  data-card-id={card.id}
-                  className={`card-votable ${isOwnCard ? 'card-own' : ''}`}
-                  x-on:click={isOwnCard ? '' : `selectedCard = '${card.id}'`}
-                  x-bind:class={`selectedCard === '${card.id}' ? 'card-selected' : ''`}
-                  title={
-                    isOwnCard ? 'Ta carte - tu ne peux pas voter pour elle' : ''
-                  }
-                >
-                  <Card id={card.id} url={card.url} disableModal />
-                  {isOwnCard && <div className="card-own-badge">Ta carte</div>}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        <button
-          type="submit"
-          className="btn btn-primary"
-          x-bind:disabled="!selectedCard"
-        >
-          <VoteIcon />
-          {view.action.label}
-        </button>
-      </form>
-
-      <PlayerStatusList players={view.playersStatus} />
+      <div className="voting-layout__hand">
+        <PlayerHand hand={view.hand} renderModalContent={() => <></>} />
+      </div>
     </div>
+  );
+}
+
+function OwnCardModal() {
+  return (
+    <div className="own-card-message">
+      <p>C'est ta carte ! Tu ne peux pas voter pour elle.</p>
+      <button
+        type="button"
+        className="btn btn-secondary"
+        x-on:click="modalOpen = false"
+      >
+        Fermer
+      </button>
+    </div>
+  );
+}
+
+interface VoteCardFormProps {
+  readonly cardId: string;
+  readonly action: VotingAsGuesserView['action'];
+}
+
+function VoteCardForm({ cardId, action }: VoteCardFormProps) {
+  return (
+    <form
+      hx-post={action.url}
+      hx-target="#game-content"
+      hx-swap="innerHTML"
+      className="modal-vote-form"
+    >
+      <input type="hidden" name="cardId" value={cardId} />
+
+      <div className="modal-actions">
+        <button
+          type="button"
+          className="btn btn-secondary"
+          x-on:click="modalOpen = false"
+        >
+          Annuler
+        </button>
+        <button type="submit" className="btn btn-primary">
+          <VoteIcon />
+          {action.label}
+        </button>
+      </div>
+    </form>
   );
 }
 

@@ -21,7 +21,7 @@ export const gameQueryServiceTestSuite = (
   describe('GameQueryService', () => {
     describe('Phase projections', () => {
       it.effect(
-        'returns StorytellingAsStoryteller for storyteller in storytelling phase',
+        'returns StorytellingPhaseAsStoryteller for storyteller in storytelling phase',
         () => {
           return Effect.gen(function* () {
             const gameDriver = yield* GameDriver;
@@ -45,9 +45,9 @@ export const gameQueryServiceTestSuite = (
 
             expect(Option.isSome(view)).toBe(true);
             const gameView = Option.getOrThrow(view);
-            expect(gameView._tag).toBe('StorytellingAsStoryteller');
+            expect(gameView._tag).toBe('StorytellingPhaseAsStoryteller');
 
-            if (gameView._tag === 'StorytellingAsStoryteller') {
+            if (gameView._tag === 'StorytellingPhaseAsStoryteller') {
               expect(gameView.storyteller.id).toBe(playerId(1));
               expect(gameView.storyteller.isCurrentPlayer).toBe(true);
               expect(gameView.currentPlayer.id).toBe(playerId(1));

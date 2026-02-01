@@ -1,11 +1,11 @@
 /** @jsx h */
 /** @jsxFrag Fragment */
 import { Fragment, h } from 'preact';
-import type { StorytellingAsStorytellerView } from '../../view-models/game.view-model.js';
+import type { StorytellingPhaseAsStorytellerView } from '../../view-models/game.view-model.js';
 import { PlayerHand } from './GameHand.js';
 
 interface StorytellerPhaseAsStorytellerProps {
-  readonly view: StorytellingAsStorytellerView;
+  readonly view: StorytellingPhaseAsStorytellerView;
 }
 
 export function StorytellerPhaseAsStoryteller({ view }: StorytellerPhaseAsStorytellerProps) {
@@ -34,7 +34,7 @@ export function StorytellerPhaseAsStoryteller({ view }: StorytellerPhaseAsStoryt
 
 interface ClueFormProps {
   readonly cardId: string;
-  readonly action: StorytellingAsStorytellerView['action'];
+  readonly action: StorytellingPhaseAsStorytellerView['action'];
 }
 
 function ClueForm({ cardId, action }: ClueFormProps) {

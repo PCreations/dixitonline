@@ -13,6 +13,8 @@ interface CardProps {
   modalContent?: h.JSX.Element;
   /** Disable the modal interaction (for use in VotingBoard where parent handles clicks) */
   disableModal?: boolean;
+  /** Card size variant */
+  size?: 'default' | 'small';
 }
 
 /**
@@ -48,8 +50,9 @@ function getFanTransform(
   };
 }
 
-export function Card({ id, url, index, total, modalContent, disableModal }: CardProps) {
+export function Card({ id, url, index, total, modalContent, disableModal, size = 'default' }: CardProps) {
   const showFront = !!url;
+  const sizeClass = size === 'small' ? 'card--small' : '';
 
   // Calculate fan transform if index and total are provided
   const fanStyle =
@@ -62,7 +65,7 @@ export function Card({ id, url, index, total, modalContent, disableModal }: Card
     return (
       <div className="card-wrapper">
         <div
-          className="card"
+          className={`card ${sizeClass}`.trim()}
           data-card-id={id}
           style={fanStyle ? { transform: fanStyle.transform, zIndex: fanStyle.zIndex, transformOrigin: 'bottom center' } : undefined}
         >
@@ -95,7 +98,7 @@ export function Card({ id, url, index, total, modalContent, disableModal }: Card
       </div>
 
       <div
-        className="card"
+        className={`card ${sizeClass}`.trim()}
         data-card-id={id}
         x-on:click="modalOpen = ! modalOpen"
         style={fanStyle ? { transform: fanStyle.transform, zIndex: fanStyle.zIndex, transformOrigin: 'bottom center' } : undefined}

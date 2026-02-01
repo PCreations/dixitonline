@@ -28,7 +28,7 @@ export type {
   SelectingCardsAsGuesserView,
   SelectingCardsAsStorytellerView,
   StorytellingAsGuesserView,
-  StorytellingPhaseAsStorytellerView as StorytellingAsStorytellerView,
+  StorytellingPhaseAsStorytellerView as StorytellingPhaseAsStorytellerView,
   VotingAsGuesserView,
   VotingAsStorytellerView,
 };
@@ -77,7 +77,7 @@ function getGameId(state: GamePlayerView): string {
 
 function isStoryteller(state: GamePlayerView): boolean {
   switch (state._tag) {
-    case 'StorytellingAsStoryteller':
+    case 'StorytellingPhaseAsStoryteller':
     case 'SelectingCardsAsStoryteller':
     case 'VotingAsStoryteller':
       return true;
@@ -92,7 +92,7 @@ function isStoryteller(state: GamePlayerView): boolean {
 
 function getStatusMessage(state: GamePlayerView): string {
   switch (state._tag) {
-    case 'StorytellingAsStoryteller':
+    case 'StorytellingPhaseAsStoryteller':
       return "C'est ton tour ! Choisis une carte et donne un indice.";
     case 'StorytellingAsGuesser':
       return `En attente de l'indice de ${state.storyteller.name}...`;
@@ -121,7 +121,7 @@ export function isStorytellingPhase(
   view: GamePlayerView,
 ): view is StorytellingPhaseAsStorytellerView | StorytellingAsGuesserView {
   return (
-    view._tag === 'StorytellingAsStoryteller' ||
+    view._tag === 'StorytellingPhaseAsStoryteller' ||
     view._tag === 'StorytellingAsGuesser'
   );
 }
