@@ -31,6 +31,13 @@ export interface ProfileStats {
   readonly badgesEarned: number;
 }
 
+export interface ProfileComingSoon {
+  readonly overview?: boolean;
+  readonly friends?: boolean;
+  readonly badges?: boolean;
+  readonly security?: boolean;
+}
+
 export interface ProfileViewModel {
   readonly username: string;
   readonly avatarUrl?: string;
@@ -41,6 +48,7 @@ export interface ProfileViewModel {
   readonly friends: ReadonlyArray<ProfileFriend>;
   readonly searchResults: ReadonlyArray<ProfileFriend>;
   readonly lastGames: ReadonlyArray<ProfileLastGame>;
+  readonly comingSoon?: ProfileComingSoon;
 }
 
 // === Static Mock Data ===
@@ -230,5 +238,11 @@ export function createProfileViewModel(): ProfileViewModel {
     friends: MOCK_FRIENDS,
     searchResults: MOCK_SEARCH_RESULTS,
     lastGames: MOCK_LAST_GAMES,
+    comingSoon: {
+      overview: true,
+      friends: true,
+      badges: true,
+      security: true,
+    },
   };
 }

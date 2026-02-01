@@ -1,7 +1,21 @@
 /** @jsx h */
 import { h } from 'preact';
+import { ComingSoonPlaceholder } from './ComingSoonPlaceholder.js';
 
-export function SecurityView() {
+export interface SecurityViewProps {
+  readonly comingSoon?: boolean | undefined;
+}
+
+export function SecurityView({ comingSoon }: SecurityViewProps) {
+  if (comingSoon) {
+    return (
+      <ComingSoonPlaceholder
+        title="Security Settings"
+        description="Password management, two-factor authentication and support contact are coming soon!"
+      />
+    );
+  }
+
   return (
     <div className="security-view">
       <div className="security-actions">

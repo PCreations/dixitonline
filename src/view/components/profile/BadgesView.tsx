@@ -2,18 +2,30 @@
 import { h } from 'preact';
 import type { ProfileBadge } from '../../view-models/profile.view-model.js';
 import { BadgeCard } from './BadgeCard.js';
+import { ComingSoonPlaceholder } from './ComingSoonPlaceholder.js';
 
 export interface BadgesViewProps {
   readonly earnedBadges: ReadonlyArray<ProfileBadge>;
   readonly allBadges: ReadonlyArray<ProfileBadge>;
   readonly badgesInProgress: ReadonlyArray<ProfileBadge>;
+  readonly comingSoon?: boolean | undefined;
 }
 
 export function BadgesView({
   earnedBadges,
   allBadges,
   badgesInProgress,
+  comingSoon,
 }: BadgesViewProps) {
+  if (comingSoon) {
+    return (
+      <ComingSoonPlaceholder
+        title="Badges"
+        description="Your badge collection and progress tracking are coming soon!"
+      />
+    );
+  }
+
   // Separate locked badges from all badges
   const lockedBadges = allBadges.filter((b) => !b.isUnlocked);
 

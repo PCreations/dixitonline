@@ -37,6 +37,7 @@ export function ProfilePage({ vm }: ProfilePageProps) {
                 earnedBadges={vm.earnedBadges}
                 lastGames={vm.lastGames}
                 friends={vm.friends}
+                comingSoon={vm.comingSoon?.overview}
               />
             </div>
 
@@ -45,6 +46,7 @@ export function ProfilePage({ vm }: ProfilePageProps) {
               <FriendsListView
                 friends={vm.friends}
                 searchResults={vm.searchResults}
+                comingSoon={vm.comingSoon?.friends}
               />
             </div>
 
@@ -54,12 +56,13 @@ export function ProfilePage({ vm }: ProfilePageProps) {
                 earnedBadges={vm.earnedBadges}
                 allBadges={vm.allBadges}
                 badgesInProgress={vm.badgesInProgress}
+                comingSoon={vm.comingSoon?.badges}
               />
             </div>
 
             {/* Security View */}
             <div x-show="activeTab === 'security'" x-cloak>
-              <SecurityView />
+              <SecurityView comingSoon={vm.comingSoon?.security} />
             </div>
           </div>
         </main>

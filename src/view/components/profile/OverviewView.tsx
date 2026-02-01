@@ -6,6 +6,7 @@ import type {
   ProfileLastGame,
 } from '../../view-models/profile.view-model.js';
 import { BadgeCard } from './BadgeCard.js';
+import { ComingSoonPlaceholder } from './ComingSoonPlaceholder.js';
 import { FriendListItem } from './FriendListItem.js';
 import { LastGameRow } from './LastGameRow.js';
 
@@ -13,6 +14,7 @@ export interface OverviewViewProps {
   readonly earnedBadges: ReadonlyArray<ProfileBadge>;
   readonly lastGames: ReadonlyArray<ProfileLastGame>;
   readonly friends: ReadonlyArray<ProfileFriend>;
+  readonly comingSoon?: boolean | undefined;
 }
 
 function ArrowRightIcon() {
@@ -55,7 +57,17 @@ export function OverviewView({
   earnedBadges,
   lastGames,
   friends,
+  comingSoon,
 }: OverviewViewProps) {
+  if (comingSoon) {
+    return (
+      <ComingSoonPlaceholder
+        title="Overview"
+        description="Your profile overview with badges, games and friends is coming soon!"
+      />
+    );
+  }
+
   // Show max 6 badges in overview
   const displayBadges = earnedBadges.slice(0, 6);
   // Show max 6 games in overview

@@ -1,11 +1,13 @@
 /** @jsx h */
 import { h } from 'preact';
 import type { ProfileFriend } from '../../view-models/profile.view-model.js';
+import { ComingSoonPlaceholder } from './ComingSoonPlaceholder.js';
 import { FriendListItem } from './FriendListItem.js';
 
 export interface FriendsListViewProps {
   readonly friends: ReadonlyArray<ProfileFriend>;
   readonly searchResults: ReadonlyArray<ProfileFriend>;
+  readonly comingSoon?: boolean | undefined;
 }
 
 function SearchIcon() {
@@ -72,7 +74,17 @@ function EditIcon() {
 export function FriendsListView({
   friends,
   searchResults,
+  comingSoon,
 }: FriendsListViewProps) {
+  if (comingSoon) {
+    return (
+      <ComingSoonPlaceholder
+        title="Friends"
+        description="Search and manage your friends list is coming soon!"
+      />
+    );
+  }
+
   return (
     <div className="friends-view">
       <div className="friends-search-section">

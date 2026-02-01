@@ -2951,3 +2951,59 @@ body {
     display: none;
   }
 }
+
+/* ===== COMING SOON PLACEHOLDER ===== */
+
+.coming-soon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  background: rgba(15, 14, 29, 0.4);
+  border: 2px dashed rgba(255, 255, 255, 0.15);
+  border-radius: 1rem;
+  text-align: center;
+  min-height: 300px;
+}
+
+.coming-soon__icon {
+  color: rgba(255, 255, 255, 0.4);
+  margin-bottom: 1rem;
+}
+
+.coming-soon__icon-svg {
+  width: 48px;
+  height: 48px;
+}
+
+.coming-soon__title {
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+  font-size: 1.5rem;
+  color: white;
+  margin: 0 0 0.5rem 0;
+}
+
+.coming-soon__description {
+  font-family: "Poppins", sans-serif;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.6);
+  max-width: 300px;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.coming-soon__badge {
+  margin-top: 1.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(139, 92, 246, 0.2);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 9999px;
+  font-family: "Poppins", sans-serif;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #c4b5fd;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
