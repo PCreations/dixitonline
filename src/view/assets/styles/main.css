@@ -1032,7 +1032,11 @@ body {
   align-items: center;
   gap: 1rem;
   padding: 1rem 1.5rem;
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(59, 130, 246, 0.1) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(139, 92, 246, 0.15) 0%,
+    rgba(59, 130, 246, 0.1) 100%
+  );
   border: 1px solid rgba(139, 92, 246, 0.3);
   border-radius: 1rem;
   margin: 1rem 0;
@@ -1482,4 +1486,184 @@ body {
 
 .btn-primary {
   background: rgba(69, 50, 75, 0.9);
+}
+
+/* ===== PLAYER PANEL ===== */
+
+.player-panel {
+  position: absolute;
+  top: 200px;
+  right: 24px;
+  width: 220px;
+  max-height: calc(100vh - 240px);
+  overflow-y: auto;
+  background: rgba(15, 14, 29, 0.7);
+  border-radius: 12px;
+  padding: 16px;
+  z-index: 15;
+}
+
+.player-panel-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.player-panel-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  transition: background 0.2s;
+}
+
+.player-panel-item--storyteller {
+  background: linear-gradient(
+    135deg,
+    rgba(139, 92, 246, 0.2) 0%,
+    rgba(59, 130, 246, 0.1) 100%
+  );
+  border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.player-panel-item--current {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.player-panel-item--ready .player-panel-status {
+  color: #22c55e;
+}
+
+.player-panel-avatar {
+  position: relative;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.player-panel-icon {
+  width: 100%;
+  height: 100%;
+}
+
+.player-panel-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.player-panel-name {
+  font-family: "Poppins", sans-serif;
+  font-size: 14px;
+  color: white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.player-panel-score {
+  font-family: "Poppins", sans-serif;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.player-panel-status {
+  flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.player-panel-status-icon {
+  display: block;
+}
+
+.storyteller-badge {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  width: 16px;
+  height: 16px;
+  background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.storyteller-badge svg {
+  width: 10px;
+  height: 10px;
+}
+
+/* Mobile: horizontal list */
+@media (max-width: 768px) {
+  .game-content {
+    top: 320px;
+  }
+
+  .player-panel {
+    position: absolute;
+    top: 230px;
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-height: none;
+    background: transparent;
+    border-radius: 0;
+    padding: 0 16px;
+  }
+
+  .player-panel-list {
+    flex-direction: row;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .player-panel-item {
+    flex-shrink: 0;
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px;
+    min-width: 70px;
+    text-align: center;
+    background: rgba(15, 14, 29, 0.7);
+  }
+
+  .player-panel-info {
+    align-items: center;
+  }
+
+  .player-panel-name {
+    font-size: 11px;
+    max-width: 60px;
+  }
+
+  .player-panel-score {
+    font-size: 10px;
+  }
+
+  .player-panel-status {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+  }
+
+  .player-panel-item {
+    position: relative;
+  }
+}
+
+/* Desktop: adjust game content for sidebar */
+@media (min-width: 769px) {
+  .game-content {
+    padding-right: 260px;
+  }
 }

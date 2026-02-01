@@ -47,13 +47,37 @@ const mockBoardCards: ReadonlyArray<CardView> = [
   url: buildCardUrl(n),
 }));
 
+const mockPlayer3: PlayerInfo = {
+  id: 'player-3',
+  name: 'Bob',
+  isCurrentPlayer: false,
+};
+
+const mockPlayer4: PlayerInfo = {
+  id: 'player-4',
+  name: 'Charlie',
+  isCurrentPlayer: false,
+};
+
+const mockPlayer5: PlayerInfo = {
+  id: 'player-5',
+  name: 'Diana',
+  isCurrentPlayer: false,
+};
+
+const mockPlayer6: PlayerInfo = {
+  id: 'player-6',
+  name: 'Eve',
+  isCurrentPlayer: false,
+};
+
 const mockPlayersStatus = [
-  { player: mockCurrentPlayer, status: 'ready' as const },
-  { player: mockStoryteller, status: 'not-ready' as const },
-  {
-    player: { id: 'player-3', name: 'Bob', isCurrentPlayer: false },
-    status: 'ready' as const,
-  },
+  { player: mockCurrentPlayer, status: 'ready' as const, score: 12 },
+  { player: mockStoryteller, status: 'not-ready' as const, score: 8 },
+  { player: mockPlayer3, status: 'ready' as const, score: 5 },
+  { player: mockPlayer4, status: 'ready' as const, score: 10 },
+  { player: mockPlayer5, status: 'not-ready' as const, score: 7 },
+  { player: mockPlayer6, status: 'ready' as const, score: 3 },
 ];
 
 const devPreviewRoutes: FastifyPluginAsync = async (fastify) => {
@@ -250,8 +274,9 @@ const devPreviewRoutes: FastifyPluginAsync = async (fastify) => {
       boardCards: mockBoardCards,
       storytellerCardId: 'card_200',
       votes: {
-        card_200: [mockCurrentPlayer],
-        card_201: [mockStoryteller],
+        card_200: [mockCurrentPlayer, mockPlayer4],
+        card_201: [mockPlayer3],
+        card_202: [mockPlayer5, mockPlayer6],
       },
       pointsEarned: [
         { points: 3, reason: { _tag: 'YouFoundTheStorytellerCard' } },
@@ -276,11 +301,10 @@ const devPreviewRoutes: FastifyPluginAsync = async (fastify) => {
       rankings: [
         { rank: 1, player: mockCurrentPlayer, score: 25 },
         { rank: 2, player: mockStoryteller, score: 20 },
-        {
-          rank: 3,
-          player: { id: 'player-3', name: 'Bob', isCurrentPlayer: false },
-          score: 15,
-        },
+        { rank: 3, player: mockPlayer3, score: 15 },
+        { rank: 4, player: mockPlayer4, score: 12 },
+        { rank: 5, player: mockPlayer5, score: 8 },
+        { rank: 6, player: mockPlayer6, score: 5 },
       ],
       action: {
         type: 'back-to-lobby',
