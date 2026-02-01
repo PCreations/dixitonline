@@ -290,7 +290,7 @@ function buildGameView(
       if (isStoryteller) {
         return {
           ...baseView,
-          _tag: 'StorytellingAsStoryteller',
+          _tag: 'StorytellingPhaseAsStoryteller',
           action: {
             type: 'submit-clue',
             url: `/game/${playerView.gameId}/clue`,

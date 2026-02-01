@@ -2,9 +2,8 @@
 /** @jsxFrag Fragment */
 import { Fragment, h } from 'preact';
 import type { StorytellingAsGuesserView } from '../../view-models/game.view-model.js';
-import { Card } from '../Card.js';
 import { PlayerHand } from './GameHand.js';
-import { PlayerStatusList } from './PlayerStatusList.js';
+
 
 interface WaitingForStorytellerProps {
   readonly view: StorytellingAsGuesserView;
@@ -26,7 +25,7 @@ export function WaitingForStoryteller({ view }: WaitingForStorytellerProps) {
           <WaitingSpinner />
         </div>
       </div>
-      
+
       <PlayerHand hand={view.hand} renderModalContent={() => <></>} />
     </>
   );
