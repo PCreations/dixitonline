@@ -5,6 +5,7 @@ import { h } from 'preact';
 import { CurrentUser } from '../../auth/index.js';
 import { JoinGameUseCase } from '../../game/join-game.usecase.js';
 import { LobbyQueryService } from '../../game/lobby.query-service.js';
+import { StartGameUseCase } from '../../game/start-game.usecase.js';
 import {
   withHttpSpan,
   withSentryErrorCapture,
@@ -111,6 +112,45 @@ const gameLobbyRoutes: FastifyPluginAsync = async (fastify) => {
           Sentry.captureException(error);
           return reply.status(500).send({
             error: 'Failed to join game',
+            details: error.message || 'An unexpected error occurred',
+          });
+        });
+    },
+  });
+
+  // POST /game/:gameId/start - Start the game (host only)
+  fastify.route({
+    method: 'POST',
+    url: '/:gameId/start',
+    handler: async (request, reply) => {
+      const { gameId } = request.params as GameParams;
+
+      if (Option.isNone(request.authUser)) {
+        return reply.status(401).send({ error: 'Unauthorized' });
+      }
+
+      const program = Effect.gen(function* () {
+        const { playerId } = yield* CurrentUser;
+        const startGameUseCase = yield* StartGameUseCase;
+
+        yield* startGameUseCase.startGame({ gameId, playerId });
+
+        // Redirect to game page (SSE GameStarted event will redirect other players)
+        return reply.redirect(`/game/${gameId}`);
+      });
+
+      return appRuntime
+        .runPromise(
+          program.pipe(
+            Effect.provide(request.authLayer),
+            withHttpSpan({ method: 'POST', url: `/game/${gameId}/start` }),
+          ),
+        )
+        .catch((error) => {
+          // @ts-ignore - pino type issue with FastifyBaseLogger
+          request.log.error({ err: error }, 'Failed to start game');
+          return reply.status(400).send({
+            error: 'Failed to start game',
             details: error.message || 'An unexpected error occurred',
           });
         });
