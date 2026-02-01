@@ -433,10 +433,11 @@ export const makePlaywrightGameDriver = (
           yield* authenticateAsPlayer(props.hostId);
 
           // Create game via backdoor API
+          // Don't default deckId - let the use case fetch the actual default deck from the repository
           yield* httpPost('/api/test/action/create-game', {
             gameId: props.gameId,
             hostId: props.hostId,
-            deckId: props.deckId ?? 'default-deck-id',
+            deckId: props.deckId,
             endCondition: props.endCondition,
           });
 
@@ -502,19 +503,18 @@ export const makePlaywrightGameDriver = (
             // Navigate to game page
             await page.goto(`${BASE_URL}/game/${props.gameId}`);
 
-            // Click on the card to open modal
-            const card = page.locator(`.card[data-card-id="${props.cardId}"]`);
-            await card.click();
+            // Click on the card by its alt text (accessible selector)
+            await page.getByRole('img', { name: props.cardId, exact: true }).click();
 
-            // Wait for modal and fill clue
-            await page.waitForSelector('.card-modal-content');
-            await page.fill('.clue-input', props.clue);
+            // Fill the clue using the specific input ID for this card
+            // Each card has its own clue input with ID: clue-input-{cardId}
+            await page.locator(`#clue-input-${props.cardId}`).fill(props.clue);
 
-            // Submit the form
-            await page.click('.modal-clue-form button[type="submit"]');
+            // Submit via accessible button selector
+            await page.getByRole('button', { name: /Soumettre/i }).click();
 
-            // Wait for the clue to be displayed (phase change)
-            await expect(page.locator('.clue-display')).toBeVisible({
+            // Verify the clue is displayed (phase change)
+            await expect(page.getByText(`« ${props.clue} »`)).toBeVisible({
               timeout: 10000,
             });
           }),
@@ -537,19 +537,15 @@ export const makePlaywrightGameDriver = (
             // Navigate to game page
             await page.goto(`${BASE_URL}/game/${props.gameId}`);
 
-            // Click on the card to open modal
-            const card = page.locator(`.card[data-card-id="${props.cardId}"]`);
-            await card.click();
+            // Click on the card by its alt text (accessible selector)
+            await page.getByRole('img', { name: props.cardId, exact: true }).click();
 
-            // Wait for modal
-            await page.waitForSelector('.card-modal-content');
+            // Submit the selection via accessible button selector
+            await page.getByRole('button', { name: /Sélectionner/i }).click();
 
-            // Submit the selection
-            await page.click('.modal-select-form button[type="submit"]');
-
-            // Wait for confirmation (phase title changes or shows "Carte sélectionnée")
+            // Wait for confirmation heading
             await expect(
-              page.locator('.phase-title').filter({ hasText: 'sélectionnée' }),
+              page.getByRole('heading', { name: /sélectionnée/i }),
             ).toBeVisible({ timeout: 10000 });
           }),
         );
@@ -571,21 +567,16 @@ export const makePlaywrightGameDriver = (
             // Navigate to game page
             await page.goto(`${BASE_URL}/game/${props.gameId}`);
 
-            // Click on the votable card to select it
-            const votableCard = page.locator(
-              `.card-votable[data-card-id="${props.cardId}"]`,
-            );
-            await votableCard.click();
+            // Click on the card by its alt text (accessible selector)
+            // Cards on the board have alt={cardId}
+            await page.getByRole('img', { name: props.cardId, exact: true }).click();
 
-            // Verify the card is selected
-            await expect(votableCard).toHaveClass(/card-selected/);
+            // Submit the vote via accessible button selector
+            await page.getByRole('button', { name: /Voter/i }).click();
 
-            // Submit the vote
-            await page.click('.voting-form button[type="submit"]');
-
-            // Wait for vote confirmation (shows "Vote enregistré !")
+            // Wait for vote confirmation heading
             await expect(
-              page.locator('.phase-title').filter({ hasText: 'enregistré' }),
+              page.getByRole('heading', { name: /enregistré/i }),
             ).toBeVisible({ timeout: 10000 });
           }),
         );
@@ -607,11 +598,11 @@ export const makePlaywrightGameDriver = (
             // Navigate to game page
             await page.goto(`${BASE_URL}/game/${props.gameId}`);
 
-            // Click the continue button
-            await page.click('.continue-form button[type="submit"]');
+            // Click the continue button via accessible selector
+            await page.getByRole('button', { name: /Continuer/i }).click();
 
-            // Wait for waiting message
-            await expect(page.locator('.waiting-message')).toBeVisible({
+            // Wait for waiting message (text-based selector)
+            await expect(page.getByText(/attente/i)).toBeVisible({
               timeout: 10000,
             });
           }),
@@ -773,10 +764,10 @@ export const makePlaywrightGameDriver = (
         // Navigate to game page to verify the clue is displayed
         await page.goto(`${BASE_URL}/game/${props.gameId}`);
 
-        // Verify the clue is displayed visually
-        await expect(page.locator('.clue-text')).toContainText(
-          props.storytellerClue,
-        );
+        // Verify the clue is displayed using text selector (accessible)
+        await expect(
+          page.getByText(`« ${props.storytellerClue} »`),
+        ).toBeVisible();
 
         // Verify we're in the selecting-cards phase (status shows "Sélection" or similar)
         await expect(page.locator('.game-status')).toContainText(/Sélection|Choisis/);
@@ -862,9 +853,10 @@ export const makePlaywrightGameDriver = (
         // Navigate to game page
         await page.goto(`${BASE_URL}/game/${props.gameId}`);
 
-        // Verify we're in scoring phase
-        await expect(page.locator('.game-status')).toContainText(/Résultats/);
-        await expect(page.locator('.scoring-results')).toBeVisible();
+        // Verify we're in scoring phase using accessible heading selector
+        await expect(
+          page.getByRole('heading', { name: /Résultats/i }),
+        ).toBeVisible();
       }),
 
     playersToHaveScore: (props) =>
