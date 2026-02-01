@@ -4,14 +4,14 @@ import { Fragment, h } from 'preact';
 import type { StorytellingAsStorytellerView } from '../../view-models/game.view-model.js';
 import { PlayerHand } from './GameHand.js';
 
-interface StorytellerClueFormProps {
+interface StorytellerPhaseAsStorytellerProps {
   readonly view: StorytellingAsStorytellerView;
 }
 
-export function StorytellerClueForm({ view }: StorytellerClueFormProps) {
+export function StorytellerPhaseAsStoryteller({ view }: StorytellerPhaseAsStorytellerProps) {
   return (
     <>
-      <div className="storyteller-clue-form">
+      <div className="phase-description-container">
         <div className="phase-instructions">
           <h2 className="phase-title">C'est ton tour !</h2>
           <p className="phase-description">

@@ -27,6 +27,7 @@ export interface CardView {
 export interface PlayerStatus {
   readonly player: PlayerInfo;
   readonly status: 'ready' | 'not-ready';
+  readonly score: number;
 }
 
 export interface HtmxAction {
@@ -56,8 +57,8 @@ interface GameViewBase {
 // === Phase-specific Views (Discriminated Union) ===
 
 // Storytelling Phase - Storyteller
-export interface StorytellingAsStorytellerView extends GameViewBase {
-  readonly _tag: 'StorytellingAsStoryteller';
+export interface StorytellingPhaseAsStorytellerView extends GameViewBase {
+  readonly _tag: 'StorytellingPhaseAsStoryteller';
   readonly action: HtmxAction;
 }
 
@@ -123,7 +124,7 @@ export interface EndedView {
 
 // === Union Type ===
 export type GamePlayerView =
-  | StorytellingAsStorytellerView
+  | StorytellingPhaseAsStorytellerView
   | StorytellingAsGuesserView
   | SelectingCardsAsStorytellerView
   | SelectingCardsAsGuesserView
@@ -280,6 +281,7 @@ function buildGameView(
     playersStatus: snapshot.players.map((playerId) => ({
       player: getPlayerInfo(playerId, playerId === currentPlayerId),
       status: playerView.playerStatus[playerId],
+      score: snapshot.scores.find((s) => s.playerId === playerId)?.score ?? 0,
     })),
   };
 

@@ -9,7 +9,7 @@ import type {
   SelectingCardsAsGuesserView,
   SelectingCardsAsStorytellerView,
   StorytellingAsGuesserView,
-  StorytellingAsStorytellerView,
+  StorytellingPhaseAsStorytellerView,
   VotingAsGuesserView,
   VotingAsStorytellerView,
 } from '../../game/game.query-service.js';
@@ -140,8 +140,8 @@ const devPreviewRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.get(
     '/dev/preview/storytelling-storyteller',
     async (_request, reply) => {
-      const view: StorytellingAsStorytellerView = {
-        _tag: 'StorytellingAsStoryteller',
+      const view: StorytellingPhaseAsStorytellerView = {
+        _tag: 'StorytellingPhaseAsStoryteller',
         gameId: 'dev-game',
         currentPlayer: mockCurrentPlayer,
         score: 0,

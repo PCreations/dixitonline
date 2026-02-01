@@ -1,7 +1,9 @@
 /** @jsx h */
-import { h } from 'preact';
+/** @jsxFrag Fragment */
+import { Fragment, h } from 'preact';
 import type { StorytellingAsGuesserView } from '../../view-models/game.view-model.js';
 import { Card } from '../Card.js';
+import { PlayerHand } from './GameHand.js';
 import { PlayerStatusList } from './PlayerStatusList.js';
 
 interface WaitingForStorytellerProps {
@@ -10,29 +12,23 @@ interface WaitingForStorytellerProps {
 
 export function WaitingForStoryteller({ view }: WaitingForStorytellerProps) {
   return (
-    <div className="waiting-for-storyteller">
-      <div className="phase-instructions">
-        <h2 className="phase-title">En attente...</h2>
-        <p className="phase-description">
-          {view.storyteller.name} choisit une carte et prépare son indice.
-        </p>
-      </div>
+    <>
+      <div className="phase-description-container">
+        <div className="phase-instructions">
+          <h2 className="phase-title">En attente du conteur...</h2>
+          <p className="phase-description">
+            {view.storyteller.name} est en train de choisir une carte et de
+            préparer son indice.
+          </p>
+        </div>
 
-      <div className="waiting-animation">
-        <WaitingSpinner />
-      </div>
-
-      <PlayerStatusList players={view.playersStatus} />
-
-      <div className="hand-section">
-        <p className="hand-label">Tes cartes :</p>
-        <div className="cards-grid cards-preview">
-          {view.hand.map((card) => (
-            <Card key={card.id} id={card.id} url={card.url} />
-          ))}
+        <div className="waiting-animation">
+          <WaitingSpinner />
         </div>
       </div>
-    </div>
+      
+      <PlayerHand hand={view.hand} renderModalContent={() => <></>} />
+    </>
   );
 }
 

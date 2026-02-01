@@ -5,8 +5,9 @@ import type { GamePlayerView } from '../view-models/game.view-model.js';
 import {
   CardSelection,
   GameEnded,
+  PlayerPanel,
   ScoringResults,
-  StorytellerClueForm,
+  StorytellerPhaseAsStoryteller,
   VotingBoard,
   WaitingForPlayers,
   WaitingForStoryteller,
@@ -30,6 +31,13 @@ export function Game({ view }: GameProps) {
       <div className="game-header">
         <GameInfo view={view} />
       </div>
+
+      {view._tag !== 'Ended' && (
+        <PlayerPanel
+          players={view.playersStatus}
+          storyteller={view.storyteller}
+        />
+      )}
 
       <div id="game-content" className="game-content">
         <GamePhaseContent view={view} />
@@ -69,8 +77,8 @@ function GameInfo({ view }: { view: GamePlayerView }) {
  */
 function GamePhaseContent({ view }: { view: GamePlayerView }) {
   switch (view._tag) {
-    case 'StorytellingAsStoryteller':
-      return <StorytellerClueForm view={view} />;
+    case 'StorytellingPhaseAsStoryteller':
+      return <StorytellerPhaseAsStoryteller view={view} />;
 
     case 'StorytellingAsGuesser':
       return <WaitingForStoryteller view={view} />;
@@ -97,7 +105,7 @@ function GamePhaseContent({ view }: { view: GamePlayerView }) {
 
 function PhaseLabel({ phase }: { phase: GamePlayerView['_tag'] }) {
   const labels: Record<GamePlayerView['_tag'], string> = {
-    StorytellingAsStoryteller: 'Ton tour - Donne un indice',
+    StorytellingPhaseAsStoryteller: 'Ton tour - Donne un indice',
     StorytellingAsGuesser: 'En attente du conteur',
     SelectingCardsAsStoryteller: 'Sélection des cartes',
     SelectingCardsAsGuesser: 'Choisis une carte',

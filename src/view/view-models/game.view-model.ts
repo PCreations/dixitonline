@@ -10,7 +10,7 @@ import type {
   SelectingCardsAsGuesserView,
   SelectingCardsAsStorytellerView,
   StorytellingAsGuesserView,
-  StorytellingAsStorytellerView,
+  StorytellingPhaseAsStorytellerView,
   VotingAsGuesserView,
   VotingAsStorytellerView,
 } from '../../game/game.query-service.js';
@@ -28,7 +28,7 @@ export type {
   SelectingCardsAsGuesserView,
   SelectingCardsAsStorytellerView,
   StorytellingAsGuesserView,
-  StorytellingAsStorytellerView,
+  StorytellingPhaseAsStorytellerView as StorytellingAsStorytellerView,
   VotingAsGuesserView,
   VotingAsStorytellerView,
 };
@@ -119,7 +119,7 @@ function getStatusMessage(state: GamePlayerView): string {
 
 export function isStorytellingPhase(
   view: GamePlayerView,
-): view is StorytellingAsStorytellerView | StorytellingAsGuesserView {
+): view is StorytellingPhaseAsStorytellerView | StorytellingAsGuesserView {
   return (
     view._tag === 'StorytellingAsStoryteller' ||
     view._tag === 'StorytellingAsGuesser'

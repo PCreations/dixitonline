@@ -1362,8 +1362,7 @@ body {
   opacity: 1;
 }
 
-/* ===== STORYTELLER CLUE FORM ===== */
-.storyteller-clue-form {
+.phase-description-container {
   @apply relative z-10;
   display: flex;
   flex-direction: column;

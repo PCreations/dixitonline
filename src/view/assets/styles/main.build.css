@@ -1764,7 +1764,7 @@ body {
 .auth-callback-link:hover {
   opacity: 1;
 }
-.storyteller-clue-form {
+.phase-description-container {
   position: relative;
   z-index: 10;
   display: flex;
