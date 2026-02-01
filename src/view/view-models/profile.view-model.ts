@@ -51,6 +51,10 @@ export interface ProfileViewModel {
   readonly comingSoon?: ProfileComingSoon;
 }
 
+export interface ProfileViewModelProps {
+  readonly username: string;
+}
+
 // === Static Mock Data ===
 
 const MOCK_EARNED_BADGES: ReadonlyArray<ProfileBadge> = [
@@ -219,12 +223,14 @@ const MOCK_LAST_GAMES: ReadonlyArray<ProfileLastGame> = [
 ];
 
 /**
- * Creates a static profile view model with mock data.
- * This will be replaced with real data fetching later.
+ * Creates a profile view model with the given props and mock data for other fields.
+ * Other fields will be replaced with real data fetching later.
  */
-export function createProfileViewModel(): ProfileViewModel {
+export function createProfileViewModel(
+  props: ProfileViewModelProps,
+): ProfileViewModel {
   return {
-    username: 'Mr.g23',
+    username: props.username,
     stats: {
       gamesWon: 124,
       gamesPlayed: 432,

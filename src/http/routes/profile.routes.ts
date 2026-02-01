@@ -18,8 +18,10 @@ const profileRoutes: FastifyPluginAsync = async (fastify) => {
         return reply.redirect('/login?redirect=/profile');
       }
 
-      // Create static view model (will be dynamic later)
-      const viewModel = createProfileViewModel();
+      const authUser = request.authUser.value;
+      const username = authUser.username ?? 'Anonymous';
+
+      const viewModel = createProfileViewModel({ username });
 
       const component = h(ProfilePage, { vm: viewModel });
       const body = renderToString(component);

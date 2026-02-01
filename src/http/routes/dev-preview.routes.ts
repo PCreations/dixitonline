@@ -321,12 +321,16 @@ const devPreviewRoutes: FastifyPluginAsync = async (fastify) => {
 
   // Profile Dashboard Preview
   fastify.get('/dev/preview/profile', async (_request, reply) => {
-    const viewModel = createProfileViewModel();
+    const viewModel = createProfileViewModel({ username: 'TestUser' });
     const component = h(ProfilePage, { vm: viewModel });
     const body = renderToString(component);
-    const html = renderHtmlPage('Preview: Profile Dashboard - Tixid Online', body, {
-      isAuthenticated: true,
-    });
+    const html = renderHtmlPage(
+      'Preview: Profile Dashboard - Tixid Online',
+      body,
+      {
+        isAuthenticated: true,
+      },
+    );
     return reply.type('text/html').send(html);
   });
 };
