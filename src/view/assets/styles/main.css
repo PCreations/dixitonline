@@ -1767,3 +1767,155 @@ body {
     height: 190px;
   }
 }
+
+
+/* ===== SCORING RESULTS ===== */
+
+.scoring-board {
+  width: 100%;
+  margin-top: 16px;
+}
+
+.scoring-board__label {
+  font-family: "Poppins", sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  @apply text-white text-center mb-4;
+  opacity: 0.8;
+}
+
+.scoring-board__cards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+}
+
+.scoring-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.scoring-card--storyteller {
+  position: relative;
+}
+
+.scoring-card__badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: "Poppins", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.15);
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.scoring-card__voters {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+  max-width: 160px;
+}
+
+.scoring-card__vote-icon {
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.scoring-card__voter {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-family: "Poppins", sans-serif;
+  font-size: 11px;
+  color: white;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.scoring-points {
+  width: 100%;
+  margin-top: 24px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+.scoring-points__title {
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  @apply text-white text-center mb-3;
+}
+
+.scoring-points__list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.scoring-points__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+.scoring-points__value {
+  font-family: "Poppins", sans-serif;
+  font-weight: 700;
+  font-size: 18px;
+  color: #4ade80;
+  min-width: 40px;
+}
+
+.scoring-points__reason {
+  font-family: "Poppins", sans-serif;
+  font-size: 13px;
+  color: white;
+  opacity: 0.8;
+}
+
+.scoring-points__total {
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  @apply text-white text-center mt-3 pt-3;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.scoring-points__empty {
+  font-family: "Poppins", sans-serif;
+  font-size: 14px;
+  @apply text-white text-center;
+  opacity: 0.6;
+}
+
+.scoring-action {
+  margin-top: 24px;
+  display: flex;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .scoring-board__cards {
+    gap: 12px;
+  }
+
+  .scoring-card__voters {
+    max-width: 120px;
+  }
+
+  .scoring-points {
+    padding: 12px;
+  }
+}
