@@ -275,6 +275,31 @@ document.addEventListener('DOMContentLoaded', () => {
       e.detail.headers['Authorization'] = 'Bearer ' + session.access_token;
     }
   });
+
+  // Reinitialize Alpine.js on HTMX swapped content
+  // Clean up ALL teleported modal overlays before reinitializing Alpine
+  // This prevents orphaned overlays from interfering with new Alpine scopes
+  const reinitAlpine = (e) => {
+    if (window.Alpine) {
+      // For morph swaps, Alpine handles state preservation automatically
+      // For other swaps, we need to clean up and reinitialize
+      const gameContainer = document.getElementById('game-container');
+      const el = gameContainer || e.detail.target || e.detail.elt;
+
+      if (el) {
+        // Remove ALL modal overlays - Alpine will recreate them from new x-teleport templates
+        document.querySelectorAll('body > .card-modal-overlay').forEach(overlay => {
+          overlay.remove();
+        });
+
+        // Initialize Alpine on the new element
+        window.Alpine.initTree(el);
+      }
+    }
+  };
+
+  // htmx:afterSettle fires after DOM is settled (handles both regular HTMX and SSE swaps)
+  document.body.addEventListener('htmx:afterSettle', reinitAlpine);
 });
 `;
 
@@ -297,12 +322,14 @@ export function renderHtmlPage(
     <link rel="stylesheet" href="/assets/styles/main.build.css">
     <script src="https://unpkg.com/htmx.org@2.0.4"></script>
     <script src="https://unpkg.com/htmx-ext-sse@2.2.2/sse.js"></script>
+    <script src="https://unpkg.com/htmx-ext-alpine-morph@2.0.0/alpine-morph.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
       console.log('[DEBUG] Creating Supabase client with URL:', '${supabaseUrl}');
       console.log('[DEBUG] Using publishable key:', '${supabasePublishableKey}'.substring(0, 50) + '...');
       window.supabase = window.supabase.createClient('${supabaseUrl}', '${supabasePublishableKey}');
     </script>
+    <script defer src="https://unpkg.com/@alpinejs/morph@3.x.x/dist/cdn.min.js"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script>${authStoreScript}</script>
 </head>

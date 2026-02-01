@@ -212,8 +212,7 @@ export const gameScenariosTestCases: ReadonlyArray<TestCase> = [
           (p) => p !== turn2Storyteller,
         );
         for (const voter of votersTurn2) {
-          const cardToVote =
-            voter === alice ? storytellerCardTurn2 : aliceCard;
+          const cardToVote = voter === alice ? storytellerCardTurn2 : aliceCard;
           yield* gameDriver.when.votingOnCard({
             gameId: gameIdValue,
             playerId: voter,

@@ -18,7 +18,8 @@ export function CardSelection({ view }: CardSelectionProps) {
             <>
               <h2 className="phase-title">Carte sélectionnée !</h2>
               <p className="phase-description">
-                Ta carte a été sélectionnée. Les autres joueurs devront deviner quelle est la carte du conteur.
+                Ta carte a été sélectionnée. Les autres joueurs devront deviner
+                quelle est la carte du conteur.
               </p>
             </>
           ) : (
@@ -56,8 +57,8 @@ function SelectCardForm({ cardId, action }: SelectCardFormProps) {
   return (
     <form
       hx-post={action.url}
-      hx-target="#game-content"
-      hx-swap="innerHTML"
+      hx-target="#game-container"
+      hx-swap="outerHTML"
       className="modal-select-form"
     >
       <input type="hidden" name="cardId" value={cardId} />

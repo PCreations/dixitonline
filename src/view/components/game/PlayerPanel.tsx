@@ -33,7 +33,10 @@ interface PlayerPanelItemProps {
   readonly isStoryteller: boolean;
 }
 
-function PlayerPanelItem({ playerStatus, isStoryteller }: PlayerPanelItemProps) {
+function PlayerPanelItem({
+  playerStatus,
+  isStoryteller,
+}: PlayerPanelItemProps) {
   const { player, status, score } = playerStatus;
 
   const classes = [

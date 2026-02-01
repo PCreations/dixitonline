@@ -1,9 +1,11 @@
 import { Effect, Option, Stream } from 'effect';
 import type { FastifyPluginAsync } from 'fastify';
 import { h } from 'preact';
+import { GameQueryService } from '../../game/game.query-service.js';
 import { matchGameEvent } from '../../game/game-events.js';
 import { GameEventBus } from '../../game/index.js';
 import { LobbyQueryService } from '../../game/lobby.query-service.js';
+import { Game } from '../../view/components/Game.js';
 import { LobbyContent } from '../../view/components/LobbyContent.js';
 import { createLobbyViewModel } from '../../view/view-models/lobby.view-model.js';
 import type { GameParams } from '../types.js';
@@ -58,6 +60,25 @@ const gameEventsRoutes: FastifyPluginAsync = async (fastify) => {
         return appRuntime.runPromise(program);
       };
 
+      // Helper to render game content fragment
+      const renderGameFragment = async (): Promise<string | null> => {
+        const program = Effect.gen(function* () {
+          const gameQueryService = yield* GameQueryService;
+          const maybeGameState = yield* gameQueryService.getGameState(
+            gameId,
+            currentPlayerId,
+          );
+
+          if (Option.isNone(maybeGameState)) {
+            return null;
+          }
+
+          return renderToString(h(Game, { view: maybeGameState.value }));
+        });
+
+        return appRuntime.runPromise(program);
+      };
+
       // Subscribe to game events
       const subscribeProgram = Effect.gen(function* () {
         const eventBus = yield* GameEventBus;
@@ -83,16 +104,16 @@ const gameEventsRoutes: FastifyPluginAsync = async (fastify) => {
             yield* matchGameEvent(event, {
               GameStarted: () =>
                 Effect.sync(() => {
-                  const data = `<script>window.location.href='/game/${gameId}/play'</script>`;
+                  const data = `<script>window.location.href='/game/${gameId}'</script>`;
                   reply.raw.write(`event: gameStarted\ndata: ${data}\n\n`);
                 }),
               PlayerJoined: () => sendLobbyUpdate('playerJoined'),
               PlayerLeft: () => sendLobbyUpdate('playerLeft'),
-              ClueSubmitted: () => Effect.void,
-              CardSelected: () => Effect.void,
-              VoteSubmitted: () => Effect.void,
-              TurnScored: () => Effect.void,
-              GameEnded: () => Effect.void,
+              ClueSubmitted: () => sendGameUpdate('clueSubmitted'),
+              CardSelected: () => sendGameUpdate('cardSelected'),
+              VoteSubmitted: () => sendGameUpdate('voteSubmitted'),
+              TurnScored: () => sendGameUpdate('turnScored'),
+              GameEnded: () => sendGameUpdate('gameEnded'),
             });
 
             function sendLobbyUpdate(eventName: string) {
@@ -103,6 +124,22 @@ const gameEventsRoutes: FastifyPluginAsync = async (fastify) => {
                   reply.raw.write(
                     `event: ${eventName}\ndata: ${encodedHtml}\n\n`,
                   );
+                }
+              });
+            }
+
+            function sendGameUpdate(eventName: string) {
+              return Effect.gen(function* () {
+                console.log(`[SSE] Sending game update: ${eventName} to player ${currentPlayerId}`);
+                const html = yield* Effect.promise(() => renderGameFragment());
+                if (html) {
+                  const encodedHtml = html.replace(/\n/g, '');
+                  console.log(`[SSE] Writing ${encodedHtml.length} bytes for ${eventName}`);
+                  reply.raw.write(
+                    `event: ${eventName}\ndata: ${encodedHtml}\n\n`,
+                  );
+                } else {
+                  console.log(`[SSE] No HTML rendered for ${eventName}`);
                 }
               });
             }

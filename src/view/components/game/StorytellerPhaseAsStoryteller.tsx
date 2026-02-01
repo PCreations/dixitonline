@@ -7,7 +7,9 @@ interface StorytellerPhaseAsStorytellerProps {
   readonly view: StorytellingPhaseAsStorytellerView;
 }
 
-export function StorytellerPhaseAsStoryteller({ view }: StorytellerPhaseAsStorytellerProps) {
+export function StorytellerPhaseAsStoryteller({
+  view,
+}: StorytellerPhaseAsStorytellerProps) {
   return (
     <div className="game-phase-layout">
       <div className="game-phase-layout__content">
@@ -18,7 +20,9 @@ export function StorytellerPhaseAsStoryteller({ view }: StorytellerPhaseAsStoryt
             L'indice peut être un mot, une phrase, un son, une chanson...
           </p>
         </div>
-        <p className="hand-label">Clique sur une carte pour donner ton indice :</p>
+        <p className="hand-label">
+          Clique sur une carte pour donner ton indice :
+        </p>
       </div>
 
       <div className="game-phase-layout__hand">
@@ -42,8 +46,8 @@ function ClueForm({ cardId, action }: ClueFormProps) {
   return (
     <form
       hx-post={action.url}
-      hx-target="#game-content"
-      hx-swap="innerHTML"
+      hx-target="#game-container"
+      hx-swap="outerHTML"
       x-data="{ clue: '' }"
       className="modal-clue-form"
     >

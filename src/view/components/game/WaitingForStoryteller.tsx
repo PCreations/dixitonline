@@ -4,7 +4,6 @@ import { Fragment, h } from 'preact';
 import type { StorytellingAsGuesserView } from '../../view-models/game.view-model.js';
 import { PlayerHand } from './GameHand.js';
 
-
 interface WaitingForStorytellerProps {
   readonly view: StorytellingAsGuesserView;
 }

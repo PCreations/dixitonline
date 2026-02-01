@@ -50,7 +50,15 @@ function getFanTransform(
   };
 }
 
-export function Card({ id, url, index, total, modalContent, disableModal, size = 'default' }: CardProps) {
+export function Card({
+  id,
+  url,
+  index,
+  total,
+  modalContent,
+  disableModal,
+  size = 'default',
+}: CardProps) {
   const showFront = !!url;
   const sizeClass = size === 'small' ? 'card--small' : '';
 
@@ -67,7 +75,15 @@ export function Card({ id, url, index, total, modalContent, disableModal, size =
         <div
           className={`card ${sizeClass}`.trim()}
           data-card-id={id}
-          style={fanStyle ? { transform: fanStyle.transform, zIndex: fanStyle.zIndex, transformOrigin: 'bottom center' } : undefined}
+          style={
+            fanStyle
+              ? {
+                  transform: fanStyle.transform,
+                  zIndex: fanStyle.zIndex,
+                  transformOrigin: 'bottom center',
+                }
+              : undefined
+          }
         >
           {showFront ? (
             <img src={url} alt={id ?? 'card'} className="card-image" />
@@ -101,7 +117,15 @@ export function Card({ id, url, index, total, modalContent, disableModal, size =
         className={`card ${sizeClass}`.trim()}
         data-card-id={id}
         x-on:click="modalOpen = ! modalOpen"
-        style={fanStyle ? { transform: fanStyle.transform, zIndex: fanStyle.zIndex, transformOrigin: 'bottom center' } : undefined}
+        style={
+          fanStyle
+            ? {
+                transform: fanStyle.transform,
+                zIndex: fanStyle.zIndex,
+                transformOrigin: 'bottom center',
+              }
+            : undefined
+        }
       >
         {showFront ? (
           <img src={url} alt={id ?? 'card'} className="card-image" />
@@ -110,48 +134,47 @@ export function Card({ id, url, index, total, modalContent, disableModal, size =
         )}
       </div>
 
-      <template x-teleport="body">
-        <div
-          className="card-modal-overlay"
-          x-show="modalOpen"
-          x-cloak
-          {...{
-            'x-on:click':
-              'if ($event.target === $event.currentTarget) modalOpen = false',
-          }}
-        >
-          <div className="card-modal-content" {...{ 'x-on:click.stop': '' }}>
-            {!modalContent && (
-              <button
-                className="card-modal-button"
-                x-on:click="modalOpen = false"
-              >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
-                    fill="white"
-                  />
-                </svg>
-                Choose this card
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
-                    fill="white"
-                  />
-                </svg>
-              </button>
-            )}
+      {/* Modal without x-teleport - stays in DOM flow for proper HTMX morph handling */}
+      <div
+        className="card-modal-overlay"
+        x-show="modalOpen"
+        x-cloak
+        {...{
+          'x-on:click':
+            'if ($event.target === $event.currentTarget) modalOpen = false',
+        }}
+      >
+        <div className="card-modal-content" {...{ 'x-on:click.stop': '' }}>
+          {!modalContent && (
+            <button
+              className="card-modal-button"
+              x-on:click="modalOpen = false"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
+                  fill="white"
+                />
+              </svg>
+              Choose this card
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
+                  fill="white"
+                />
+              </svg>
+            </button>
+          )}
 
-            {showFront ? (
-              <img src={url} alt={id ?? 'card'} className="card-image" />
-            ) : (
-              <CardBack />
-            )}
+          {showFront ? (
+            <img src={url} alt={id ?? 'card'} className="card-image" />
+          ) : (
+            <CardBack />
+          )}
 
-            {modalContent}
-          </div>
+          {modalContent}
         </div>
-      </template>
+      </div>
     </div>
   );
 }

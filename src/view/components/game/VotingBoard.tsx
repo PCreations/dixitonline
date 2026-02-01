@@ -87,8 +87,8 @@ function VoteCardForm({ cardId, action }: VoteCardFormProps) {
   return (
     <form
       hx-post={action.url}
-      hx-target="#game-content"
-      hx-swap="innerHTML"
+      hx-target="#game-container"
+      hx-swap="outerHTML"
       className="modal-vote-form"
     >
       <input type="hidden" name="cardId" value={cardId} />

@@ -12,22 +12,24 @@ import {
   WaitingForPlayers,
   WaitingForStoryteller,
 } from './game/index.js';
-import { Menu } from './Menu.js';
-import { Stars } from './Stars.js';
 
 interface GameProps {
   readonly view: GamePlayerView;
 }
 
 /**
- * Main Game component - dispatches to phase-specific components based on view._tag
+ * Game content component - dispatches to phase-specific components based on view._tag.
+ * Has sse-swap attributes for real-time updates via SSE events.
+ * Designed to be wrapped by GamePage which provides Menu, Stars, and SSE connection.
  */
 export function Game({ view }: GameProps) {
   return (
-    <div className="game-container">
-      <Menu />
-      <Stars />
-
+    <div
+      id="game-container"
+      className="game-container"
+      sse-swap="clueSubmitted,cardSelected,voteSubmitted,turnScored,gameEnded"
+      hx-swap="morph:outerHTML"
+    >
       <div className="game-header">
         <GameInfo view={view} />
       </div>

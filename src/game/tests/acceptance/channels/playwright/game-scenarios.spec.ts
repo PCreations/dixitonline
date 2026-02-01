@@ -48,18 +48,35 @@ test.describe('E2E: Game Scenarios', () => {
     }
 
     test(`Scenario: ${testCase.name}`, async ({ page }) => {
+      // Capture console errors for debugging
+      const consoleErrors: Array<string> = [];
+      page.on('console', (msg) => {
+        if (msg.type() === 'error') {
+          consoleErrors.push(msg.text());
+        }
+      });
+      page.on('pageerror', (err) => {
+        consoleErrors.push(`Page error: ${err.message}`);
+      });
+
       const driver = makePlaywrightGameDriver(page);
       const uuidIdFactory = createUuidIdFactory(currentTestIndex);
 
-      await Effect.runPromise(
-        testCase.program(uuidIdFactory).pipe(
-          Effect.provideService(
-            GameDriver,
-            // biome-ignore lint/suspicious/noExplicitAny: E2E driver is structurally compatible
-            driver as any,
+      try {
+        await Effect.runPromise(
+          testCase.program(uuidIdFactory).pipe(
+            Effect.provideService(
+              GameDriver,
+              // biome-ignore lint/suspicious/noExplicitAny: E2E driver is structurally compatible
+              driver as any,
+            ),
           ),
-        ),
-      );
+        );
+      } finally {
+        if (consoleErrors.length > 0) {
+          console.log('Console errors captured:', consoleErrors);
+        }
+      }
     });
   }
 });

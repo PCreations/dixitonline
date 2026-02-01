@@ -230,6 +230,7 @@ export const makePlaywrightGameDriver = (
     failFast: false,
     currentGameId: undefined as string | undefined,
     currentPlayerId: undefined as string | undefined, // The authenticated player for UI interactions
+    currentPageUrl: undefined as string | undefined, // Track current page to avoid unnecessary navigation
   };
 
   // Helper for HTTP calls (backdoor API)
@@ -289,15 +290,20 @@ export const makePlaywrightGameDriver = (
   const authenticateAsPlayer = (playerId: string): Effect.Effect<void, Error> =>
     uiAction(async () => {
       // Call the backdoor auth endpoint to get the JWT token
-      const response = await page.request.post(`${BASE_URL}/api/test/auth/login`, {
-        data: {
-          playerId,
-          username: playerId,
+      const response = await page.request.post(
+        `${BASE_URL}/api/test/auth/login`,
+        {
+          data: {
+            playerId,
+            username: playerId,
+          },
         },
-      });
+      );
 
       if (!response.ok()) {
-        throw new Error(`Failed to authenticate as ${playerId}: ${response.status()}`);
+        throw new Error(
+          `Failed to authenticate as ${playerId}: ${response.status()}`,
+        );
       }
 
       // Get the token from the response body (more reliable than parsing Set-Cookie header)
@@ -321,6 +327,33 @@ export const makePlaywrightGameDriver = (
   // Check if the given player is the currently authenticated UI player
   const isCurrentUiPlayer = (playerId: string): boolean =>
     testState.currentPlayerId === playerId;
+
+  // Navigate to game page only if not already there (preserves SSE connection)
+  const ensureOnGamePage = async (gameId: string): Promise<void> => {
+    const targetUrl = `${BASE_URL}/game/${gameId}`;
+    // Check actual browser URL (without query params) to handle HTMX scenarios
+    const currentUrl = new URL(page.url());
+    const currentPathname = `${currentUrl.origin}${currentUrl.pathname}`;
+    if (currentPathname !== targetUrl) {
+      await page.goto(targetUrl);
+      testState.currentPageUrl = targetUrl;
+      // Wait for SSE connection to be established
+      await page.waitForTimeout(500);
+    }
+  };
+
+  // Wait for SSE update by watching for content change
+  const waitForSseContentChange = async (
+    selector: string,
+    expectedText: RegExp | string,
+    timeout = 10000,
+  ): Promise<void> => {
+    const locator =
+      typeof expectedText === 'string'
+        ? page.getByText(expectedText)
+        : page.locator(selector).filter({ hasText: expectedText });
+    await expect(locator).toBeVisible({ timeout });
+  };
 
   const given: PlaywrightGameDriverDSL['given'] = {
     // Backdoor API - no UI for creating decks
@@ -500,11 +533,13 @@ export const makePlaywrightGameDriver = (
       if (isCurrentUiPlayer(props.playerId)) {
         return withErrorHandling(
           uiAction(async () => {
-            // Navigate to game page
-            await page.goto(`${BASE_URL}/game/${props.gameId}`);
+            // Navigate to game page only if not already there (preserves SSE)
+            await ensureOnGamePage(props.gameId);
 
             // Click on the card by its alt text (accessible selector)
-            await page.getByRole('img', { name: props.cardId, exact: true }).click();
+            await page
+              .getByRole('img', { name: props.cardId, exact: true })
+              .click();
 
             // Fill the clue using the specific input ID for this card
             // Each card has its own clue input with ID: clue-input-{cardId}
@@ -534,11 +569,13 @@ export const makePlaywrightGameDriver = (
       if (isCurrentUiPlayer(props.playerId)) {
         return withErrorHandling(
           uiAction(async () => {
-            // Navigate to game page
-            await page.goto(`${BASE_URL}/game/${props.gameId}`);
+            // Navigate to game page only if not already there (preserves SSE)
+            await ensureOnGamePage(props.gameId);
 
             // Click on the card by its alt text (accessible selector)
-            await page.getByRole('img', { name: props.cardId, exact: true }).click();
+            await page
+              .getByRole('img', { name: props.cardId, exact: true })
+              .click();
 
             // Submit the selection via accessible button selector
             await page.getByRole('button', { name: /Sélectionner/i }).click();
@@ -564,12 +601,14 @@ export const makePlaywrightGameDriver = (
       if (isCurrentUiPlayer(props.playerId)) {
         return withErrorHandling(
           uiAction(async () => {
-            // Navigate to game page
-            await page.goto(`${BASE_URL}/game/${props.gameId}`);
+            // Navigate to game page only if not already there (preserves SSE)
+            await ensureOnGamePage(props.gameId);
 
             // Click on the card by its alt text (accessible selector)
             // Cards on the board have alt={cardId}
-            await page.getByRole('img', { name: props.cardId, exact: true }).click();
+            await page
+              .getByRole('img', { name: props.cardId, exact: true })
+              .click();
 
             // Submit the vote via accessible button selector
             await page.getByRole('button', { name: /Voter/i }).click();
@@ -595,8 +634,8 @@ export const makePlaywrightGameDriver = (
       if (isCurrentUiPlayer(props.playerId)) {
         return withErrorHandling(
           uiAction(async () => {
-            // Navigate to game page
-            await page.goto(`${BASE_URL}/game/${props.gameId}`);
+            // Navigate to game page only if not already there (preserves SSE)
+            await ensureOnGamePage(props.gameId);
 
             // Click the continue button via accessible selector
             await page.getByRole('button', { name: /Continuer/i }).click();
@@ -696,50 +735,60 @@ export const makePlaywrightGameDriver = (
 
     gameToHaveBeenStarted: (props) =>
       uiAction(async () => {
-        // Navigate to game page
-        await page.goto(`${BASE_URL}/game/${props.gameId}`);
+        // Use ensureOnGamePage to preserve SSE connection if already on page
+        await ensureOnGamePage(props.gameId);
 
         // Verify the game has started - should show game UI with turn info
-        await expect(page.locator('.game-info')).toBeVisible();
-        await expect(page.locator('.game-turn')).toContainText(/Tour/);
+        await expect(page.locator('.game-info')).toBeVisible({
+          timeout: 10000,
+        });
+        await expect(page.locator('.game-turn')).toContainText(/Tour/, {
+          timeout: 10000,
+        });
       }),
 
     currentTurnToBeStarted: (props) =>
       uiAction(async () => {
-        // Navigate to game page
-        await page.goto(`${BASE_URL}/game/${props.gameId}`);
+        // Use ensureOnGamePage to preserve SSE connection if already on page
+        await ensureOnGamePage(props.gameId);
 
-        // Verify turn 1 is displayed
-        await expect(page.locator('.game-turn')).toContainText('Tour 1');
+        // Verify turn 1 is displayed (may arrive via SSE)
+        await expect(page.locator('.game-turn')).toContainText('Tour 1', {
+          timeout: 10000,
+        });
 
         // If current player is the storyteller, verify it's their turn
         if (props.storytellerId === testState.currentPlayerId) {
           await expect(page.locator('.game-status')).toContainText(
             /Ton tour|Donne un indice/,
+            { timeout: 10000 },
           );
         } else {
           // Otherwise, verify we're waiting for the storyteller
           await expect(page.locator('.game-status')).toContainText(
             /attente.*conteur/i,
+            { timeout: 10000 },
           );
         }
       }),
 
     newTurnToBeStarted: (props) =>
       uiAction(async () => {
-        // Navigate to game page
-        await page.goto(`${BASE_URL}/game/${props.gameId}`);
+        // Use ensureOnGamePage to preserve SSE connection if already on page
+        await ensureOnGamePage(props.gameId);
 
-        // Verify we're in storytelling phase
+        // Verify we're in storytelling phase (may arrive via SSE)
         if (props.storytellerId === testState.currentPlayerId) {
           // Current player is the new storyteller
           await expect(page.locator('.game-status')).toContainText(
             /Ton tour|Donne un indice/,
+            { timeout: 10000 },
           );
         } else {
           // Waiting for the new storyteller
           await expect(page.locator('.game-status')).toContainText(
             /attente.*conteur/i,
+            { timeout: 10000 },
           );
         }
       }),
@@ -761,16 +810,20 @@ export const makePlaywrightGameDriver = (
 
     turnClueToBeSubmitted: (props) =>
       uiAction(async () => {
-        // Navigate to game page to verify the clue is displayed
-        await page.goto(`${BASE_URL}/game/${props.gameId}`);
+        // Use ensureOnGamePage to preserve SSE connection if already on page
+        await ensureOnGamePage(props.gameId);
 
-        // Verify the clue is displayed using text selector (accessible)
-        await expect(
-          page.getByText(`« ${props.storytellerClue} »`),
-        ).toBeVisible();
+        // Wait for clue to be displayed (may arrive via SSE)
+        await waitForSseContentChange(
+          'body',
+          `« ${props.storytellerClue} »`,
+          10000,
+        );
 
         // Verify we're in the selecting-cards phase (status shows "Sélection" or similar)
-        await expect(page.locator('.game-status')).toContainText(/Sélection|Choisis/);
+        await expect(page.locator('.game-status')).toContainText(
+          /Sélection|Choisis/,
+        );
       }),
 
     turnToHaveSelectedCards: (props) =>
@@ -779,7 +832,10 @@ export const makePlaywrightGameDriver = (
           found: boolean;
           snapshot: {
             currentTurn: {
-              selectedCards: ReadonlyArray<{ cardId: string; playerId: string }>;
+              selectedCards: ReadonlyArray<{
+                cardId: string;
+                playerId: string;
+              }>;
             };
           };
         }>(`/api/test/game/${props.gameId}/snapshot`);
@@ -791,11 +847,13 @@ export const makePlaywrightGameDriver = (
 
     turnToBeInVotingPhase: (props) =>
       uiAction(async () => {
-        // Navigate to game page
-        await page.goto(`${BASE_URL}/game/${props.gameId}`);
+        // Use ensureOnGamePage to preserve SSE connection if already on page
+        await ensureOnGamePage(props.gameId);
 
-        // Verify we're in voting phase by checking the status or voting board
-        await expect(page.locator('.game-status')).toContainText(/vote/i);
+        // Wait for voting phase status (may arrive via SSE)
+        await expect(page.locator('.game-status')).toContainText(/vote/i, {
+          timeout: 10000,
+        });
       }),
 
     playerToNotHaveBeenAbleToSubmitClue: (props) =>
@@ -850,19 +908,19 @@ export const makePlaywrightGameDriver = (
 
     turnToBeInScoringPhase: (props) =>
       uiAction(async () => {
-        // Navigate to game page
-        await page.goto(`${BASE_URL}/game/${props.gameId}`);
+        // Use ensureOnGamePage to preserve SSE connection if already on page
+        await ensureOnGamePage(props.gameId);
 
-        // Verify we're in scoring phase using accessible heading selector
+        // Wait for scoring phase heading (may arrive via SSE)
         await expect(
           page.getByRole('heading', { name: /Résultats/i }),
-        ).toBeVisible();
+        ).toBeVisible({ timeout: 10000 });
       }),
 
     playersToHaveScore: (props) =>
       uiAction(async () => {
-        // Navigate to game page
-        await page.goto(`${BASE_URL}/game/${props.gameId}`);
+        // Use ensureOnGamePage to preserve SSE connection if already on page
+        await ensureOnGamePage(props.gameId);
 
         // Verify the current player's score is displayed in the header
         // We can only visually verify the current authenticated player's score
@@ -872,6 +930,7 @@ export const makePlaywrightGameDriver = (
         if (currentPlayerScore !== undefined) {
           await expect(page.locator('.game-points')).toContainText(
             `${currentPlayerScore.score} points`,
+            { timeout: 10000 },
           );
         }
       }),
@@ -890,9 +949,9 @@ export const makePlaywrightGameDriver = (
         expect(result.snapshot.currentTurn.playersReadyForNextTurn).toEqual(
           expect.arrayContaining([...props.playersReadyForNextTurn]),
         );
-        expect(
-          result.snapshot.currentTurn.playersReadyForNextTurn.length,
-        ).toBe(props.playersReadyForNextTurn.length);
+        expect(result.snapshot.currentTurn.playersReadyForNextTurn.length).toBe(
+          props.playersReadyForNextTurn.length,
+        );
       }),
 
     playerToNotHaveBeenAbleToNotifyToBeReadyForNextTurn: (props) =>
@@ -909,11 +968,13 @@ export const makePlaywrightGameDriver = (
 
     gameToBeEnded: (props) =>
       uiAction(async () => {
-        // Navigate to game page
-        await page.goto(`${BASE_URL}/game/${props.gameId}`);
+        // Use ensureOnGamePage to preserve SSE connection if already on page
+        await ensureOnGamePage(props.gameId);
 
-        // Verify the game ended status is displayed
-        await expect(page.locator('.game-status')).toContainText(/terminée/i);
+        // Verify the game ended status is displayed (may arrive via SSE)
+        await expect(page.locator('.game-status')).toContainText(/terminée/i, {
+          timeout: 10000,
+        });
       }),
   };
 

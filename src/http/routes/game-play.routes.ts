@@ -12,6 +12,7 @@ import {
   withSentryErrorCapture,
 } from '../../infra/observability/index.js';
 import { Game } from '../../view/components/Game.js';
+import { GamePage } from '../../view/components/GamePage.js';
 import { GamePreview } from '../../view/components/GamePreview.js';
 import type { GameParams } from '../types.js';
 import '../types.js';
@@ -84,7 +85,7 @@ const gamePlayRoutes: FastifyPluginAsync = async (fastify) => {
         }
 
         const view = maybeGameState.value;
-        const component = h(Game, { view });
+        const component = h(GamePage, { view, gameId });
         const body = renderToString(component);
         const html = renderHtmlPage('Game - Tixid Online', body, {
           isAuthenticated: true,

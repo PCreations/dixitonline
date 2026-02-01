@@ -60,11 +60,12 @@ const QueryServicesWithoutDependencies = Layer.mergeAll(
  * Uses JsonDeckRepository for production (instead of InMemoryDeckRepository for tests).
  * The shuffler services are provided as well.
  */
-const GameViewProjectorWithJsonDeck = GameViewProjector.DefaultWithoutDependencies.pipe(
-  Layer.provide(TurnBoardCardsShuffler.Default),
-  Layer.provide(ShufflerService.Default),
-  Layer.provide(JsonDeckRepository),
-);
+const GameViewProjectorWithJsonDeck =
+  GameViewProjector.DefaultWithoutDependencies.pipe(
+    Layer.provide(TurnBoardCardsShuffler.Default),
+    Layer.provide(ShufflerService.Default),
+    Layer.provide(JsonDeckRepository),
+  );
 
 /**
  * Complete game layer with all dependencies including database

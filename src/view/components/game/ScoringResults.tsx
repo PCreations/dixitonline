@@ -86,8 +86,8 @@ export function ScoringResults({ view }: ScoringResultsProps) {
         {!isReady ? (
           <form
             hx-post={view.action.url}
-            hx-target="#game-content"
-            hx-swap="innerHTML"
+            hx-target="#game-container"
+            hx-swap="outerHTML"
             className="scoring-action"
           >
             <button type="submit" className="btn btn-primary">
