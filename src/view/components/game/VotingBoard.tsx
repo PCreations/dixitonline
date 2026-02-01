@@ -12,8 +12,8 @@ interface VotingBoardProps {
 
 export function VotingBoard({ view }: VotingBoardProps) {
   return (
-    <div className="voting-layout">
-      <div className="voting-layout__content">
+    <div className="game-phase-layout">
+      <div className="game-phase-layout__content">
         <div className="phase-instructions">
           {view.hasVoted ? (
             <>
@@ -56,7 +56,7 @@ export function VotingBoard({ view }: VotingBoardProps) {
         </div>
       </div>
 
-      <div className="voting-layout__hand">
+      <div className="game-phase-layout__hand">
         <PlayerHand hand={view.hand} renderModalContent={() => <></>} />
       </div>
     </div>

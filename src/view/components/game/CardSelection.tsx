@@ -11,8 +11,8 @@ interface CardSelectionProps {
 
 export function CardSelection({ view }: CardSelectionProps) {
   return (
-    <>
-      <div className="phase-description-container">
+    <div className="game-phase-layout">
+      <div className="game-phase-layout__content">
         <div className="phase-instructions">
           {view.hasSelectedCard ? (
             <>
@@ -31,17 +31,20 @@ export function CardSelection({ view }: CardSelectionProps) {
             </>
           )}
         </div>
-      
+
         <ClueDisplay clue={view.clue} storytellerName={view.storyteller.name} />
       </div>
-      <PlayerHand
+
+      <div className="game-phase-layout__hand">
+        <PlayerHand
           hand={view.hand}
           renderModalContent={(cardId) => (
             <SelectCardForm cardId={cardId} action={view.action} />
           )}
         />
-    </>
-  )
+      </div>
+    </div>
+  );
 }
 
 interface SelectCardFormProps {

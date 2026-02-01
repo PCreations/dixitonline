@@ -1847,6 +1847,13 @@ body {
   color: var(--color-white);
   opacity: 0.9;
 }
+.waiting-animation {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
+  color: rgba(255, 255, 255, 0.7);
+}
 .hand-cards .game-cards {
   position: relative;
   bottom: auto;
@@ -2029,13 +2036,13 @@ body {
     position: relative;
   }
 }
-.voting-layout {
+.game-phase-layout {
   display: flex;
   flex-direction: column;
   min-height: 100%;
   width: 100%;
 }
-.voting-layout__content {
+.game-phase-layout__content {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -2045,14 +2052,14 @@ body {
   max-width: 800px;
   margin: 0 auto;
 }
-.voting-layout__hand {
+.game-phase-layout__hand {
   flex-shrink: 0;
   width: 100%;
   display: flex;
   justify-content: center;
   padding: 20px 0 40px;
 }
-.voting-layout__hand .game-cards {
+.game-phase-layout__hand .game-cards {
   position: relative;
   bottom: auto;
   left: auto;

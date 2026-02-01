@@ -11,8 +11,8 @@ interface WaitingForStorytellerProps {
 
 export function WaitingForStoryteller({ view }: WaitingForStorytellerProps) {
   return (
-    <>
-      <div className="phase-description-container">
+    <div className="game-phase-layout">
+      <div className="game-phase-layout__content">
         <div className="phase-instructions">
           <h2 className="phase-title">En attente du conteur...</h2>
           <p className="phase-description">
@@ -26,8 +26,10 @@ export function WaitingForStoryteller({ view }: WaitingForStorytellerProps) {
         </div>
       </div>
 
-      <PlayerHand hand={view.hand} renderModalContent={() => <></>} />
-    </>
+      <div className="game-phase-layout__hand">
+        <PlayerHand hand={view.hand} renderModalContent={() => <></>} />
+      </div>
+    </div>
   );
 }
 

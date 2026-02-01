@@ -1443,6 +1443,15 @@ body {
   opacity: 0.9;
 }
 
+/* Waiting animation (spinner) */
+.waiting-animation {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
 /* Override game-cards positioning when inside forms */
 .hand-cards .game-cards {
   position: relative;
@@ -1661,16 +1670,16 @@ body {
 }
 
 
-/* ===== VOTING LAYOUT (Flex-based, no absolute positioning) ===== */
+/* ===== GAME PHASE LAYOUT (Flex-based, no absolute positioning) ===== */
 
-.voting-layout {
+.game-phase-layout {
   display: flex;
   flex-direction: column;
   min-height: 100%;
   width: 100%;
 }
 
-.voting-layout__content {
+.game-phase-layout__content {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -1681,7 +1690,7 @@ body {
   margin: 0 auto;
 }
 
-.voting-layout__hand {
+.game-phase-layout__hand {
   flex-shrink: 0;
   width: 100%;
   display: flex;
@@ -1689,8 +1698,8 @@ body {
   padding: 20px 0 40px;
 }
 
-/* Override absolute positioning when inside voting-layout */
-.voting-layout__hand .game-cards {
+/* Override absolute positioning when inside game-phase-layout */
+.game-phase-layout__hand .game-cards {
   position: relative;
   bottom: auto;
   left: auto;

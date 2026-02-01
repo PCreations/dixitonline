@@ -25,8 +25,8 @@ export function WaitingForPlayers(props: WaitingForPlayersProps) {
       : 'Les joueurs votent...';
 
   return (
-    <>
-      <div className="phase-description-container">
+    <div className="game-phase-layout">
+      <div className="game-phase-layout__content">
         <div className="phase-instructions">
           <h2 className="phase-title">En attente</h2>
           <p className="phase-description">{phaseMessage}</p>
@@ -35,18 +35,17 @@ export function WaitingForPlayers(props: WaitingForPlayersProps) {
         <ClueDisplay clue={view.clue} storytellerName="toi" />
 
         {phase === 'voting' && 'boardCards' in view && (
-          <div className="board-section">
-            <p className="board-label">Cartes sur le plateau :</p>
-            <div className="cards-grid board-cards">
-              {view.boardCards.map((card) => (
-                <Card key={card.id} id={card.id} url={card.url} />
-              ))}
-            </div>
+          <div className="board-cards-container">
+            {view.boardCards.map((card) => (
+              <Card key={card.id} id={card.id} url={card.url} size="small" />
+            ))}
           </div>
         )}
       </div>
 
-      <PlayerHand hand={view.hand} renderModalContent={() => <></>} />
-    </>
+      <div className="game-phase-layout__hand">
+        <PlayerHand hand={view.hand} renderModalContent={() => <></>} />
+      </div>
+    </div>
   );
 }

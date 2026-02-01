@@ -1,6 +1,5 @@
 /** @jsx h */
-/** @jsxFrag Fragment */
-import { Fragment, h } from 'preact';
+import { h } from 'preact';
 import type { StorytellingPhaseAsStorytellerView } from '../../view-models/game.view-model.js';
 import { PlayerHand } from './GameHand.js';
 
@@ -10,8 +9,8 @@ interface StorytellerPhaseAsStorytellerProps {
 
 export function StorytellerPhaseAsStoryteller({ view }: StorytellerPhaseAsStorytellerProps) {
   return (
-    <>
-      <div className="phase-description-container">
+    <div className="game-phase-layout">
+      <div className="game-phase-layout__content">
         <div className="phase-instructions">
           <h2 className="phase-title">C'est ton tour !</h2>
           <p className="phase-description">
@@ -22,13 +21,15 @@ export function StorytellerPhaseAsStoryteller({ view }: StorytellerPhaseAsStoryt
         <p className="hand-label">Clique sur une carte pour donner ton indice :</p>
       </div>
 
-      <PlayerHand
-        hand={view.hand}
-        renderModalContent={(cardId) => (
-          <ClueForm cardId={cardId} action={view.action} />
-        )}
-      />
-    </>
+      <div className="game-phase-layout__hand">
+        <PlayerHand
+          hand={view.hand}
+          renderModalContent={(cardId) => (
+            <ClueForm cardId={cardId} action={view.action} />
+          )}
+        />
+      </div>
+    </div>
   );
 }
 
