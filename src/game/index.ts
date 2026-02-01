@@ -4,6 +4,7 @@ import { CreateGameUseCase } from './create-game.usecase.js';
 import { InMemoryGameEventBus } from './game-event-bus.js';
 import { InMemoryGameView } from './game-view.js';
 
+export { RandomShufflerLayer } from './deterministic-shuffler.js';
 // Re-export for use in server.ts
 export { type GameEvent, GameEventBus } from './game-event-bus.js';
 
@@ -11,7 +12,6 @@ import { NoopRandomizeStrategy } from './game.entity.js';
 import { GameQueryService } from './game.query-service.js';
 import {
   GameViewProjector,
-  ShufflerService,
   TurnBoardCardsShuffler,
 } from './game-view-projector.js';
 import { DrizzleGameRepository } from './infra/drizzle/drizzle-game.repository.js';
@@ -58,12 +58,11 @@ const QueryServicesWithoutDependencies = Layer.mergeAll(
 /**
  * GameViewProjector composed with its dependencies.
  * Uses JsonDeckRepository for production (instead of InMemoryDeckRepository for tests).
- * The shuffler services are provided as well.
+ * ShufflerService must be provided externally (RandomShufflerLayer in server.ts for production).
  */
 const GameViewProjectorWithJsonDeck =
   GameViewProjector.DefaultWithoutDependencies.pipe(
     Layer.provide(TurnBoardCardsShuffler.Default),
-    Layer.provide(ShufflerService.Default),
     Layer.provide(JsonDeckRepository),
   );
 
@@ -91,9 +90,9 @@ export const GameLayerLiveWithoutEventBus = Layer.mergeAll(
   Layer.provideMerge(JsonDeckRepository),
   Layer.provideMerge(InMemoryGameView),
   Layer.provideMerge(TurnBoardCardsShuffler.Default),
-  Layer.provideMerge(ShufflerService.Default),
   Layer.provideMerge(NoopRandomizeStrategy),
   // Add GameViewProjector with its dependencies pre-wired
+  // Note: ShufflerService must be provided externally (RandomShufflerLayer in server.ts)
   Layer.provideMerge(GameViewProjectorWithJsonDeck),
 );
 

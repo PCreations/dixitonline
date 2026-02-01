@@ -1,5 +1,7 @@
+import { Layer } from 'effect';
+
 import { type CardId } from './deck.entity.js';
-import { type Shuffler } from './game-view-projector.js';
+import { type Shuffler, ShufflerService } from './game-view-projector.js';
 
 /**
  * A deterministic shuffler that always returns the same shuffle
@@ -59,3 +61,12 @@ export class RandomShuffler implements Shuffler {
     return shuffled;
   }
 }
+
+/**
+ * Layer providing RandomShuffler for production use.
+ * Use this in server.ts to enable real card shuffling.
+ */
+export const RandomShufflerLayer = Layer.sync(
+  ShufflerService,
+  () => new RandomShuffler(),
+);
