@@ -115,8 +115,11 @@ export function ProfileHeaderName({ username }: { username: string }) {
           return;
         }
 
-        // Step 3: Refresh session to get updated JWT with new username
-        await window.supabase.auth.refreshSession();
+        // Step 3: Refresh session to get updated JWT with new username and update cookie
+        const { data: { session } } = await window.supabase.auth.refreshSession();
+        if (session) {
+          setAuthCookie(session.access_token);
+        }
 
         this.username = newUsername;
         this.editing = false;
