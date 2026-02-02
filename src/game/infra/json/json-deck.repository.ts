@@ -2,7 +2,13 @@ import { Effect, Layer, Option } from 'effect';
 import defaultDeckConfig from '../../data/default-deck.json' with {
   type: 'json',
 };
-import { Card, CardId, DeckEntity, DeckId } from '../../deck.entity.js';
+import {
+  Card,
+  CardId,
+  DeckEntity,
+  DeckId,
+  RandomDeckShuffleStrategy,
+} from '../../deck.entity.js';
 import { DeckRepository } from '../../deck.repository.js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'http://127.0.0.1:44321';
@@ -33,9 +39,11 @@ const createDeckFromConfig = (config: DeckConfig): DeckEntity => {
     });
   });
 
-  return DeckEntity.createDefault({
+  return DeckEntity.create({
     id: DeckId(config.id),
+    isDefault: true,
     cards,
+    shuffleStrategy: new RandomDeckShuffleStrategy(),
   });
 };
 
