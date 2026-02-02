@@ -45,6 +45,56 @@ export const readyForNextTurnTestSuite = (
     );
 
     it.effect(
+      'Example: A player notifying to be ready for the next turn twice should be idempotent (not counted twice)',
+      () => {
+        return Effect.gen(function* () {
+          const gameDriver = yield* GameDriver;
+          const now = new Date();
+
+          yield* gameDriver.given.existingGame(
+            gameDriver,
+            new GameBuilder(gameId(1))
+              .hostedBy(playerId(1))
+              .withPlayers(playerId(1), playerId(2), playerId(3), playerId(4))
+              .withPlayersReadyForNextTurn([])
+              .inScoringPhaseSince(now),
+          );
+
+          // Player 1 notifies twice (simulating double-click or network retry)
+          yield* gameDriver.when.notifyingToBeReadyForNextTurn({
+            gameId: gameId(1),
+            playerId: playerId(1),
+          });
+          yield* gameDriver.when.notifyingToBeReadyForNextTurn({
+            gameId: gameId(1),
+            playerId: playerId(1),
+          });
+
+          // Player 2 and 3 notify
+          yield* gameDriver.when.notifyingToBeReadyForNextTurn({
+            gameId: gameId(1),
+            playerId: playerId(2),
+          });
+          yield* gameDriver.when.notifyingToBeReadyForNextTurn({
+            gameId: gameId(1),
+            playerId: playerId(3),
+          });
+
+          // Should NOT have advanced to next turn (only 3 unique players ready)
+          yield* gameDriver.assert.playersReadyForNextTurnToEqual({
+            gameId: gameId(1),
+            playersReadyForNextTurn: [playerId(1), playerId(2), playerId(3)],
+          });
+
+          // Game should still be in scoring phase
+          yield* gameDriver.assert.turnToBeInScoringPhase({
+            gameId: gameId(1),
+          });
+        }).pipe(Effect.provide(makeGameDriverTestLayer()));
+      },
+    );
+
+    it.effect(
       "Example: A player not in game can't notify to be ready for the next turn",
       () => {
         return Effect.gen(function* () {

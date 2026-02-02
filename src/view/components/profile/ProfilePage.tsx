@@ -24,11 +24,7 @@ export function ProfilePage({ vm }: ProfilePageProps) {
         <ProfileSidebar username={vm.username} />
 
         <main className="profile-main">
-          <ProfileHeader
-            username={vm.username}
-            avatarUrl={vm.avatarUrl}
-            stats={vm.stats}
-          />
+          <ProfileHeader username={vm.username} avatarUrl={vm.avatarUrl} />
 
           <div className="profile-content">
             {/* Overview View */}

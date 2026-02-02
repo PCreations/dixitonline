@@ -734,6 +734,14 @@ export class StartedGameEntity extends GameEntity {
       return Effect.fail(new Error('Game is not in scoring phase'));
     }
 
+    // Idempotency check: if player already acknowledged, return unchanged
+    if (this.props.playersReadyForNextTurn.includes(opts.playerId)) {
+      return Effect.succeed({
+        entity: this,
+        events: [],
+      });
+    }
+
     const updatedPlayersReadyForNextTurn = Arr.append(
       this.props.playersReadyForNextTurn,
       opts.playerId,

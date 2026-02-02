@@ -53,6 +53,11 @@ export class NotifyReadyForNextTurnUseCase extends Effect.Service<NotifyReadyFor
                       playerId: PlayerId(props.playerId),
                     });
 
+                  // Skip saving if nothing changed (idempotent case)
+                  if (updatedGame === gameEntity) {
+                    return;
+                  }
+
                   // Save game and events atomically (outbox pattern)
                   yield* gameRepository.saveWithEvents(updatedGame, events);
 

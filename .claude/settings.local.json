@@ -57,7 +57,16 @@
       "Bash(pnpm clean:*)",
       "Bash(grep:*)",
       "Bash(pnpm test:e2e:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "mcp__plugin_playwright_playwright__browser_navigate",
+      "mcp__plugin_playwright_playwright__browser_take_screenshot",
+      "Bash(python3:*)",
+      "Bash(pdfinfo:*)",
+      "Bash(pdftoppm:*)",
+      "Bash(ls:*)",
+      "Bash(pnpm test:acceptance:e2e:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(pnpm exec playwright test:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

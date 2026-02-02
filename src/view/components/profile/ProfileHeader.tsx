@@ -1,11 +1,9 @@
 /** @jsx h */
 import { h } from 'preact';
-import type { ProfileStats } from '../../view-models/profile.view-model.js';
 
 export interface ProfileHeaderProps {
   readonly username: string;
   readonly avatarUrl?: string | undefined;
-  readonly stats: ProfileStats;
 }
 
 function EditIcon() {
@@ -187,11 +185,7 @@ export function ProfileHeaderName({ username }: { username: string }) {
   );
 }
 
-export function ProfileHeader({
-  username,
-  avatarUrl,
-  stats,
-}: ProfileHeaderProps) {
+export function ProfileHeader({ username, avatarUrl }: ProfileHeaderProps) {
   return (
     <header className="profile-header">
       <div className="profile-header-user">
@@ -222,18 +216,16 @@ export function ProfileHeader({
 
       <div className="profile-header-stats">
         <div className="profile-header-stat">
-          <span className="profile-header-stat-label">Games winned:</span>
-          <span className="profile-header-stat-value">{stats.gamesWon}</span>
+          <span className="profile-header-stat-label">Games won</span>
+          <span className="coming-soon-badge-mini">Coming soon</span>
         </div>
         <div className="profile-header-stat">
-          <span className="profile-header-stat-label">Games played:</span>
-          <span className="profile-header-stat-value">{stats.gamesPlayed}</span>
+          <span className="profile-header-stat-label">Games played</span>
+          <span className="coming-soon-badge-mini">Coming soon</span>
         </div>
         <div className="profile-header-stat">
-          <span className="profile-header-stat-label">Badged earned:</span>
-          <span className="profile-header-stat-value">
-            {stats.badgesEarned}
-          </span>
+          <span className="profile-header-stat-label">Badges earned</span>
+          <span className="coming-soon-badge-mini">Coming soon</span>
         </div>
       </div>
     </header>

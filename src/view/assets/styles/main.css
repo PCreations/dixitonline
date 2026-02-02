@@ -2232,6 +2232,19 @@ body {
   color: white;
 }
 
+.coming-soon-badge-mini {
+  padding: 4px 10px;
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  border-radius: 9999px;
+  font-family: "Poppins", sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  color: #a78bfa;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
 /* ===== PROFILE CONTENT AREA ===== */
 
 .profile-content {
