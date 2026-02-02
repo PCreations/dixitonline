@@ -1793,6 +1793,8 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 8px;
+  margin-top: 16px;
+  padding-bottom: 8px;
 }
 
 .scoring-card--storyteller {
@@ -1908,12 +1910,244 @@ body {
     gap: 12px;
   }
 
+  /* Bigger cards on mobile for better readability */
+  .scoring-board__cards .card--small {
+    width: 150px;
+    height: 238px;
+  }
+
+  .scoring-board__cards .card--small .card-image,
+  .scoring-board__cards .card--small .card-back {
+    width: 150px;
+    height: 238px;
+  }
+
   .scoring-card__voters {
-    max-width: 120px;
+    max-width: 150px;
   }
 
   .scoring-points {
     padding: 12px;
+  }
+}
+
+/* ===== GAME ENDED ===== */
+
+.game-ended {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  padding: 40px 24px;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.game-ended .phase-instructions {
+  text-align: center;
+}
+
+.game-ended .phase-title {
+  font-family: "Poppins", sans-serif;
+  font-weight: 700;
+  font-size: 2rem;
+  color: white;
+  margin: 0 0 8px 0;
+}
+
+.game-ended .phase-description {
+  font-family: "Poppins", sans-serif;
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+}
+
+/* Winner section with trophy */
+.winner-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 24px 32px;
+  background: linear-gradient(
+    135deg,
+    rgba(139, 92, 246, 0.2) 0%,
+    rgba(167, 139, 250, 0.1) 100%
+  );
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 16px;
+}
+
+.trophy-icon {
+  color: #fbbf24;
+  width: 64px;
+  height: 64px;
+}
+
+.winner-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.winner-name {
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+  font-size: 1.5rem;
+  color: white;
+}
+
+.winner-score {
+  font-family: "Poppins", sans-serif;
+  font-weight: 500;
+  font-size: 1rem;
+  color: #fbbf24;
+}
+
+/* Rankings section */
+.rankings-section {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.rankings-title {
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+  font-size: 1rem;
+  color: white;
+  margin: 0 0 16px 0;
+  text-align: center;
+}
+
+.rankings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ranking-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  transition: background 0.2s ease;
+}
+
+.ranking-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.ranking-current {
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.ranking-current:hover {
+  background: rgba(139, 92, 246, 0.2);
+}
+
+.ranking-top-1 {
+  background: rgba(255, 215, 0, 0.1);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.ranking-top-1:hover {
+  background: rgba(255, 215, 0, 0.15);
+}
+
+.ranking-top-2 {
+  background: rgba(192, 192, 192, 0.1);
+  border: 1px solid rgba(192, 192, 192, 0.3);
+}
+
+.ranking-top-2:hover {
+  background: rgba(192, 192, 192, 0.15);
+}
+
+.ranking-top-3 {
+  background: rgba(205, 127, 50, 0.1);
+  border: 1px solid rgba(205, 127, 50, 0.3);
+}
+
+.ranking-top-3:hover {
+  background: rgba(205, 127, 50, 0.15);
+}
+
+.ranking-position {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.ranking-position svg {
+  flex-shrink: 0;
+}
+
+.ranking-name {
+  flex: 1;
+  font-family: "Poppins", sans-serif;
+  font-weight: 500;
+  font-size: 0.9375rem;
+  color: white;
+}
+
+.ranking-score {
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  color: #4ade80;
+}
+
+/* Your result summary (if not winner) */
+.your-result {
+  font-family: "Poppins", sans-serif;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.7);
+  text-align: center;
+  padding: 12px 20px;
+  background: rgba(139, 92, 246, 0.1);
+  border-radius: 8px;
+}
+
+/* Back to home button */
+.game-ended .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .game-ended {
+    padding: 24px 16px;
+    gap: 24px;
+  }
+
+  .game-ended .phase-title {
+    font-size: 1.5rem;
+  }
+
+  .winner-section {
+    padding: 20px 24px;
+  }
+
+  .winner-name {
+    font-size: 1.25rem;
+  }
+
+  .ranking-item {
+    padding: 10px 12px;
   }
 }
 

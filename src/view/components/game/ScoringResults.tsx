@@ -59,7 +59,7 @@ export function ScoringResults({ view }: ScoringResultsProps) {
                   key={card.id}
                   className={`scoring-card ${isStorytellerCard ? 'scoring-card--storyteller' : ''}`}
                 >
-                  <Card id={card.id} url={card.url} size="small" />
+                  <Card id={card.id} url={card.url} size="small" disableModal />
                   {isStorytellerCard && (
                     <div className="scoring-card__badge">
                       <StarIcon />

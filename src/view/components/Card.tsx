@@ -61,6 +61,7 @@ export function Card({
 }: CardProps) {
   const showFront = !!url;
   const sizeClass = size === 'small' ? 'card--small' : '';
+  const cardId = id ?? `card-${index}`;
 
   // Calculate fan transform if index and total are provided
   const fanStyle =
@@ -95,8 +96,18 @@ export function Card({
     );
   }
 
+  // Use custom event to ensure only one modal is open at a time
+  // When this modal opens, it dispatches 'card-modal-open' with its ID
+  // All other cards listen for this event and close their modals
   return (
-    <div className="card-wrapper" x-data="{ modalOpen: false }">
+    <div
+      className="card-wrapper"
+      x-data={`{ modalOpen: false, cardId: '${cardId}' }`}
+      {...{
+        'x-on:card-modal-open.window':
+          'if ($event.detail.cardId !== cardId) modalOpen = false',
+      }}
+    >
       <div className="card-action-label">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
           <path
@@ -116,7 +127,9 @@ export function Card({
       <div
         className={`card ${sizeClass}`.trim()}
         data-card-id={id}
-        x-on:click="modalOpen = ! modalOpen"
+        {...{
+          'x-on:click': `modalOpen = !modalOpen; if (modalOpen) $dispatch('card-modal-open', { cardId: cardId })`,
+        }}
         style={
           fanStyle
             ? {
