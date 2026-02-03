@@ -23,6 +23,7 @@ export interface LobbyViewModel {
 
 export interface LobbyViewModelProps {
   readonly currentPlayerId: string;
+  readonly baseUrl?: string;
 }
 
 /**
@@ -34,7 +35,7 @@ export function createLobbyViewModel(
   props: LobbyViewModelProps,
 ): LobbyViewModel {
   const { gameId, hostId, players, canStart, actions } = state;
-  const { currentPlayerId } = props;
+  const { currentPlayerId, baseUrl = '' } = props;
 
   return {
     gameId,
@@ -42,7 +43,7 @@ export function createLobbyViewModel(
     statusMessage: canStart ? 'Prêt à démarrer !' : 'En attente de joueurs...',
     playerCount: `${players.length}/${MAX_PLAYERS}`,
     players: derivePlayers(players, { currentPlayerId, hostId }),
-    inviteUrl: `/game/${gameId}/join`,
+    inviteUrl: `${baseUrl}/game/${gameId}/join`,
     actions,
   };
 }

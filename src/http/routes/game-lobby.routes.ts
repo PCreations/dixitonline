@@ -43,8 +43,10 @@ const gameLobbyRoutes: FastifyPluginAsync = async (fastify) => {
           return reply.status(404).send({ error: 'Game not found' });
         }
 
+        const baseUrl = `${request.protocol}://${request.hostname}`;
         const viewModel = createLobbyViewModel(maybeLobbyState.value, {
           currentPlayerId,
+          baseUrl,
         });
 
         const component = h(Lobby, viewModel);
@@ -181,8 +183,10 @@ const gameLobbyRoutes: FastifyPluginAsync = async (fastify) => {
           return reply.status(404).send({ error: 'Game not found' });
         }
 
+        const baseUrl = `${request.protocol}://${request.hostname}`;
         const viewModel = createLobbyViewModel(maybeLobbyState.value, {
           currentPlayerId,
+          baseUrl,
         });
 
         const html = renderToString(h(LobbyContent, viewModel));
