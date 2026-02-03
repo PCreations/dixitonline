@@ -10,6 +10,8 @@ import {
 } from './game-view-projector.js';
 import { withOptimisticRetry } from './optimistic-retry.js';
 import { PlayerId } from './player.entity.js';
+import { Clock, ClockLive } from './clock.service.js';
+import { TURN_TIMER_CONFIG } from './turn-timer.config.js';
 
 export type VoteOnCardCommand = {
   gameId: string;
@@ -24,6 +26,7 @@ export class VoteOnCardUseCase extends Effect.Service<VoteOnCardUseCase>()(
       const gameRepository = yield* GameRepository;
       const gameView = yield* GameView;
       const gameViewProjector = yield* GameViewProjector;
+      const clock = yield* Clock;
 
       return {
         voteOnCard: (props: VoteOnCardCommand) => {
@@ -49,10 +52,15 @@ export class VoteOnCardUseCase extends Effect.Service<VoteOnCardUseCase>()(
               },
               onSome: (gameEntity) =>
                 Effect.gen(function* () {
+                  const now = yield* clock.now();
                   const { entity: updatedGame, events } =
                     yield* gameEntity.voteOnCard({
                       playerId: PlayerId(props.playerId),
                       cardId: CardId(props.cardId),
+                      deadlineConfig: {
+                        now,
+                        timeoutMs: TURN_TIMER_CONFIG.playerActionTimeoutMs,
+                      },
                     });
 
                   // Save game and events atomically (outbox pattern)
@@ -85,6 +93,7 @@ export class VoteOnCardUseCase extends Effect.Service<VoteOnCardUseCase>()(
       TurnBoardCardsShuffler.Default,
       InMemoryDeckRepository,
       ShufflerService.Default,
+      ClockLive,
     ],
   },
 ) {}

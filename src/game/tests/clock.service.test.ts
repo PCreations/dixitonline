@@ -28,7 +28,9 @@ describe('Clock Service', () => {
         return now;
       });
 
-      const result = Effect.runSync(program.pipe(Effect.provide(testClock.layer)));
+      const result = Effect.runSync(
+        program.pipe(Effect.provide(testClock.layer)),
+      );
 
       expect(result.getTime()).toBe(initialTime.getTime());
     });
@@ -44,7 +46,9 @@ describe('Clock Service', () => {
         return yield* clock.now();
       });
 
-      const result = Effect.runSync(program.pipe(Effect.provide(testClock.layer)));
+      const result = Effect.runSync(
+        program.pipe(Effect.provide(testClock.layer)),
+      );
 
       expect(result.getTime()).toBe(initialTime.getTime() + 30_000);
     });
@@ -61,7 +65,9 @@ describe('Clock Service', () => {
         return yield* clock.now();
       });
 
-      const result = Effect.runSync(program.pipe(Effect.provide(testClock.layer)));
+      const result = Effect.runSync(
+        program.pipe(Effect.provide(testClock.layer)),
+      );
 
       expect(result.getTime()).toBe(initialTime.getTime() + 30_000);
     });
@@ -78,7 +84,9 @@ describe('Clock Service', () => {
         return yield* clock.now();
       });
 
-      const result = Effect.runSync(program.pipe(Effect.provide(testClock.layer)));
+      const result = Effect.runSync(
+        program.pipe(Effect.provide(testClock.layer)),
+      );
 
       expect(result.getTime()).toBe(newTime.getTime());
     });
@@ -92,7 +100,9 @@ describe('Clock Service', () => {
         return yield* clock.now();
       });
 
-      const result = Effect.runSync(program.pipe(Effect.provide(testClock.layer)));
+      const result = Effect.runSync(
+        program.pipe(Effect.provide(testClock.layer)),
+      );
       const after = new Date();
 
       expect(result.getTime()).toBeGreaterThanOrEqual(before.getTime());

@@ -2,19 +2,19 @@ import { describe, expect, it } from '@effect/vitest';
 import { Effect, Layer } from 'effect';
 import { makeTestClock } from '../clock.service.js';
 import { Card, CardId, DeckEntity, DeckId } from '../deck.entity.js';
+import { DeckRepository, InMemoryDeckRepository } from '../deck.repository.js';
 import {
   NotStartedGameEntity,
   PlayersRandomizeStrategy,
 } from '../game.entity.js';
+import { GameRepository, InMemoryGameRepository } from '../game.repository.js';
 import { NoopGameEventBus } from '../game-event-bus.js';
+import { InMemoryGameView } from '../game-view.js';
 import {
   GameViewProjector,
   ShufflerService,
   TurnBoardCardsShuffler,
 } from '../game-view-projector.js';
-import { InMemoryGameView } from '../game-view.js';
-import { DeckRepository, InMemoryDeckRepository } from '../deck.repository.js';
-import { GameRepository, InMemoryGameRepository } from '../game.repository.js';
 import { PlayerId } from '../player.entity.js';
 import { StartGameUseCase } from '../start-game.usecase.js';
 import { TURN_TIMER_CONFIG } from '../turn-timer.config.js';
@@ -93,7 +93,8 @@ describe('StartGameUseCase with deadline initialization', () => {
         playerId: 'alice',
       });
 
-      const startedGame = yield* gameRepository.findStartedGameById('test-game');
+      const startedGame =
+        yield* gameRepository.findStartedGameById('test-game');
       expect(startedGame._tag).toBe('Some');
 
       if (startedGame._tag === 'Some') {
@@ -135,7 +136,8 @@ describe('StartGameUseCase with deadline initialization', () => {
         playerId: 'alice',
       });
 
-      const startedGame = yield* gameRepository.findStartedGameById('test-game');
+      const startedGame =
+        yield* gameRepository.findStartedGameById('test-game');
       expect(startedGame._tag).toBe('Some');
 
       if (startedGame._tag === 'Some') {

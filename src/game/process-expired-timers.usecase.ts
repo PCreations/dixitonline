@@ -8,8 +8,8 @@ import {
   NoopRandomizeStrategy,
   StartedGameEntity,
 } from './game.entity.js';
-import type { GameEvent } from './game-events.js';
 import { GameRepository, InMemoryGameRepository } from './game.repository.js';
+import type { GameEvent } from './game-events.js';
 import { GameView, InMemoryGameView } from './game-view.js';
 import {
   GameViewProjector,
@@ -37,8 +37,9 @@ export class ProcessExpiredTimersUseCase extends Effect.Service<ProcessExpiredTi
         processExpiredTimers: (props: ProcessExpiredTimersCommand) => {
           const processSinglePlayer = (playerId: PlayerId) =>
             Effect.gen(function* () {
-              const game =
-                yield* gameRepository.findStartedGameById(props.gameId);
+              const game = yield* gameRepository.findStartedGameById(
+                props.gameId,
+              );
               const gameEntity = yield* Option.match(game, {
                 onNone: () => Effect.fail(new Error('Started game not found')),
                 onSome: Effect.succeed,
@@ -61,7 +62,10 @@ export class ProcessExpiredTimersUseCase extends Effect.Service<ProcessExpiredTi
 
               // Handle game end vs game continue differently
               if (isStartedGame(result.game)) {
-                yield* gameRepository.saveWithEvents(result.game, result.events);
+                yield* gameRepository.saveWithEvents(
+                  result.game,
+                  result.events,
+                );
                 yield* gameView.save(
                   yield* gameViewProjector.project(result.game.toSnapshot()),
                 );
@@ -77,8 +81,9 @@ export class ProcessExpiredTimersUseCase extends Effect.Service<ProcessExpiredTi
               JSON.stringify(props),
             );
 
-            const game =
-              yield* gameRepository.findStartedGameById(props.gameId);
+            const game = yield* gameRepository.findStartedGameById(
+              props.gameId,
+            );
             const gameEntity = yield* Option.match(game, {
               onNone: () => Effect.fail(new Error('Started game not found')),
               onSome: Effect.succeed,

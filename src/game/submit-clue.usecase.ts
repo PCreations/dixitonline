@@ -10,6 +10,8 @@ import {
 } from './game-view-projector.js';
 import { withOptimisticRetry } from './optimistic-retry.js';
 import { PlayerId } from './player.entity.js';
+import { Clock, ClockLive } from './clock.service.js';
+import { TURN_TIMER_CONFIG } from './turn-timer.config.js';
 
 export type SubmitClueCommand = {
   gameId: string;
@@ -25,6 +27,7 @@ export class SubmitClueUseCase extends Effect.Service<SubmitClueUseCase>()(
       const gameRepository = yield* GameRepository;
       const gameView = yield* GameView;
       const gameViewProjector = yield* GameViewProjector;
+      const clock = yield* Clock;
 
       return {
         submitClue: (props: SubmitClueCommand) => {
@@ -50,11 +53,16 @@ export class SubmitClueUseCase extends Effect.Service<SubmitClueUseCase>()(
               },
               onSome: (gameEntity) =>
                 Effect.gen(function* () {
+                  const now = yield* clock.now();
                   const { entity: updatedGame, events } =
                     yield* gameEntity.submitClue({
                       playerId: PlayerId(props.playerId),
                       cardId: CardId(props.cardId),
                       clue: props.clue,
+                      deadlineConfig: {
+                        now,
+                        timeoutMs: TURN_TIMER_CONFIG.playerActionTimeoutMs,
+                      },
                     });
 
                   // Save game and events atomically (outbox pattern)
@@ -87,6 +95,7 @@ export class SubmitClueUseCase extends Effect.Service<SubmitClueUseCase>()(
       TurnBoardCardsShuffler.Default,
       InMemoryDeckRepository,
       ShufflerService.Default,
+      ClockLive,
     ],
   },
 ) {}

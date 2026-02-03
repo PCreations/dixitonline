@@ -8,10 +8,10 @@ import {
 } from '../../game.builder.js';
 import {
   GameDriver,
-  makeGameDriverTestLayerWithTestClock,
-  TestClockController,
   type GameDriverDSL,
   type GameDriverLayer,
+  makeGameDriverTestLayerWithTestClock,
+  TestClockController,
 } from '../../game.driver.js';
 import { defaultIdFactory, type IdFactory } from './create-game.test-suite.js';
 

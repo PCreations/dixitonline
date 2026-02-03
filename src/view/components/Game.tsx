@@ -46,9 +46,7 @@ export function Game({ view }: GameProps) {
         <GamePhaseContent view={view} />
       </div>
 
-      {view._tag !== 'Ended' && (
-        <TurnTimerBar deadline={view.actionDeadline} />
-      )}
+      {view._tag !== 'Ended' && <TurnTimerBar deadline={view.actionDeadline} />}
     </div>
   );
 }

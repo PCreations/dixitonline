@@ -30,7 +30,9 @@ import { ClockLive } from './game/clock.service.js';
 import {
   GameLayerLiveWithoutEventBus,
   InMemoryGameEventBus,
+  makeTimerPollingDaemonLive,
   RandomShufflerLayer,
+  TimerPollingDaemon,
 } from './game/index.js';
 import { appRuntimePlugin, renderPlugin } from './http/plugins/index.js';
 import {
@@ -109,6 +111,14 @@ const AppLayer = (() => {
     makeOutboxPollingDaemonLive({ pollIntervalMs }).pipe(
       Layer.provide(SharedServicesLayer),
     ),
+    makeTimerPollingDaemonLive({ pollIntervalMs }).pipe(
+      Layer.provide(
+        GameLayerLiveWithoutEventBus.pipe(
+          Layer.provide(SharedServicesLayer),
+          Layer.provide(RandomShufflerLayer),
+        ),
+      ),
+    ),
     RelayLayer.pipe(Layer.provide(SharedServicesLayer)),
     SharedServicesLayer,
   ).pipe(Layer.provide(DatabaseLayer), Layer.provide(TracingLive));
@@ -150,6 +160,22 @@ appRuntime
   )
   .catch((error) => {
     console.error('Failed to start OutboxPollingDaemon:', error);
+  });
+
+// Start TimerPollingDaemon for AFK player auto-play
+console.log('Starting TimerPollingDaemon for AFK player auto-play...');
+appRuntime
+  .runPromise(
+    Effect.gen(function* () {
+      const daemon = yield* TimerPollingDaemon;
+      yield* daemon.start();
+      console.log(
+        `TimerPollingDaemon started (polling every ${pollIntervalMs}ms)`,
+      );
+    }),
+  )
+  .catch((error) => {
+    console.error('Failed to start TimerPollingDaemon:', error);
   });
 
 // Create Fastify instance

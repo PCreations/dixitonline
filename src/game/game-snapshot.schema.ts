@@ -131,6 +131,10 @@ export const StartedGameSnapshotSchema = Schema.Struct({
         }),
       ),
     }),
+    playerDeadlines: Schema.Map({
+      key: Schema.String.pipe(Schema.fromBrand(PlayerId)),
+      value: Schema.Date,
+    }),
   }),
 });
 

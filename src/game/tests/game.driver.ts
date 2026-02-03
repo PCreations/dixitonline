@@ -1,8 +1,8 @@
 import { expect } from '@effect/vitest';
 import { Context, Effect, Layer, Option } from 'effect';
-import { Clock, ClockLive, makeTestClock } from '../clock.service.js';
 import { Database } from '../../infra/db/database.service.js';
 import { getTestDb } from '../../shared/tests/setup/test-db.js';
+import { Clock, ClockLive, makeTestClock } from '../clock.service.js';
 import { CreateGameUseCase } from '../create-game.usecase.js';
 import {
   Card,
@@ -42,11 +42,10 @@ import { SubmitClueUseCase } from '../submit-clue.usecase.js';
 import { VoteOnCardUseCase } from '../vote-on-card.usecase.js';
 import { GameDriver, type GameDriverDSL } from './game-driver.interface.js';
 
-// Re-export types from the interface file for backward compatibility
-export { GameDriver, type GameDriverDSL } from './game-driver.interface.js';
-
 // Re-export TestClockController for tests that need to control time
 export { TestClockController } from '../clock.service.js';
+// Re-export types from the interface file for backward compatibility
+export { GameDriver, type GameDriverDSL } from './game-driver.interface.js';
 
 const NUMBER_OF_CARDS_IN_DECK = 100;
 

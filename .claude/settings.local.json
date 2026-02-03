@@ -66,7 +66,10 @@
       "Bash(ls:*)",
       "Bash(pnpm test:acceptance:e2e:*)",
       "WebFetch(domain:github.com)",
-      "Bash(pnpm exec playwright test:*)"
+      "Bash(pnpm exec playwright test:*)",
+      "Bash(pnpm vitest:*)",
+      "Bash(pnpm exec vitest:*)",
+      "Bash(pnpm test:acceptance:drizzle:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

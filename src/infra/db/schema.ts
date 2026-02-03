@@ -1,5 +1,6 @@
 import {
   boolean,
+  index,
   integer,
   jsonb,
   pgTable,
@@ -20,20 +21,27 @@ import {
   StartedGameSnapshotSchema,
 } from '../../game/game-snapshot.schema.js';
 
-export const gamesTable = pgTable('games', {
-  id: uuid().primaryKey(),
-  createdAt: timestamp().notNull(),
-  updatedAt: timestamp().notNull().defaultNow(),
-  status: text({
-    enum: [
-      NotStartedGameStatus()._tag,
-      StartedGameStatus()._tag,
-      EndedGameStatus()._tag,
-    ],
-  }).notNull(),
-  data: jsonb().$type<GameEntitySnapshot>().notNull(),
-  version: integer().notNull(),
-});
+export const gamesTable = pgTable(
+  'games',
+  {
+    id: uuid().primaryKey(),
+    createdAt: timestamp().notNull(),
+    updatedAt: timestamp().notNull().defaultNow(),
+    status: text({
+      enum: [
+        NotStartedGameStatus()._tag,
+        StartedGameStatus()._tag,
+        EndedGameStatus()._tag,
+      ],
+    }).notNull(),
+    data: jsonb().$type<GameEntitySnapshot>().notNull(),
+    version: integer().notNull(),
+  },
+  (table) => [
+    index('games_status_idx').on(table.status),
+    index('games_version_idx').on(table.version),
+  ],
+);
 
 export type InsertDrizzleGameDto = typeof gamesTable.$inferInsert;
 

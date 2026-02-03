@@ -641,4 +641,159 @@ describe('DrizzleGameRepository', () => {
     expect(isPlayer1InGame).toBe(true);
     expect(isPlayer4InGame).toBe(false);
   });
+
+  it('should find all started game IDs', async () => {
+    const db = getTestDb();
+    const gameRepository = makeDrizzleGameRepository({ db });
+
+    // Create a started game
+    const startedGameSnapshot = {
+      id: gameId(7),
+      status: { _tag: 'StartedGame' },
+      createdBy: playerId(1),
+      deckId: deckId(1),
+      endCondition: { type: 'NumberOfTimesBeingStoryteller', numberOfTimes: 1 },
+      players: [playerId(1), playerId(2), playerId(3)],
+      version: 1,
+      currentTurn: {
+        id: turnId(7),
+        gameId: gameId(7),
+        turnNumber: 1,
+        currentStorytellerId: playerId(1),
+        playerHands: [
+          {
+            playerId: playerId(1),
+            cards: [
+              { id: CardId(cardId(1)), url: 'https://example.com/card-1' },
+            ],
+          },
+        ],
+        cardsInDrawPile: [],
+        phase: 'storytelling',
+        turnClue: Option.none(),
+        selectedCards: [],
+        votedCards: [],
+        pointsByPlayer: new Map(),
+        startedAt: new Date(),
+        playerDeadlines: new Map(),
+      },
+      playersHavingBeenStoryteller: {
+        [playerId(1)]: 0,
+        [playerId(2)]: 0,
+        [playerId(3)]: 0,
+      },
+      playersReadyForNextTurn: [],
+      scores: [],
+      randomizeStrategy: 'noop',
+    } satisfies StartedGameSnapshot;
+
+    const startedGame = StartedGameEntity.fromSnapshot(startedGameSnapshot);
+    await Effect.runPromise(gameRepository.save(startedGame));
+
+    // Create another started game
+    const startedGame2Snapshot = {
+      ...startedGameSnapshot,
+      id: gameId(8),
+      currentTurn: {
+        ...startedGameSnapshot.currentTurn,
+        id: turnId(8),
+        gameId: gameId(8),
+      },
+    } satisfies StartedGameSnapshot;
+    const startedGame2 = StartedGameEntity.fromSnapshot(startedGame2Snapshot);
+    await Effect.runPromise(gameRepository.save(startedGame2));
+
+    // Find all started game IDs
+    const startedGameIds = await Effect.runPromise(
+      gameRepository.findAllStartedGameIds(),
+    );
+
+    expect(startedGameIds).toContain(gameId(7));
+    expect(startedGameIds).toContain(gameId(8));
+    expect(startedGameIds.length).toBe(2);
+  });
+
+  it('should return empty array when no started games exist', async () => {
+    const db = getTestDb();
+    const gameRepository = makeDrizzleGameRepository({ db });
+
+    const startedGameIds = await Effect.runPromise(
+      gameRepository.findAllStartedGameIds(),
+    );
+
+    expect(startedGameIds).toEqual([]);
+  });
+
+  it('should persist and restore playerDeadlines correctly', async () => {
+    const deadline1 = new Date('2024-01-01T12:00:30Z');
+    const deadline2 = new Date('2024-01-01T12:01:00Z');
+
+    const gameSnapshot = {
+      id: gameId(9),
+      status: { _tag: 'StartedGame' },
+      createdBy: playerId(1),
+      deckId: deckId(1),
+      endCondition: { type: 'NumberOfTimesBeingStoryteller', numberOfTimes: 1 },
+      players: [playerId(1), playerId(2), playerId(3)],
+      version: 1,
+      currentTurn: {
+        id: turnId(9),
+        gameId: gameId(9),
+        turnNumber: 1,
+        currentStorytellerId: playerId(1),
+        playerHands: [
+          {
+            playerId: playerId(1),
+            cards: [
+              { id: CardId(cardId(1)), url: 'https://example.com/card-1' },
+            ],
+          },
+        ],
+        cardsInDrawPile: [],
+        phase: 'storytelling',
+        turnClue: Option.none(),
+        selectedCards: [],
+        votedCards: [],
+        pointsByPlayer: new Map(),
+        startedAt: new Date(),
+        // Non-empty playerDeadlines - this is the key test!
+        playerDeadlines: new Map([
+          [PlayerId(playerId(1)), deadline1],
+          [PlayerId(playerId(2)), deadline2],
+        ]),
+      },
+      playersHavingBeenStoryteller: {
+        [playerId(1)]: 0,
+        [playerId(2)]: 0,
+        [playerId(3)]: 0,
+      },
+      playersReadyForNextTurn: [],
+      scores: [],
+      randomizeStrategy: 'noop',
+    } satisfies StartedGameSnapshot;
+
+    const game = StartedGameEntity.fromSnapshot(gameSnapshot);
+    const db = getTestDb();
+    const gameRepository = makeDrizzleGameRepository({ db });
+
+    // Save the game
+    await Effect.runPromise(gameRepository.save(game));
+
+    // Reload the game from DB
+    const foundGame = await Effect.runPromise(
+      gameRepository.findStartedGameById(gameId(9)),
+    );
+
+    expect(Option.isSome(foundGame)).toBe(true);
+    if (Option.isSome(foundGame)) {
+      const snapshot = foundGame.value.toSnapshot();
+      const restoredDeadlines = snapshot.currentTurn.playerDeadlines;
+
+      // Verify the deadlines were persisted and restored correctly
+      expect(restoredDeadlines).toBeInstanceOf(Map);
+      expect(restoredDeadlines.size).toBe(2);
+      expect(restoredDeadlines.get(PlayerId(playerId(1)))).toEqual(deadline1);
+      expect(restoredDeadlines.get(PlayerId(playerId(2)))).toEqual(deadline2);
+    }
+  });
 });

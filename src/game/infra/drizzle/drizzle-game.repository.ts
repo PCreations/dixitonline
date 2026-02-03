@@ -264,6 +264,12 @@ export const makeDrizzleGameRepository = ({
                   : new Map(
                       Object.entries(snapshot.currentTurn.pointsByPlayer),
                     ),
+              playerDeadlines:
+                snapshot.currentTurn.playerDeadlines instanceof Map
+                  ? snapshot.currentTurn.playerDeadlines
+                  : new Map(
+                      Object.entries(snapshot.currentTurn.playerDeadlines),
+                    ),
             },
           };
           yield* Effect.annotateCurrentSpan(
@@ -381,6 +387,10 @@ export const makeDrizzleGameRepository = ({
               snapshot.currentTurn.pointsByPlayer instanceof Map
                 ? snapshot.currentTurn.pointsByPlayer
                 : new Map(Object.entries(snapshot.currentTurn.pointsByPlayer)),
+            playerDeadlines:
+              snapshot.currentTurn.playerDeadlines instanceof Map
+                ? snapshot.currentTurn.playerDeadlines
+                : new Map(Object.entries(snapshot.currentTurn.playerDeadlines)),
           },
         };
 
@@ -480,6 +490,21 @@ export const makeDrizzleGameRepository = ({
         );
         return isInGame;
       }).pipe(Effect.withSpan('GameRepository.isPlayerInGame'));
+    },
+    findAllStartedGameIds: () => {
+      return Effect.gen(function* () {
+        const result = yield* Effect.tryPromise({
+          try: async () => {
+            return await db
+              .select({ id: gamesTable.id })
+              .from(gamesTable)
+              .where(eq(gamesTable.status, 'StartedGame'));
+          },
+          catch: toDatabaseError,
+        });
+
+        return result.map((row) => row.id);
+      }).pipe(Effect.withSpan('GameRepository.findAllStartedGameIds'));
     },
     simulateStaleRead: () => Effect.void,
   };

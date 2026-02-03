@@ -109,3 +109,10 @@ export const GameLayerLiveWithDependencies = GameLayerLiveWithoutEventBus.pipe(
 
 // Re-export for use when sharing GameEventBus across multiple services
 export { InMemoryGameEventBus } from './game-event-bus.js';
+
+// Re-export TimerPollingDaemon for use in server.ts
+export {
+  makeTimerPollingDaemonLive,
+  TimerPollingDaemon,
+  TimerPollingDaemonTest,
+} from './timer-polling-daemon.js';

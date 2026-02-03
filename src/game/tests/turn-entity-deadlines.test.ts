@@ -70,9 +70,9 @@ describe('TurnEntity playerDeadlines', () => {
         secondDeadline,
       );
 
-      expect(turnWithSecondDeadline.toSnapshot().playerDeadlines.get(playerId)).toEqual(
-        secondDeadline,
-      );
+      expect(
+        turnWithSecondDeadline.toSnapshot().playerDeadlines.get(playerId),
+      ).toEqual(secondDeadline);
     });
   });
 
@@ -83,11 +83,12 @@ describe('TurnEntity playerDeadlines', () => {
       const deadline = new Date('2024-01-01T12:00:30Z');
 
       const turnWithDeadline = turn.setPlayerDeadline(playerId, deadline);
-      const turnWithoutDeadline = turnWithDeadline.clearPlayerDeadline(playerId);
+      const turnWithoutDeadline =
+        turnWithDeadline.clearPlayerDeadline(playerId);
 
-      expect(turnWithoutDeadline.toSnapshot().playerDeadlines.has(playerId)).toBe(
-        false,
-      );
+      expect(
+        turnWithoutDeadline.toSnapshot().playerDeadlines.has(playerId),
+      ).toBe(false);
     });
 
     it('does nothing if player has no deadline', () => {
@@ -177,7 +178,9 @@ describe('TurnEntity playerDeadlines', () => {
       const restored = TurnEntity.fromSnapshot(snapshot);
       const restoredSnapshot = restored.toSnapshot();
 
-      expect(restoredSnapshot.playerDeadlines.get(storytellerId)).toEqual(deadline1);
+      expect(restoredSnapshot.playerDeadlines.get(storytellerId)).toEqual(
+        deadline1,
+      );
       expect(restoredSnapshot.playerDeadlines.get(player1)).toEqual(deadline2);
     });
 

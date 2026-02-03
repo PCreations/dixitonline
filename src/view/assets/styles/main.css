@@ -3341,7 +3341,6 @@ body {
   letter-spacing: 0.05em;
 }
 
-
 /* ===== TURN TIMER BAR ===== */
 
 .turn-timer-bar {
@@ -3384,7 +3383,8 @@ body {
 }
 
 @keyframes pulse-danger {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -3403,7 +3403,7 @@ body {
 
 /* Adjust game content padding when timer bar is present */
 .game-container:has(.turn-timer-bar) .game-content {
-  padding-bottom: 60px;
+  padding-bottom: 80px;
 }
 
 @media (max-width: 640px) {

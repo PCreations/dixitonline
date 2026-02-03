@@ -3402,6 +3402,71 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
+.turn-timer-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  background: rgba(15, 14, 29, 0.9);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 100;
+}
+.turn-timer-bar__track {
+  flex: 1;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.turn-timer-bar__progress {
+  height: 100%;
+  background: linear-gradient(90deg, #8b5cf6 0%, #a78bfa 100%);
+  border-radius: 4px;
+  transition: width 0.1s linear;
+}
+.turn-timer-bar__progress--warning {
+  background: linear-gradient(90deg, #f59e0b 0%, #fbbf24 100%);
+}
+.turn-timer-bar__progress--danger {
+  background: linear-gradient(90deg, #ef4444 0%, #f87171 100%);
+  animation: pulse-danger 0.5s ease-in-out infinite;
+}
+@keyframes pulse-danger {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+.turn-timer-bar__time {
+  font-family: "Poppins", sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: white;
+  min-width: 36px;
+  text-align: right;
+}
+.game-container:has(.turn-timer-bar) .game-content {
+  padding-bottom: 80px;
+}
+@media (max-width: 640px) {
+  .turn-timer-bar {
+    padding: 6px 12px;
+  }
+  .turn-timer-bar__track {
+    height: 6px;
+  }
+  .turn-timer-bar__time {
+    font-size: 0.75rem;
+    min-width: 28px;
+  }
+}
 @property --tw-rotate-x {
   syntax: "*";
   inherits: false;

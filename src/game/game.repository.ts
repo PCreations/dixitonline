@@ -77,6 +77,14 @@ export class GameRepository extends Effect.Tag('game/GameRepository')<
       gameId: string,
       playerId: string,
     ) => Effect.Effect<boolean, DatabaseError>;
+    /**
+     * Returns IDs of all started games.
+     * Used by TimerPollingDaemon to find games that may have expired timers.
+     */
+    findAllStartedGameIds: () => Effect.Effect<
+      ReadonlyArray<string>,
+      DatabaseError
+    >;
     simulateStaleRead: (staleGame: GameEntity) => Effect.Effect<void>;
   }
 >() {}
@@ -216,6 +224,9 @@ const makeInMemoryGameRepository = (
       return Effect.succeed(
         maybeGame.value.toSnapshot().players.includes(playerId),
       );
+    },
+    findAllStartedGameIds: () => {
+      return Effect.succeed(Array.from(startedGames.keys()));
     },
     simulateStaleRead: (staleGame: GameEntity) => {
       staleReads.set(staleGame.id, staleGame);

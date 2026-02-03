@@ -10,6 +10,8 @@ import {
 } from './game-view-projector.js';
 import { withOptimisticRetry } from './optimistic-retry.js';
 import { PlayerId } from './player.entity.js';
+import { Clock, ClockLive } from './clock.service.js';
+import { TURN_TIMER_CONFIG } from './turn-timer.config.js';
 
 export type NotifyReadyForNextTurnCommand = {
   gameId: string;
@@ -23,6 +25,7 @@ export class NotifyReadyForNextTurnUseCase extends Effect.Service<NotifyReadyFor
       const gameRepository = yield* GameRepository;
       const gameView = yield* GameView;
       const gameViewProjector = yield* GameViewProjector;
+      const clock = yield* Clock;
 
       return {
         notifyReadyForNextTurn: (props: NotifyReadyForNextTurnCommand) => {
@@ -48,9 +51,14 @@ export class NotifyReadyForNextTurnUseCase extends Effect.Service<NotifyReadyFor
               },
               onSome: (gameEntity) =>
                 Effect.gen(function* () {
+                  const now = yield* clock.now();
                   const { entity: updatedGame, events } =
                     yield* gameEntity.notifyReadyForNextTurn({
                       playerId: PlayerId(props.playerId),
+                      deadlineConfig: {
+                        now,
+                        timeoutMs: TURN_TIMER_CONFIG.playerActionTimeoutMs,
+                      },
                     });
 
                   // Skip saving if nothing changed (idempotent case)
@@ -96,6 +104,7 @@ export class NotifyReadyForNextTurnUseCase extends Effect.Service<NotifyReadyFor
       TurnBoardCardsShuffler.Default,
       InMemoryDeckRepository,
       ShufflerService.Default,
+      ClockLive,
     ],
   },
 ) {}
