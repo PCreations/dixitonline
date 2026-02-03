@@ -1,5 +1,6 @@
 import { expect } from '@effect/vitest';
 import { Context, Effect, Layer, Option } from 'effect';
+import { Clock, ClockLive, makeTestClock } from '../clock.service.js';
 import { Database } from '../../infra/db/database.service.js';
 import { getTestDb } from '../../shared/tests/setup/test-db.js';
 import { CreateGameUseCase } from '../create-game.usecase.js';
@@ -34,6 +35,7 @@ import { DrizzleGameRepository } from '../infra/drizzle/drizzle-game.repository.
 import { JoinGameUseCase } from '../join-game.usecase.js';
 import { LeaveGameUseCase } from '../leave-game.usecase.js';
 import { NotifyReadyForNextTurnUseCase } from '../notify-ready-for-next-turn.usecase.js';
+import { ProcessExpiredTimersUseCase } from '../process-expired-timers.usecase.js';
 import { SelectCardUseCase } from '../select-card.usecase.js';
 import { StartGameUseCase } from '../start-game.usecase.js';
 import { SubmitClueUseCase } from '../submit-clue.usecase.js';
@@ -42,6 +44,9 @@ import { GameDriver, type GameDriverDSL } from './game-driver.interface.js';
 
 // Re-export types from the interface file for backward compatibility
 export { GameDriver, type GameDriverDSL } from './game-driver.interface.js';
+
+// Re-export TestClockController for tests that need to control time
+export { TestClockController } from '../clock.service.js';
 
 const NUMBER_OF_CARDS_IN_DECK = 100;
 
@@ -54,6 +59,7 @@ const makeUnitTestGameDriver = ({
   selectCardUseCase,
   voteOnCardUseCase,
   notifyToBeReadyForNextTurnUseCase,
+  processExpiredTimersUseCase,
   gameRepository,
   deckRepository,
   gameView,
@@ -66,6 +72,7 @@ const makeUnitTestGameDriver = ({
   selectCardUseCase: SelectCardUseCase;
   voteOnCardUseCase: VoteOnCardUseCase;
   notifyToBeReadyForNextTurnUseCase: NotifyReadyForNextTurnUseCase;
+  processExpiredTimersUseCase: ProcessExpiredTimersUseCase;
   gameRepository: Context.Tag.Service<GameRepository>;
   deckRepository: Context.Tag.Service<DeckRepository>;
   gameView: Context.Tag.Service<GameView>;
@@ -374,6 +381,32 @@ const makeUnitTestGameDriver = ({
               return Effect.die(new Error(`[GameBuilder] ${error.message}`));
             }
             testState.currentError = Option.some(error);
+            return Effect.succeed(void 0);
+          }),
+        );
+    },
+    processingExpiredTimers: (props) => {
+      return processExpiredTimersUseCase
+        .processExpiredTimers({ gameId: props.gameId })
+        .pipe(
+          Effect.catchAll((error) => {
+            console.error('processingExpiredTimers error:', error);
+            console.error('error type:', typeof error);
+            console.error('error constructor:', error?.constructor?.name);
+            const errorMessage =
+              error instanceof Error
+                ? error.message || error.toString()
+                : String(error);
+            if (testState.failFast) {
+              return Effect.die(
+                new Error(
+                  `[GameDriver] processingExpiredTimers: ${errorMessage}`,
+                ),
+              );
+            }
+            testState.currentError = Option.some(
+              error instanceof Error ? error : new Error(errorMessage),
+            );
             return Effect.succeed(void 0);
           }),
         );
@@ -772,6 +805,7 @@ export const makeGameDriverTestLayer = (props?: {
     | ShufflerService
     | PlayersRandomizeStrategy
     | GameEventBus
+    | Clock
   >;
 }) => {
   const dependencies =
@@ -784,12 +818,13 @@ export const makeGameDriverTestLayer = (props?: {
       GameViewProjector.Default,
       ShufflerService.Default,
       NoopGameEventBus,
+      ClockLive,
       props?.randomizeStrategy
         ? Layer.succeed(PlayersRandomizeStrategy, props.randomizeStrategy)
         : NoopRandomizeStrategy,
     );
 
-  return Layer.merge(
+  return Layer.mergeAll(
     Layer.effect(
       GameDriver,
       Effect.gen(function* () {
@@ -802,6 +837,7 @@ export const makeGameDriverTestLayer = (props?: {
         const voteOnCardUseCase = yield* VoteOnCardUseCase;
         const notifyToBeReadyForNextTurnUseCase =
           yield* NotifyReadyForNextTurnUseCase;
+        const processExpiredTimersUseCase = yield* ProcessExpiredTimersUseCase;
         const gameRepository = yield* GameRepository;
         const deckRepository = yield* DeckRepository;
         const gameView = yield* GameView;
@@ -815,6 +851,7 @@ export const makeGameDriverTestLayer = (props?: {
           selectCardUseCase,
           voteOnCardUseCase,
           notifyToBeReadyForNextTurnUseCase,
+          processExpiredTimersUseCase,
           gameRepository,
           deckRepository,
           gameView,
@@ -824,8 +861,10 @@ export const makeGameDriverTestLayer = (props?: {
       Layer.provide(GameLayerWithoutDependencies),
       Layer.provide(dependencies),
     ),
-    // Also expose GameViewProjector and TurnBoardCardsShuffler directly for tests
-    Layer.merge(GameViewProjector.Default, TurnBoardCardsShuffler.Default),
+    // Also expose GameViewProjector, TurnBoardCardsShuffler, and Clock directly for tests
+    GameViewProjector.Default,
+    TurnBoardCardsShuffler.Default,
+    ClockLive,
   ).pipe(Layer.provide(dependencies));
 };
 
@@ -840,6 +879,7 @@ export const makeGameDriverAcceptanceLayer = () => {
       ShufflerService.Default,
       NoopGameEventBus,
       NoopRandomizeStrategy,
+      ClockLive,
     ),
   });
 };
@@ -876,6 +916,7 @@ export const makeGameDriverDrizzleLayer = (props?: {
     GameViewProjector.Default,
     ShufflerService.Default,
     NoopGameEventBus,
+    ClockLive,
     props?.randomizeStrategy
       ? Layer.succeed(PlayersRandomizeStrategy, props.randomizeStrategy)
       : NoopRandomizeStrategy,
@@ -890,3 +931,71 @@ export const makeGameDriverDrizzleLayer = (props?: {
 };
 
 export type GameDriverLayer = ReturnType<typeof makeGameDriverTestLayer>;
+
+/**
+ * Creates a GameDriver test layer with a controllable test clock.
+ * Use this layer for tests that need to manipulate time (e.g., timer expiration tests).
+ *
+ * The test clock can be accessed via yield* TestClockController to call tick() or setTime().
+ */
+export const makeGameDriverTestLayerWithTestClock = () => {
+  const testClock = makeTestClock(new Date('2024-01-01T12:00:00Z'));
+
+  const baseDependencies = Layer.mergeAll(
+    InMemoryGameRepository,
+    InMemoryDeckRepository,
+    InMemoryGameView,
+    TurnBoardCardsShuffler.Default,
+    GameViewProjector.Default,
+    ShufflerService.Default,
+    NoopGameEventBus,
+    NoopRandomizeStrategy,
+    testClock.layer,
+    testClock.controllerLayer,
+  );
+
+  return Layer.merge(
+    Layer.effect(
+      GameDriver,
+      Effect.gen(function* () {
+        const createGameUseCase = yield* CreateGameUseCase;
+        const joinGameUseCase = yield* JoinGameUseCase;
+        const leaveGameUseCase = yield* LeaveGameUseCase;
+        const startGameUseCase = yield* StartGameUseCase;
+        const submitClueUseCase = yield* SubmitClueUseCase;
+        const selectCardUseCase = yield* SelectCardUseCase;
+        const voteOnCardUseCase = yield* VoteOnCardUseCase;
+        const notifyToBeReadyForNextTurnUseCase =
+          yield* NotifyReadyForNextTurnUseCase;
+        const processExpiredTimersUseCase = yield* ProcessExpiredTimersUseCase;
+        const gameRepository = yield* GameRepository;
+        const deckRepository = yield* DeckRepository;
+        const gameView = yield* GameView;
+
+        return makeUnitTestGameDriver({
+          createGameUseCase,
+          joinGameUseCase,
+          leaveGameUseCase,
+          startGameUseCase,
+          submitClueUseCase,
+          selectCardUseCase,
+          voteOnCardUseCase,
+          notifyToBeReadyForNextTurnUseCase,
+          processExpiredTimersUseCase,
+          gameRepository,
+          deckRepository,
+          gameView,
+        });
+      }),
+    ).pipe(
+      Layer.provide(GameLayerWithoutDependencies),
+      Layer.provide(baseDependencies),
+    ),
+    // Also expose GameViewProjector, TurnBoardCardsShuffler, and TestClockController directly for tests
+    Layer.mergeAll(
+      GameViewProjector.Default,
+      TurnBoardCardsShuffler.Default,
+      testClock.controllerLayer,
+    ),
+  ).pipe(Layer.provide(baseDependencies));
+};

@@ -130,6 +130,9 @@ export interface GameDriverDSL {
       gameId: string;
       playerId: string;
     }) => Effect.Effect<void>;
+    readonly processingExpiredTimers: (props: {
+      gameId: string;
+    }) => Effect.Effect<void>;
   };
   readonly assert: {
     readonly createdGameToEqual: (game: {

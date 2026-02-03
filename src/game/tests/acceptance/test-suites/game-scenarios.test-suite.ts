@@ -6,7 +6,13 @@ import {
   getCurrentStorytellerId,
   getSelectedCardsByPlayer,
 } from '../../game.builder.js';
-import { GameDriver, type GameDriverLayer } from '../../game.driver.js';
+import {
+  GameDriver,
+  makeGameDriverTestLayerWithTestClock,
+  TestClockController,
+  type GameDriverDSL,
+  type GameDriverLayer,
+} from '../../game.driver.js';
 import { defaultIdFactory, type IdFactory } from './create-game.test-suite.js';
 
 export const gameScenariosTestSuite = (
@@ -343,5 +349,113 @@ export const gameScenariosTestSuite = (
         });
       }).pipe(Effect.provide(makeGameDriverTestLayer()));
     });
+
+    it.effect(
+      'Scenario: A game with 4 AFK players completes automatically via timeouts',
+      () => {
+        return Effect.gen(function* () {
+          const gameDriver = (yield* GameDriver).withFailFastMode();
+          const testClock = yield* TestClockController;
+
+          const alice = playerId('alice');
+          const bob = playerId('bob');
+          const charlie = playerId('charlie');
+          const dave = playerId('dave');
+          const gameIdValue = gameId(1);
+          const deckIdValue = deckId(1);
+
+          yield* setupDeckForAfkScenario(gameDriver, deckIdValue);
+          yield* createAndStartGameWithFourPlayers(
+            gameDriver,
+            gameIdValue,
+            deckIdValue,
+            alice,
+            bob,
+            charlie,
+            dave,
+          );
+
+          // With NumberOfTimesBeingStoryteller: 1 and 4 players,
+          // we need 4 complete turns (one per player as storyteller)
+          for (let turn = 1; turn <= 4; turn++) {
+            yield* runCompleteTurnWithAfkPlayers(
+              gameDriver,
+              testClock,
+              gameIdValue,
+            );
+          }
+
+          yield* gameDriver.assert.gameToBeEnded({ gameId: gameIdValue });
+        }).pipe(Effect.provide(makeGameDriverTestLayerWithTestClock()));
+      },
+    );
   });
 };
+
+const generateDeckCards = (count: number): ReadonlyArray<string> =>
+  Array.from({ length: count }, (_, i) => `card-${i + 1}`);
+
+const setupDeckForAfkScenario = (
+  gameDriver: GameDriverDSL,
+  deckIdValue: string,
+) =>
+  gameDriver.given.existingDeck({
+    id: deckIdValue,
+    cards: [...generateDeckCards(84)],
+  });
+
+const createAndStartGameWithFourPlayers = (
+  gameDriver: GameDriverDSL,
+  gameIdValue: string,
+  deckIdValue: string,
+  alice: string,
+  bob: string,
+  charlie: string,
+  dave: string,
+) =>
+  Effect.gen(function* () {
+    yield* gameDriver.when.creatingGame({
+      gameId: gameIdValue,
+      hostId: alice,
+      deckId: deckIdValue,
+      endCondition: {
+        type: 'NumberOfTimesBeingStoryteller',
+        numberOfTimes: 1,
+      },
+    });
+    yield* gameDriver.when.joiningGame({ gameId: gameIdValue, playerId: bob });
+    yield* gameDriver.when.joiningGame({
+      gameId: gameIdValue,
+      playerId: charlie,
+    });
+    yield* gameDriver.when.joiningGame({ gameId: gameIdValue, playerId: dave });
+    yield* gameDriver.when.startingGame({
+      gameId: gameIdValue,
+      playerId: alice,
+    });
+  });
+
+const THIRTY_SECONDS = 30_000;
+
+const runCompleteTurnWithAfkPlayers = (
+  gameDriver: GameDriverDSL,
+  testClock: { tick: (ms: number) => void },
+  gameIdValue: string,
+) =>
+  Effect.gen(function* () {
+    // Storytelling phase: storyteller auto-submits clue
+    testClock.tick(THIRTY_SECONDS);
+    yield* gameDriver.when.processingExpiredTimers({ gameId: gameIdValue });
+
+    // Selecting-cards phase: non-storytellers auto-select cards
+    testClock.tick(THIRTY_SECONDS);
+    yield* gameDriver.when.processingExpiredTimers({ gameId: gameIdValue });
+
+    // Voting phase: non-storytellers auto-vote
+    testClock.tick(THIRTY_SECONDS);
+    yield* gameDriver.when.processingExpiredTimers({ gameId: gameIdValue });
+
+    // Scoring phase: all players auto-acknowledge
+    testClock.tick(THIRTY_SECONDS);
+    yield* gameDriver.when.processingExpiredTimers({ gameId: gameIdValue });
+  });

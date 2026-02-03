@@ -117,6 +117,7 @@ describe('DrizzleGameRepository', () => {
         ],
         pointsByPlayer: new Map(),
         startedAt: new Date(),
+        playerDeadlines: new Map(),
       },
       playersHavingBeenStoryteller: {
         [playerId(1)]: 1,
@@ -249,6 +250,7 @@ describe('DrizzleGameRepository', () => {
         ],
         pointsByPlayer: new Map(),
         startedAt: new Date(),
+        playerDeadlines: new Map(),
       },
       playersHavingBeenStoryteller: {
         [playerId(1)]: 1,
@@ -390,6 +392,7 @@ describe('DrizzleGameRepository', () => {
         ],
         pointsByPlayer: new Map(),
         startedAt: new Date(),
+        playerDeadlines: new Map(),
       },
       playersHavingBeenStoryteller: {
         [playerId(1)]: 1,
@@ -466,6 +469,7 @@ describe('DrizzleGameRepository', () => {
         votedCards: [],
         pointsByPlayer: new Map(),
         startedAt: new Date(),
+        playerDeadlines: new Map(),
       },
       playersHavingBeenStoryteller: {
         [playerId(1)]: 1,
@@ -545,6 +549,7 @@ describe('DrizzleGameRepository', () => {
         votedCards: [],
         pointsByPlayer: new Map(),
         startedAt: new Date(),
+        playerDeadlines: new Map(),
       },
       playersHavingBeenStoryteller: {
         [playerId(1)]: 1,
@@ -608,6 +613,7 @@ describe('DrizzleGameRepository', () => {
         votedCards: [],
         pointsByPlayer: new Map(),
         startedAt: new Date(),
+        playerDeadlines: new Map(),
       },
       playersHavingBeenStoryteller: {
         [playerId(1)]: 1,

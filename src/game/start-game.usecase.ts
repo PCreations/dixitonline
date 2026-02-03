@@ -1,4 +1,5 @@
 import { Effect, Option } from 'effect';
+import { Clock, ClockLive } from './clock.service.js';
 import { DeckRepository, InMemoryDeckRepository } from './deck.repository.js';
 import {
   NoopRandomizeStrategy,
@@ -13,6 +14,7 @@ import {
 } from './game-view-projector.js';
 import { withOptimisticRetry } from './optimistic-retry.js';
 import { PlayerId } from './player.entity.js';
+import { TURN_TIMER_CONFIG } from './turn-timer.config.js';
 
 export type StartGameCommand = {
   gameId: string;
@@ -28,6 +30,7 @@ export class StartGameUseCase extends Effect.Service<StartGameUseCase>()(
       const gameView = yield* GameView;
       const randomizeStrategy = yield* PlayersRandomizeStrategy;
       const gameViewProjector = yield* GameViewProjector;
+      const clock = yield* Clock;
 
       return {
         startGame: (props: StartGameCommand) => {
@@ -67,24 +70,34 @@ export class StartGameUseCase extends Effect.Service<StartGameUseCase>()(
               onSome: Effect.succeed,
             });
 
-            const { entity: updatedGame, events } = yield* gameEntity.start({
+            const now = yield* clock.now();
+
+            const { entity: startedGame, events } = yield* gameEntity.start({
               playerId: PlayerId(props.playerId),
               deck: deckEntity,
-              startedAt: new Date(),
+              startedAt: now,
               randomizeStrategy: randomizeStrategy,
             });
 
+            const storytellerDeadline = new Date(
+              now.getTime() + TURN_TIMER_CONFIG.playerActionTimeoutMs,
+            );
+            const gameWithDeadline = startedGame.setPlayerDeadline(
+              startedGame.props.currentTurn.currentStorytellerId,
+              storytellerDeadline,
+            );
+
             // Save game and events atomically (outbox pattern)
-            yield* gameRepository.saveWithEvents(updatedGame, events);
+            yield* gameRepository.saveWithEvents(gameWithDeadline, events);
 
             yield* gameView.save(
-              yield* gameViewProjector.project(updatedGame.toSnapshot()),
+              yield* gameViewProjector.project(gameWithDeadline.toSnapshot()),
             );
 
             yield* Effect.annotateCurrentSpan(
               'context.output',
               JSON.stringify({
-                snapshot: updatedGame.toSnapshot(),
+                snapshot: gameWithDeadline.toSnapshot(),
                 events,
               }),
             );
@@ -104,6 +117,7 @@ export class StartGameUseCase extends Effect.Service<StartGameUseCase>()(
       TurnBoardCardsShuffler.Default,
       GameViewProjector.Default,
       ShufflerService.Default,
+      ClockLive,
     ],
   },
 ) {}

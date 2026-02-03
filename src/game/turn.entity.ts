@@ -39,6 +39,7 @@ export class TurnEntity {
         PlayerId,
         ReadonlyArray<{ points: number; reason: ScoreReason }>
       >;
+      readonly playerDeadlines: ReadonlyMap<PlayerId, Date>;
     },
   ) {
     this.rules = GameRulesFactory.createForPlayersCount(
@@ -73,6 +74,7 @@ export class TurnEntity {
           [] as ReadonlyArray<{ points: number; reason: ScoreReason }>,
         ]),
       ),
+      playerDeadlines: new Map(),
     });
   }
 
@@ -97,6 +99,7 @@ export class TurnEntity {
       selectedCards: this.props.selectedCards,
       votedCards: this.props.votedCards,
       pointsByPlayer: this.props.pointsByPlayer,
+      playerDeadlines: this.props.playerDeadlines,
     };
   }
 
@@ -123,6 +126,7 @@ export class TurnEntity {
       selectedCards: snapshot.selectedCards,
       votedCards: snapshot.votedCards,
       pointsByPlayer: new Map(snapshot.pointsByPlayer),
+      playerDeadlines: new Map(snapshot.playerDeadlines),
     });
   }
 
@@ -165,6 +169,7 @@ export class TurnEntity {
       ),
       phase: 'storytelling',
       currentStorytellerId: opts.nextStorytellerId,
+      playerDeadlines: new Map(),
     });
   }
 
@@ -172,10 +177,39 @@ export class TurnEntity {
     return this.props.phase === 'scoring';
   }
 
+  setPlayerDeadline(playerId: PlayerId, deadline: Date): TurnEntity {
+    const updatedDeadlines = new Map(this.props.playerDeadlines);
+    updatedDeadlines.set(playerId, deadline);
+    return new TurnEntity({
+      ...this.props,
+      playerDeadlines: updatedDeadlines,
+    });
+  }
+
+  clearPlayerDeadline(playerId: PlayerId): TurnEntity {
+    const updatedDeadlines = new Map(this.props.playerDeadlines);
+    updatedDeadlines.delete(playerId);
+    return new TurnEntity({
+      ...this.props,
+      playerDeadlines: updatedDeadlines,
+    });
+  }
+
+  getExpiredPlayerDeadlines(now: Date): ReadonlyArray<PlayerId> {
+    const expired: Array<PlayerId> = [];
+    for (const [playerId, deadline] of this.props.playerDeadlines) {
+      if (deadline.getTime() <= now.getTime()) {
+        expired.push(playerId);
+      }
+    }
+    return expired;
+  }
+
   submitClue(opts: {
     playerId: PlayerId;
     clue: string;
     cardId: CardId;
+    deadlineConfig?: { now: Date; timeoutMs: number };
   }): Effect.Effect<TurnEntity, Error, never> {
     if (this.props.currentStorytellerId !== opts.playerId) {
       return Effect.fail(new Error('Only the storyteller can submit a clue'));
@@ -195,6 +229,16 @@ export class TurnEntity {
 
     return Effect.gen(this, function* () {
       const updatedTurn = yield* this.removeCardFromPlayerHand(opts);
+
+      // Manage deadlines: clear storyteller, set for non-storytellers
+      let deadlines = updatedTurn.props.playerDeadlines;
+      if (opts.deadlineConfig) {
+        deadlines = this.computeDeadlinesForSelectingCardsPhase(
+          opts.playerId,
+          opts.deadlineConfig,
+        );
+      }
+
       return new TurnEntity({
         ...updatedTurn.props,
         turnClue: Option.some({
@@ -202,13 +246,31 @@ export class TurnEntity {
           cardId: opts.cardId,
         }),
         phase: 'selecting-cards',
+        playerDeadlines: deadlines,
       });
     });
+  }
+
+  private computeDeadlinesForSelectingCardsPhase(
+    storytellerId: PlayerId,
+    config: { now: Date; timeoutMs: number },
+  ): ReadonlyMap<PlayerId, Date> {
+    const deadlines = new Map<PlayerId, Date>();
+    const deadline = new Date(config.now.getTime() + config.timeoutMs);
+
+    for (const hand of this.props.playerHands) {
+      if (hand.playerId !== storytellerId) {
+        deadlines.set(hand.playerId, deadline);
+      }
+    }
+
+    return deadlines;
   }
 
   selectCard(opts: {
     playerId: PlayerId;
     cardId: CardId;
+    deadlineConfig?: { now: Date; timeoutMs: number };
   }): Effect.Effect<TurnEntity, Error, never> {
     return Effect.gen(this, function* () {
       yield* this.guardAgainstStorytellerSelectingCard(opts);
@@ -225,23 +287,57 @@ export class TurnEntity {
         },
       ];
 
+      const isTransitioningToVoting = this.rules.isVotingPhase(
+        updatedSelectedCards.length,
+        this.props.playerHands.length,
+      );
+
+      // Manage deadlines: clear acting player, set for voting phase if transitioning
+      let deadlines = this.props.playerDeadlines;
+      if (opts.deadlineConfig) {
+        deadlines = this.computeDeadlinesAfterCardSelection(
+          opts.playerId,
+          isTransitioningToVoting,
+          opts.deadlineConfig,
+        );
+      }
+
       return new TurnEntity({
         ...this.props,
         playerHands: updatedTurn.playerHands,
         selectedCards: updatedSelectedCards,
-        phase: this.rules.isVotingPhase(
-          updatedSelectedCards.length,
-          this.props.playerHands.length,
-        )
-          ? 'voting'
-          : 'selecting-cards',
+        phase: isTransitioningToVoting ? 'voting' : 'selecting-cards',
+        playerDeadlines: deadlines,
       });
     });
+  }
+
+  private computeDeadlinesAfterCardSelection(
+    actingPlayerId: PlayerId,
+    isTransitioningToVoting: boolean,
+    config: { now: Date; timeoutMs: number },
+  ): ReadonlyMap<PlayerId, Date> {
+    // Clear acting player's deadline
+    const deadlines = new Map(this.props.playerDeadlines);
+    deadlines.delete(actingPlayerId);
+
+    // If transitioning to voting, set deadlines for non-storytellers
+    if (isTransitioningToVoting) {
+      const deadline = new Date(config.now.getTime() + config.timeoutMs);
+      for (const hand of this.props.playerHands) {
+        if (hand.playerId !== this.props.currentStorytellerId) {
+          deadlines.set(hand.playerId, deadline);
+        }
+      }
+    }
+
+    return deadlines;
   }
 
   voteOnCard(opts: {
     playerId: PlayerId;
     cardId: CardId;
+    deadlineConfig?: { now: Date; timeoutMs: number };
   }): Effect.Effect<TurnEntity, Error, never> {
     return Effect.gen(this, function* () {
       const availableCardsToVoteOn = yield* this.getAvailableCardsToVoteOn();
@@ -254,13 +350,46 @@ export class TurnEntity {
         votedCards,
       );
 
+      const isTransitioningToScoring = nextPhase === 'scoring';
+
+      // Manage deadlines: clear acting player, set for scoring phase if transitioning
+      let deadlines = this.props.playerDeadlines;
+      if (opts.deadlineConfig) {
+        deadlines = this.computeDeadlinesAfterVote(
+          opts.playerId,
+          isTransitioningToScoring,
+          opts.deadlineConfig,
+        );
+      }
+
       return new TurnEntity({
         ...this.props,
         votedCards,
         pointsByPlayer: updatedPointsByPlayer,
         phase: nextPhase,
+        playerDeadlines: deadlines,
       });
     });
+  }
+
+  private computeDeadlinesAfterVote(
+    actingPlayerId: PlayerId,
+    isTransitioningToScoring: boolean,
+    config: { now: Date; timeoutMs: number },
+  ): ReadonlyMap<PlayerId, Date> {
+    // Clear acting player's deadline
+    const deadlines = new Map(this.props.playerDeadlines);
+    deadlines.delete(actingPlayerId);
+
+    // If transitioning to scoring, set deadlines for all players
+    if (isTransitioningToScoring) {
+      const deadline = new Date(config.now.getTime() + config.timeoutMs);
+      for (const hand of this.props.playerHands) {
+        deadlines.set(hand.playerId, deadline);
+      }
+    }
+
+    return deadlines;
   }
 
   getEarnedPointsForPlayer(playerId: PlayerId) {

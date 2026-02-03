@@ -26,6 +26,7 @@ import {
   createJwtVerifier,
   registerAuthHook,
 } from './auth/index.js';
+import { ClockLive } from './game/clock.service.js';
 import {
   GameLayerLiveWithoutEventBus,
   InMemoryGameEventBus,
@@ -85,6 +86,7 @@ const AppLayer = (() => {
   const SharedServicesLayer = Layer.mergeAll(
     InMemoryGameEventBus,
     DrizzleOutboxRepository,
+    ClockLive,
   );
 
   const RelayLayer = supabasePublishableKey

@@ -20,6 +20,7 @@ import { JoinGameUseCase } from './join-game.usecase.js';
 import { LeaveGameUseCase } from './leave-game.usecase.js';
 import { LobbyQueryService } from './lobby.query-service.js';
 import { NotifyReadyForNextTurnUseCase } from './notify-ready-for-next-turn.usecase.js';
+import { ProcessExpiredTimersUseCase } from './process-expired-timers.usecase.js';
 import { SelectCardUseCase } from './select-card.usecase.js';
 import { StartGameUseCase } from './start-game.usecase.js';
 import { SubmitClueUseCase } from './submit-clue.usecase.js';
@@ -45,6 +46,7 @@ export const GameLayerWithoutDependencies = Layer.mergeAll(
   SelectCardUseCase.DefaultWithoutDependencies,
   VoteOnCardUseCase.DefaultWithoutDependencies,
   NotifyReadyForNextTurnUseCase.DefaultWithoutDependencies,
+  ProcessExpiredTimersUseCase.DefaultWithoutDependencies,
 );
 
 /**

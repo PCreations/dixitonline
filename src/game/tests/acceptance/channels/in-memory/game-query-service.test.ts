@@ -1,6 +1,7 @@
 import { Layer } from 'effect';
 import { describe } from 'vitest';
 import { InMemoryPlayerRepository } from '../../../../../player/player.repository.js';
+import { ClockLive } from '../../../../clock.service.js';
 import { InMemoryDeckRepository } from '../../../../deck.repository.js';
 import { NoopRandomizeStrategy } from '../../../../game.entity.js';
 import { GameQueryService } from '../../../../game.query-service.js';
@@ -28,6 +29,7 @@ describe('Acceptance (In-Memory): GameQueryService', () => {
       NoopGameEventBus,
       NoopRandomizeStrategy,
       InMemoryPlayerRepository,
+      ClockLive,
     );
 
     // Build the complete test layer with shared dependencies

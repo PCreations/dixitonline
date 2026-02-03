@@ -625,10 +625,30 @@ export class StartedGameEntity extends GameEntity {
     };
   }
 
+  setPlayerDeadline(playerId: PlayerId, deadline: Date): StartedGameEntity {
+    const updatedTurn = this.props.currentTurn.setPlayerDeadline(
+      playerId,
+      deadline,
+    );
+    return StartedGameEntity.create({
+      ...this.props,
+      currentTurn: updatedTurn,
+    });
+  }
+
+  clearPlayerDeadline(playerId: PlayerId): StartedGameEntity {
+    const updatedTurn = this.props.currentTurn.clearPlayerDeadline(playerId);
+    return StartedGameEntity.create({
+      ...this.props,
+      currentTurn: updatedTurn,
+    });
+  }
+
   submitClue(opts: {
     playerId: PlayerId;
     cardId: CardId;
     clue: string;
+    deadlineConfig?: { now: Date; timeoutMs: number };
   }): Effect.Effect<
     EntityWithEvents<StartedGameEntity, ClueSubmittedEvent>,
     Error
@@ -638,6 +658,7 @@ export class StartedGameEntity extends GameEntity {
         playerId: opts.playerId,
         clue: opts.clue,
         cardId: opts.cardId,
+        ...(opts.deadlineConfig && { deadlineConfig: opts.deadlineConfig }),
       });
 
       const entity = StartedGameEntity.create({
@@ -656,6 +677,7 @@ export class StartedGameEntity extends GameEntity {
   selectCard(opts: {
     playerId: PlayerId;
     cardId: CardId;
+    deadlineConfig?: { now: Date; timeoutMs: number };
   }): Effect.Effect<
     EntityWithEvents<StartedGameEntity, CardSelectedEvent>,
     Error
@@ -668,6 +690,7 @@ export class StartedGameEntity extends GameEntity {
       const updatedTurn = yield* this.props.currentTurn.selectCard({
         playerId: opts.playerId,
         cardId: opts.cardId,
+        ...(opts.deadlineConfig && { deadlineConfig: opts.deadlineConfig }),
       });
 
       const entity = StartedGameEntity.create({
@@ -688,6 +711,7 @@ export class StartedGameEntity extends GameEntity {
   voteOnCard(opts: {
     playerId: PlayerId;
     cardId: CardId;
+    deadlineConfig?: { now: Date; timeoutMs: number };
   }): Effect.Effect<
     EntityWithEvents<StartedGameEntity, VoteSubmittedEvent>,
     Error
@@ -700,6 +724,7 @@ export class StartedGameEntity extends GameEntity {
       const updatedTurn = yield* this.props.currentTurn.voteOnCard({
         playerId: opts.playerId,
         cardId: opts.cardId,
+        ...(opts.deadlineConfig && { deadlineConfig: opts.deadlineConfig }),
       });
 
       const updatedScores = this.updateScores(updatedTurn);
@@ -722,6 +747,7 @@ export class StartedGameEntity extends GameEntity {
 
   notifyReadyForNextTurn(opts: {
     playerId: PlayerId;
+    deadlineConfig?: { now: Date; timeoutMs: number };
   }): Effect.Effect<
     EntityWithEvents<GameEntity, TurnScoredEvent | GameEndedEvent>,
     Error
@@ -747,56 +773,21 @@ export class StartedGameEntity extends GameEntity {
       opts.playerId,
     );
 
+    // Clear acting player's deadline
+    const turnWithClearedDeadline = opts.deadlineConfig
+      ? this.props.currentTurn.clearPlayerDeadline(opts.playerId)
+      : this.props.currentTurn;
+
     if (updatedPlayersReadyForNextTurn.length === this.props.players.length) {
-      const currentStorytellerIndex = this.props.players.indexOf(
-        this.props.currentTurn.currentStorytellerId,
+      return this.transitionToNextTurnOrEndGame(
+        turnWithClearedDeadline,
+        opts.deadlineConfig,
       );
-      const nextStorytellerId =
-        this.props.players[
-          (currentStorytellerIndex + 1) % this.props.players.length
-        ];
-      const updatedPlayersHavingBeenStoryteller = Object.fromEntries(
-        Object.entries(this.props.playersHavingBeenStoryteller).map(
-          ([playerId, numberOfTimes]) => [
-            playerId,
-            playerId === this.props.currentTurn.currentStorytellerId
-              ? numberOfTimes + 1
-              : numberOfTimes,
-          ],
-        ),
-      );
-
-      if (this.shouldGameEnd(updatedPlayersHavingBeenStoryteller)) {
-        const entity = new EndedGameEntity({
-          ...this.props,
-          version: this.props.version + 1,
-          scores: this.props.scores,
-        });
-
-        return Effect.succeed({
-          entity,
-          events: [GameEnded({ gameId: this.props.id })],
-        });
-      }
-
-      const entity = StartedGameEntity.create({
-        ...this.props,
-        playersReadyForNextTurn: [],
-        currentTurn: this.props.currentTurn.nextTurn({
-          nextStorytellerId,
-        }),
-        version: this.props.version + 1,
-        playersHavingBeenStoryteller: updatedPlayersHavingBeenStoryteller,
-      });
-
-      return Effect.succeed({
-        entity,
-        events: [TurnScored({ gameId: this.props.id })],
-      });
     }
 
     const entity = StartedGameEntity.create({
       ...this.props,
+      currentTurn: turnWithClearedDeadline,
       playersReadyForNextTurn: updatedPlayersReadyForNextTurn,
       version: this.props.version + 1,
     });
@@ -804,6 +795,69 @@ export class StartedGameEntity extends GameEntity {
     return Effect.succeed({
       entity,
       events: [],
+    });
+  }
+
+  private transitionToNextTurnOrEndGame(
+    currentTurn: TurnEntity,
+    deadlineConfig?: { now: Date; timeoutMs: number },
+  ): Effect.Effect<
+    EntityWithEvents<GameEntity, TurnScoredEvent | GameEndedEvent>,
+    never,
+    never
+  > {
+    const currentStorytellerIndex = this.props.players.indexOf(
+      currentTurn.currentStorytellerId,
+    );
+    const nextStorytellerId =
+      this.props.players[
+        (currentStorytellerIndex + 1) % this.props.players.length
+      ];
+    const updatedPlayersHavingBeenStoryteller = Object.fromEntries(
+      Object.entries(this.props.playersHavingBeenStoryteller).map(
+        ([playerId, numberOfTimes]) => [
+          playerId,
+          playerId === currentTurn.currentStorytellerId
+            ? numberOfTimes + 1
+            : numberOfTimes,
+        ],
+      ),
+    );
+
+    if (this.shouldGameEnd(updatedPlayersHavingBeenStoryteller)) {
+      const entity = new EndedGameEntity({
+        ...this.props,
+        version: this.props.version + 1,
+        scores: this.props.scores,
+      });
+
+      return Effect.succeed({
+        entity,
+        events: [GameEnded({ gameId: this.props.id })],
+      });
+    }
+
+    let nextTurn = currentTurn.nextTurn({ nextStorytellerId });
+
+    // Set deadline for new storyteller if deadlineConfig is provided
+    if (deadlineConfig) {
+      const deadline = new Date(
+        deadlineConfig.now.getTime() + deadlineConfig.timeoutMs,
+      );
+      nextTurn = nextTurn.setPlayerDeadline(nextStorytellerId, deadline);
+    }
+
+    const entity = StartedGameEntity.create({
+      ...this.props,
+      playersReadyForNextTurn: [],
+      currentTurn: nextTurn,
+      version: this.props.version + 1,
+      playersHavingBeenStoryteller: updatedPlayersHavingBeenStoryteller,
+    });
+
+    return Effect.succeed({
+      entity,
+      events: [TurnScored({ gameId: this.props.id })],
     });
   }
 
