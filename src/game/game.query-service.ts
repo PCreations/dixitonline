@@ -52,6 +52,8 @@ interface GameViewBase {
   readonly storyteller: PlayerInfo;
   readonly hand: ReadonlyArray<CardView>;
   readonly playersStatus: ReadonlyArray<PlayerStatus>;
+  /** ISO timestamp of the player's action deadline, or undefined if no deadline */
+  readonly actionDeadline?: string;
 }
 
 // === Phase-specific Views (Discriminated Union) ===
@@ -268,6 +270,12 @@ function buildGameView(
   const isStoryteller = playerView.storyteller === currentPlayerId;
   const { phase } = playerView;
 
+  // Get player's action deadline if it exists
+  const playerDeadline = snapshot.currentTurn.playerDeadlines.get(
+    PlayerId(currentPlayerId),
+  );
+  const actionDeadline = playerDeadline?.toISOString();
+
   const baseView: GameViewBase = {
     gameId: playerView.gameId,
     currentPlayer: getPlayerInfo(currentPlayerId, true),
@@ -283,6 +291,7 @@ function buildGameView(
       status: playerView.playerStatus[playerId],
       score: snapshot.scores.find((s) => s.playerId === playerId)?.score ?? 0,
     })),
+    ...(actionDeadline && { actionDeadline }),
   };
 
   switch (phase) {

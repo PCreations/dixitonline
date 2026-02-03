@@ -8,6 +8,7 @@ import {
   PlayerPanel,
   ScoringResults,
   StorytellerPhaseAsStoryteller,
+  TurnTimerBar,
   VotingBoard,
   WaitingForPlayers,
   WaitingForStoryteller,
@@ -44,6 +45,10 @@ export function Game({ view }: GameProps) {
       <div id="game-content" className="game-content">
         <GamePhaseContent view={view} />
       </div>
+
+      {view._tag !== 'Ended' && (
+        <TurnTimerBar deadline={view.actionDeadline} />
+      )}
     </div>
   );
 }
