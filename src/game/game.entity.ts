@@ -649,6 +649,7 @@ export class StartedGameEntity extends GameEntity {
     cardId: CardId;
     clue: string;
     deadlineConfig?: { now: Date; timeoutMs: number };
+    wasAutoPlayed: boolean;
   }): Effect.Effect<
     EntityWithEvents<StartedGameEntity, ClueSubmittedEvent>,
     Error
@@ -669,7 +670,12 @@ export class StartedGameEntity extends GameEntity {
 
       return {
         entity,
-        events: [ClueSubmitted({ gameId: this.props.id })],
+        events: [
+          ClueSubmitted({
+            gameId: this.props.id,
+            wasAutoPlayed: opts.wasAutoPlayed,
+          }),
+        ],
       };
     });
   }
@@ -678,6 +684,7 @@ export class StartedGameEntity extends GameEntity {
     playerId: PlayerId;
     cardId: CardId;
     deadlineConfig?: { now: Date; timeoutMs: number };
+    wasAutoPlayed: boolean;
   }): Effect.Effect<
     EntityWithEvents<StartedGameEntity, CardSelectedEvent>,
     Error
@@ -702,7 +709,11 @@ export class StartedGameEntity extends GameEntity {
       return {
         entity,
         events: [
-          CardSelected({ gameId: this.props.id, playerId: opts.playerId }),
+          CardSelected({
+            gameId: this.props.id,
+            playerId: opts.playerId,
+            wasAutoPlayed: opts.wasAutoPlayed,
+          }),
         ],
       };
     });
@@ -712,6 +723,7 @@ export class StartedGameEntity extends GameEntity {
     playerId: PlayerId;
     cardId: CardId;
     deadlineConfig?: { now: Date; timeoutMs: number };
+    wasAutoPlayed: boolean;
   }): Effect.Effect<
     EntityWithEvents<StartedGameEntity, VoteSubmittedEvent>,
     Error
@@ -739,7 +751,11 @@ export class StartedGameEntity extends GameEntity {
       return {
         entity,
         events: [
-          VoteSubmitted({ gameId: this.props.id, playerId: opts.playerId }),
+          VoteSubmitted({
+            gameId: this.props.id,
+            playerId: opts.playerId,
+            wasAutoPlayed: opts.wasAutoPlayed,
+          }),
         ],
       };
     });

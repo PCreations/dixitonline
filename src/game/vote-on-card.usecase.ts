@@ -61,6 +61,7 @@ export class VoteOnCardUseCase extends Effect.Service<VoteOnCardUseCase>()(
                         now,
                         timeoutMs: TURN_TIMER_CONFIG.playerActionTimeoutMs,
                       },
+                      wasAutoPlayed: false,
                     });
 
                   // Save game and events atomically (outbox pattern)

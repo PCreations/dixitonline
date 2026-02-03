@@ -61,6 +61,7 @@ export class SelectCardUseCase extends Effect.Service<SelectCardUseCase>()(
                         now,
                         timeoutMs: TURN_TIMER_CONFIG.playerActionTimeoutMs,
                       },
+                      wasAutoPlayed: false,
                     });
 
                   // Save game and events atomically (outbox pattern)

@@ -236,6 +236,7 @@ export const makeOutboxDriverTestLayer = () => {
       }),
     subscribe: (gameId) =>
       Stream.fromIterable(publishedEvents.filter((e) => e.gameId === gameId)),
+    subscribeAll: () => Stream.fromIterable(publishedEvents),
   };
 
   const outboxRepositoryLayer = Layer.succeed(

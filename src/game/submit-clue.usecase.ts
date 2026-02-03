@@ -63,6 +63,7 @@ export class SubmitClueUseCase extends Effect.Service<SubmitClueUseCase>()(
                         now,
                         timeoutMs: TURN_TIMER_CONFIG.playerActionTimeoutMs,
                       },
+                      wasAutoPlayed: false,
                     });
 
                   // Save game and events atomically (outbox pattern)

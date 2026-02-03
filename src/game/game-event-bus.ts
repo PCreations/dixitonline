@@ -20,6 +20,12 @@ export class GameEventBus extends Context.Tag('game/GameEventBus')<
      * Returns a stream that emits events for the given gameId.
      */
     readonly subscribe: (gameId: string) => Stream.Stream<GameEvent>;
+
+    /**
+     * Subscribe to all events across all games.
+     * Used by analytics consumers that need to track all game activity.
+     */
+    readonly subscribeAll: () => Stream.Stream<GameEvent>;
   }
 >() {}
 
@@ -48,6 +54,8 @@ export const InMemoryGameEventBus = Layer.effect(
         Stream.fromPubSub(pubsub).pipe(
           Stream.filter((event) => event.gameId === gameId),
         ),
+
+      subscribeAll: () => Stream.fromPubSub(pubsub),
     };
   }),
 );
@@ -59,4 +67,5 @@ export const InMemoryGameEventBus = Layer.effect(
 export const NoopGameEventBus = Layer.succeed(GameEventBus, {
   publish: () => Effect.void,
   subscribe: () => Stream.empty,
+  subscribeAll: () => Stream.empty,
 });

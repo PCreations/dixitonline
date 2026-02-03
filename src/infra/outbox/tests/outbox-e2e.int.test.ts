@@ -76,6 +76,9 @@ describe('Outbox E2E Integration', () => {
           subscribe: () => {
             return Stream.empty;
           },
+          subscribeAll: () => {
+            return Stream.empty;
+          },
         },
       );
 
@@ -187,6 +190,9 @@ describe('Outbox E2E Integration', () => {
           subscribe: () => {
             return Stream.empty;
           },
+          subscribeAll: () => {
+            return Stream.empty;
+          },
         },
       );
 
@@ -272,6 +278,9 @@ describe('Outbox E2E Integration', () => {
               );
             }),
           subscribe: () => {
+            return Stream.empty;
+          },
+          subscribeAll: () => {
             return Stream.empty;
           },
         },

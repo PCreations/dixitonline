@@ -182,6 +182,7 @@ const autoPlayStorytelling = (
         now,
         timeoutMs: TURN_TIMER_CONFIG.playerActionTimeoutMs,
       },
+      wasAutoPlayed: true,
     });
 
     return { game: entity, events };
@@ -211,6 +212,7 @@ const autoPlaySelectingCards = (
         now,
         timeoutMs: TURN_TIMER_CONFIG.playerActionTimeoutMs,
       },
+      wasAutoPlayed: true,
     });
 
     return { game: entity, events };
@@ -250,6 +252,7 @@ const autoPlayVoting = (
         now,
         timeoutMs: TURN_TIMER_CONFIG.playerActionTimeoutMs,
       },
+      wasAutoPlayed: true,
     });
 
     return { game: entity, events };

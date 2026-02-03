@@ -10,9 +10,20 @@ export type GameEvent = Data.TaggedEnum<{
   PlayerJoined: { readonly gameId: GameId; readonly playerId: PlayerId };
   PlayerLeft: { readonly gameId: GameId; readonly playerId: PlayerId };
   GameStarted: { readonly gameId: GameId };
-  ClueSubmitted: { readonly gameId: GameId };
-  CardSelected: { readonly gameId: GameId; readonly playerId: PlayerId };
-  VoteSubmitted: { readonly gameId: GameId; readonly playerId: PlayerId };
+  ClueSubmitted: {
+    readonly gameId: GameId;
+    readonly wasAutoPlayed: boolean;
+  };
+  CardSelected: {
+    readonly gameId: GameId;
+    readonly playerId: PlayerId;
+    readonly wasAutoPlayed: boolean;
+  };
+  VoteSubmitted: {
+    readonly gameId: GameId;
+    readonly playerId: PlayerId;
+    readonly wasAutoPlayed: boolean;
+  };
   TurnScored: { readonly gameId: GameId };
   GameEnded: { readonly gameId: GameId };
 }>;
